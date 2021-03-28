@@ -1,0 +1,18 @@
+﻿[{
+        "outputFileName": "wwwroot/css/smallphotos.min.css",
+        "inputFiles": [
+            "wwwroot/css/smallphotos.css"
+        ]
+    },
+    {
+        "outputFileName": "wwwroot/js/smallphotos.min.js",
+        "inputFiles": [
+            "wwwroot/js/smallphotos.js"
+        ],
+        "minify": {
+            "enabled": true,
+            "renameLocals": true
+        },
+        "sourceMap": false
+    }
+]
