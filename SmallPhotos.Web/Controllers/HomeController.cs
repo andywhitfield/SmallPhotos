@@ -19,7 +19,11 @@ namespace SmallPhotos.Web.Controllers
 
         [Authorize]
         [HttpGet("~/")]
-        public IActionResult Index() => View(new IndexViewModel(HttpContext));
+        public async Task<IActionResult> Index()
+        {
+            var response = await _mediator.Send(new HomePageRequest());
+            return View(new IndexViewModel(HttpContext, response.Photos));
+        }
 
         public IActionResult Error() => View(new ErrorViewModel(HttpContext));
 

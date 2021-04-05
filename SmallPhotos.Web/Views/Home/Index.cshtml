@@ -9,4 +9,16 @@
     </nav>
 </aside>
 
-<h3>Home page</h3>
+<article>
+    <p>
+    @if (Model.Photos.Any()) {
+    <ul>
+        @foreach(var photo in Model.Photos) {
+            <li>@photo.Filename</li>
+        }
+    </ul>
+    } else {
+        <text>You have no photos. Add a collection to your library in your <a href="/profile">profile</a>.</text>
+    }
+    </p>
+</article>

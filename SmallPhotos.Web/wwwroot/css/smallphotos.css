@@ -8,6 +8,7 @@ h2,
 p,
 div,
 span,
+li,
 input,
 button,
 textarea,
@@ -86,6 +87,10 @@ nav.navbar-main {
     float: right;
 }
 
+.navbar-nav form {
+    display: inline;
+}
+
 main {
     display: -webkit-flex;
     display: flex;
@@ -98,6 +103,7 @@ aside {
     flex: 0;
     padding: 10px;
     background-color: #23dbdd;
+    margin-right: 15px;
 }
 
 aside ul {
@@ -157,7 +163,11 @@ footer {
         background-color: black;
         color: white;
     }
-    footer {
+    main,
+    footer,
+    article a,
+    article a:link,
+    article a:visited {
         color: white;
     }
 }

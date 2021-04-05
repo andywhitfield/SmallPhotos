@@ -29,10 +29,16 @@
         <nav class="navbar-main">
             <div class="navbar-nav">
                 @if (Model.IsLoggedIn) {
-                    <span><form action="/signout" method="post">
+                    <span>
+                    <form action="/profile">
+                    <button data-href="/profile">Profile</button>
+                    </form>
+
+                    <form action="/signout" method="post">
                     @Html.AntiForgeryToken()
                     <button>Logout</button>
-                    </form></span>
+                    </form>
+                    </span>
                 }
             </div>
             <div>
