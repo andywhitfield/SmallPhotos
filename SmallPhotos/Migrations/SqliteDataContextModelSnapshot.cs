@@ -14,7 +14,7 @@ namespace SmallPhotos.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.4");
+                .HasAnnotation("ProductVersion", "5.0.5");
 
             modelBuilder.Entity("SmallPhotos.Model.AlbumSource", b =>
                 {
@@ -34,14 +34,12 @@ namespace SmallPhotos.Migrations
                     b.Property<DateTime?>("LastUpdateDateTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("UserAccount")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<int>("UserAccountId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("AlbumSourceId");
+
+                    b.HasIndex("UserAccountId");
 
                     b.ToTable("AlbumSources");
                 });
@@ -66,6 +64,9 @@ namespace SmallPhotos.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("FileCreationDateTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FileModificationDateTime")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Filename")
@@ -107,6 +108,17 @@ namespace SmallPhotos.Migrations
                     b.HasKey("UserAccountId");
 
                     b.ToTable("UserAccounts");
+                });
+
+            modelBuilder.Entity("SmallPhotos.Model.AlbumSource", b =>
+                {
+                    b.HasOne("SmallPhotos.Model.UserAccount", "UserAccount")
+                        .WithMany()
+                        .HasForeignKey("UserAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserAccount");
                 });
 #pragma warning restore 612, 618
         }

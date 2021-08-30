@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -23,8 +24,42 @@ namespace SmallPhotos.Web.Controllers
         [HttpGet("~/profile")]
         public async Task<IActionResult> Index()
         {
-            var response = await _mediator.Send(new GetProfileRequest());
-            return View(new IndexViewModel(HttpContext));
+            var response = await _mediator.Send(new GetProfileRequest(User));
+            return View(new IndexViewModel(HttpContext, response.Folders));
+        }
+
+        [HttpPost("~/profile/folder/add")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddFolder([FromForm, Required]string folder)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogInformation("Model state is invalid, returning bad request");
+                return BadRequest();
+            }
+
+            var added = await _mediator.Send(new AddSourceFolderRequest(User, folder));
+            if (!added)
+                return BadRequest();
+
+            return Redirect("~/profile");
+        }
+
+        [HttpPost("~/profile/folder/delete/{albumSourceId}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteFolder([FromRoute, Required]int albumSourceId)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogInformation("Model state is invalid, returning bad request");
+                return BadRequest();
+            }
+
+            var deleted = await _mediator.Send(new DeleteSourceFolderRequest(User, albumSourceId));
+            if (!deleted)
+                return BadRequest();
+
+            return Redirect("~/profile");
         }
     }
 }

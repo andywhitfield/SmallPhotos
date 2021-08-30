@@ -104,7 +104,8 @@ namespace SmallPhotos.Web
             });
             services
                 .AddScoped(sp => (ISqliteDataContext)sp.GetRequiredService<SqliteDataContext>())
-                .AddScoped<IUserAccountRepository, UserAccountRepository>();
+                .AddScoped<IUserAccountRepository, UserAccountRepository>()
+                .AddScoped<IAlbumRepository, AlbumRepository>();
 
             services.AddMediatR(typeof(Startup));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0).AddSessionStateTempDataProvider();

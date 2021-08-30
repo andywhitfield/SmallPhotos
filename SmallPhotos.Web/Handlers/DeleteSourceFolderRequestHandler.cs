@@ -1,22 +1,21 @@
-using System.Linq;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SmallPhotos.Data;
 using SmallPhotos.Web.Handlers.Models;
-using SmallPhotos.Web.Model;
 
 namespace SmallPhotos.Web.Handlers
 {
-    public class GetProfileRequestHandler : IRequestHandler<GetProfileRequest, GetProfileResponse>
+    public class DeleteSourceFolderRequestHandler : IRequestHandler<DeleteSourceFolderRequest, bool>
     {
-        private readonly ILogger<GetProfileRequestHandler> _logger;
+        private readonly ILogger<DeleteSourceFolderRequestHandler> _logger;
         private readonly IUserAccountRepository _userAccountRepository;
         private readonly IAlbumRepository _albumRepository;
 
-        public GetProfileRequestHandler(
-            ILogger<GetProfileRequestHandler> logger,
+        public DeleteSourceFolderRequestHandler(
+            ILogger<DeleteSourceFolderRequestHandler> logger,
             IUserAccountRepository userAccountRepository,
             IAlbumRepository albumRepository)
         {
@@ -25,11 +24,15 @@ namespace SmallPhotos.Web.Handlers
             _albumRepository = albumRepository;
         }
 
-        public async Task<GetProfileResponse> Handle(GetProfileRequest request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(DeleteSourceFolderRequest request, CancellationToken cancellationToken)
         {
             var user = await _userAccountRepository.GetUserAccountAsync(request.User);
-            var allAlbumSources = await _albumRepository.GetAllSourcesAsync(user);
-            return new GetProfileResponse(allAlbumSources.Select(a => new AlbumSourceFolderModel(a.AlbumSourceId, a.Folder)));
+            var albumSource = await _albumRepository.GetAlbumSourceAsync(user, request.AlbumSourceId);
+            if (albumSource == null)
+                return false;
+
+            await _albumRepository.DeleteAlbumSourceAsync(albumSource);
+            return true;
         }
     }
 }

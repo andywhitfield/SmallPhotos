@@ -9,13 +9,13 @@ namespace SmallPhotos.Data
 {
     public class UserAccountRepository : IUserAccountRepository
     {
-        private readonly SqliteDataContext _context;
         private readonly ILogger<UserAccountRepository> _logger;
+        private readonly SqliteDataContext _context;
 
-        public UserAccountRepository(SqliteDataContext context, ILogger<UserAccountRepository> logger)
+        public UserAccountRepository(ILogger<UserAccountRepository> logger, SqliteDataContext context)
         {
-            _context = context;
             _logger = logger;
+            _context = context;
         }
 
         public Task<UserAccount> GetAsync(int userAccountId) =>

@@ -11,6 +11,7 @@ namespace SmallPhotos.Model
         public string AlbumSource { get; set; }
         public string Filename { get; set; }
         public DateTime FileCreationDateTime { get; set; }
+        public DateTime FileModificationDateTime { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
         public DateTime CreatedDateTime { get; set; } = DateTime.UtcNow;
