@@ -22,10 +22,10 @@ namespace SmallPhotos.Web.Controllers
                 return NotFound();
 
             var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename));
-            if (response?.File == null)
+            if (response?.ImageStream == null)
                 return NotFound();
 
-            return File(response.File.OpenRead(), "image/jpeg", new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
-        }        
+            return File(response.ImageStream, "image/jpeg", filename, new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
+        }
     }
 }

@@ -4,8 +4,8 @@ namespace SmallPhotos.Web.Handlers.Models
 {
     public class GetPhotoResponse
     {
-        public GetPhotoResponse(FileInfo file) => File = file;
+        public GetPhotoResponse(Stream imageStream) => ImageStream = imageStream;
 
-        public FileInfo File { get; }
+        public Stream ImageStream { get; }
     }
 }
