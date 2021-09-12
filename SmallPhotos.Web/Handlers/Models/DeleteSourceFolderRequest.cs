@@ -5,7 +5,7 @@ namespace SmallPhotos.Web.Handlers.Models
 {
     public class DeleteSourceFolderRequest : IRequest<bool>
     {
-        public DeleteSourceFolderRequest(ClaimsPrincipal user, int albumSourceId)
+        public DeleteSourceFolderRequest(ClaimsPrincipal user, long albumSourceId)
         {
             User = user;
             AlbumSourceId = albumSourceId;
@@ -13,6 +13,6 @@ namespace SmallPhotos.Web.Handlers.Models
 
         public ClaimsPrincipal User { get; }
 
-        public int AlbumSourceId { get; }
+        public long AlbumSourceId { get; }
     }
 }

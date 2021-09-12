@@ -18,7 +18,7 @@ namespace SmallPhotos.Data
             _context = context;
         }
 
-        public Task<UserAccount> GetAsync(int userAccountId) =>
+        public Task<UserAccount> GetAsync(long userAccountId) =>
             _context.UserAccounts.SingleOrDefaultAsync(a => a.UserAccountId == userAccountId && a.DeletedDateTime == null);
 
         public Task CreateNewUserAsync(ClaimsPrincipal user)

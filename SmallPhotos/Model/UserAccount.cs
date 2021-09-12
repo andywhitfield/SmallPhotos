@@ -5,7 +5,7 @@ namespace SmallPhotos.Model
 {
     public class UserAccount
     {
-        public int UserAccountId { get; set; }
+        public long UserAccountId { get; set; }
         [Required]
         public string AuthenticationUri { get; set; }
         public DateTime CreatedDateTime { get; set; } = DateTime.UtcNow;

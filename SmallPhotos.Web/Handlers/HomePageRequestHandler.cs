@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using SmallPhotos.Data;
 using SmallPhotos.Web.Handlers.Models;
 using SmallPhotos.Web.Model;
 
@@ -12,12 +10,16 @@ namespace SmallPhotos.Web.Handlers
 {
     public class HomePageRequestHandler : IRequestHandler<HomePageRequest, HomePageResponse>
     {
-        private static readonly ISet<string> _validExtensions = new HashSet<string>(new[] { ".heic", ".jpg" });
         private readonly ILogger<HomePageRequestHandler> _logger;
+        private readonly IUserAccountRepository _userAccountRepository;
 
-        public HomePageRequestHandler(ILogger<HomePageRequestHandler> logger) => _logger = logger;
+        public HomePageRequestHandler(ILogger<HomePageRequestHandler> logger, IUserAccountRepository userAccountRepository)
+        {
+            _logger = logger;
+            _userAccountRepository = userAccountRepository;
+        }
 
-        public Task<HomePageResponse> Handle(HomePageRequest request, CancellationToken cancellationToken)
+        public async Task<HomePageResponse> Handle(HomePageRequest request, CancellationToken cancellationToken)
         {
             /*
             var dir = new DirectoryInfo("/Users/andywhitfield/Dropbox/Camera uploads");
@@ -37,7 +39,10 @@ namespace SmallPhotos.Web.Handlers
 
             return Task.FromResult(new HomePageResponse(photos));
             */
-            return Task.FromResult(new HomePageResponse(Enumerable.Empty<PhotoModel>()));
+            //return Task.FromResult(new HomePageResponse(Enumerable.Empty<PhotoModel>()));
+
+            var user = await _userAccountRepository.GetUserAccountAsync(request.User);
+            return new HomePageResponse(new[] { new PhotoModel(1, "test1.jpg", new System.Drawing.Size(500, 500)) });
         }
     }
 }

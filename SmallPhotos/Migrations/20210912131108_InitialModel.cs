@@ -8,32 +8,10 @@ namespace SmallPhotos.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Photos",
-                columns: table => new
-                {
-                    PhotoId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AlbumSourceId = table.Column<int>(type: "INTEGER", nullable: false),
-                    AlbumSource = table.Column<string>(type: "TEXT", nullable: false),
-                    Filename = table.Column<string>(type: "TEXT", nullable: true),
-                    FileCreationDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    FileModificationDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Width = table.Column<int>(type: "INTEGER", nullable: false),
-                    Height = table.Column<int>(type: "INTEGER", nullable: false),
-                    CreatedDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    LastUpdateDateTime = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    DeletedDateTime = table.Column<DateTime>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Photos", x => x.PhotoId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "UserAccounts",
                 columns: table => new
                 {
-                    UserAccountId = table.Column<int>(type: "INTEGER", nullable: false)
+                    UserAccountId = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     AuthenticationUri = table.Column<string>(type: "TEXT", nullable: false),
                     CreatedDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -49,9 +27,9 @@ namespace SmallPhotos.Migrations
                 name: "AlbumSources",
                 columns: table => new
                 {
-                    AlbumSourceId = table.Column<int>(type: "INTEGER", nullable: false)
+                    AlbumSourceId = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    UserAccountId = table.Column<int>(type: "INTEGER", nullable: false),
+                    UserAccountId = table.Column<long>(type: "INTEGER", nullable: false),
                     Folder = table.Column<string>(type: "TEXT", nullable: true),
                     CreatedDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
                     LastUpdateDateTime = table.Column<DateTime>(type: "TEXT", nullable: true),
@@ -68,19 +46,51 @@ namespace SmallPhotos.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Photos",
+                columns: table => new
+                {
+                    PhotoId = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    AlbumSourceId = table.Column<long>(type: "INTEGER", nullable: false),
+                    Filename = table.Column<string>(type: "TEXT", nullable: true),
+                    FileCreationDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    FileModificationDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Width = table.Column<int>(type: "INTEGER", nullable: false),
+                    Height = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    LastUpdateDateTime = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    DeletedDateTime = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Photos", x => x.PhotoId);
+                    table.ForeignKey(
+                        name: "FK_Photos_AlbumSources_AlbumSourceId",
+                        column: x => x.AlbumSourceId,
+                        principalTable: "AlbumSources",
+                        principalColumn: "AlbumSourceId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AlbumSources_UserAccountId",
                 table: "AlbumSources",
                 column: "UserAccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Photos_AlbumSourceId",
+                table: "Photos",
+                column: "AlbumSourceId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AlbumSources");
+                name: "Photos");
 
             migrationBuilder.DropTable(
-                name: "Photos");
+                name: "AlbumSources");
 
             migrationBuilder.DropTable(
                 name: "UserAccounts");

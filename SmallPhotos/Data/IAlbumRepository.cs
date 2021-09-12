@@ -8,7 +8,7 @@ namespace SmallPhotos.Data
     {
         Task<List<AlbumSource>> GetAllSourcesAsync(UserAccount user);
         Task AddAlbumSourceAsync(UserAccount userAccount, string folder);
-        Task<AlbumSource> GetAlbumSourceAsync(UserAccount user, int albumSourceId);
+        Task<AlbumSource> GetAlbumSourceAsync(UserAccount user, long albumSourceId);
         Task DeleteAlbumSourceAsync(AlbumSource albumSource);
     }
 }

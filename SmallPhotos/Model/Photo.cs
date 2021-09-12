@@ -5,10 +5,10 @@ namespace SmallPhotos.Model
 {
     public class Photo
     {
-        public int PhotoId { get; set; }
-        public int AlbumSourceId { get; set; }
+        public long PhotoId { get; set; }
+        public long AlbumSourceId { get; set; }
         [Required]
-        public string AlbumSource { get; set; }
+        public AlbumSource AlbumSource { get; set; }
         public string Filename { get; set; }
         public DateTime FileCreationDateTime { get; set; }
         public DateTime FileModificationDateTime { get; set; }

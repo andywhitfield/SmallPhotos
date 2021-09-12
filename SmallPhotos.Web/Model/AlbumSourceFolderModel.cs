@@ -2,13 +2,13 @@ namespace SmallPhotos.Web.Model
 {
     public class AlbumSourceFolderModel
     {
-        public AlbumSourceFolderModel(int albumSourceId, string folder)
+        public AlbumSourceFolderModel(long albumSourceId, string folder)
         {
             AlbumSourceId = albumSourceId;
             Folder = folder;
         }
 
-        public int AlbumSourceId { get; }
+        public long AlbumSourceId { get; }
         public string Folder { get; }
     }
 }

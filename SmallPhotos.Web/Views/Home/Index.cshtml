@@ -14,7 +14,7 @@
     @if (Model.Photos.Any()) {
     <ul>
         @foreach(var photo in Model.Photos) {
-            <li>@photo.Filename</li>
+            <li><img src="/photo/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" /></li>
         }
     </ul>
     } else {

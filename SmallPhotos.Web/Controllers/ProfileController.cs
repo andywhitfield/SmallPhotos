@@ -47,7 +47,7 @@ namespace SmallPhotos.Web.Controllers
 
         [HttpPost("~/profile/folder/delete/{albumSourceId}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteFolder([FromRoute, Required]int albumSourceId)
+        public async Task<IActionResult> DeleteFolder([FromRoute, Required]long albumSourceId)
         {
             if (!ModelState.IsValid)
             {

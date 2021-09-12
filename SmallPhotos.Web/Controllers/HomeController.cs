@@ -19,11 +19,8 @@ namespace SmallPhotos.Web.Controllers
 
         [Authorize]
         [HttpGet("~/")]
-        public async Task<IActionResult> Index()
-        {
-            var response = await _mediator.Send(new HomePageRequest());
-            return View(new IndexViewModel(HttpContext, response.Photos));
-        }
+        public async Task<IActionResult> Index() =>
+            View(new IndexViewModel(HttpContext, (await _mediator.Send(new HomePageRequest(User))).Photos));
 
         public IActionResult Error() => View(new ErrorViewModel(HttpContext));
 

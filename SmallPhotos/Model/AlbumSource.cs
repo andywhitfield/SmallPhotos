@@ -5,8 +5,8 @@ namespace SmallPhotos.Model
 {
     public class AlbumSource
     {
-        public int AlbumSourceId { get; set; }
-        public int UserAccountId { get; set; }
+        public long AlbumSourceId { get; set; }
+        public long UserAccountId { get; set; }
         [Required]
         public UserAccount UserAccount { get; set; }
         public string Folder { get; set; }

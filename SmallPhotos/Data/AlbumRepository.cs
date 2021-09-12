@@ -19,7 +19,7 @@ namespace SmallPhotos.Data
             _context = context;
         }
 
-        public Task<AlbumSource> GetAlbumSourceAsync(UserAccount user, int albumSourceId) =>
+        public Task<AlbumSource> GetAlbumSourceAsync(UserAccount user, long albumSourceId) =>
             _context
                 .AlbumSources
                 .FirstOrDefaultAsync(
