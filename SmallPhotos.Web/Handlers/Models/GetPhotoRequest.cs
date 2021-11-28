@@ -7,8 +7,15 @@ namespace SmallPhotos.Web.Handlers.Models
     {
         public ClaimsPrincipal User { get; }
         public long PhotoId { get; }
-        public string Name {get;}
+        public string Name { get; }
+        public string ThumbnailSize { get; }
 
-        public GetPhotoRequest(ClaimsPrincipal user, long photoId, string name) => User = user;
+        public GetPhotoRequest(ClaimsPrincipal user, long photoId, string name, string thumbnailSize)
+        {
+            User = user;
+            PhotoId = photoId;
+            Name = name;
+            ThumbnailSize = thumbnailSize;
+        }
     }
 }

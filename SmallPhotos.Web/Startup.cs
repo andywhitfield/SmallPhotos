@@ -105,10 +105,11 @@ namespace SmallPhotos.Web
             services
                 .AddScoped(sp => (ISqliteDataContext)sp.GetRequiredService<SqliteDataContext>())
                 .AddScoped<IUserAccountRepository, UserAccountRepository>()
-                .AddScoped<IAlbumRepository, AlbumRepository>();
+                .AddScoped<IAlbumRepository, AlbumRepository>()
+                .AddScoped<IPhotoRepository, PhotoRepository>();
 
             services.AddMediatR(typeof(Startup));
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0).AddSessionStateTempDataProvider();
+            services.AddMvc().AddSessionStateTempDataProvider();
             var builder = services.AddRazorPages();
 #if DEBUG
             if (Environment.IsDevelopment())

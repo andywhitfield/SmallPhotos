@@ -6,9 +6,9 @@ namespace SmallPhotos.Data
 {
     public interface IAlbumRepository
     {
-        Task<List<AlbumSource>> GetAllSourcesAsync(UserAccount user);
-        Task AddAlbumSourceAsync(UserAccount userAccount, string folder);
-        Task<AlbumSource> GetAlbumSourceAsync(UserAccount user, long albumSourceId);
+        Task<List<AlbumSource>> GetAllAsync(UserAccount user);
+        Task AddAsync(UserAccount userAccount, string folder);
+        Task<AlbumSource> GetAsync(UserAccount user, long albumSourceId);
         Task DeleteAlbumSourceAsync(AlbumSource albumSource);
     }
 }

@@ -14,7 +14,7 @@ namespace SmallPhotos.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.9");
+                .HasAnnotation("ProductVersion", "5.0.10");
 
             modelBuilder.Entity("SmallPhotos.Model.AlbumSource", b =>
                 {
@@ -84,6 +84,28 @@ namespace SmallPhotos.Migrations
                     b.ToTable("Photos");
                 });
 
+            modelBuilder.Entity("SmallPhotos.Model.Thumbnail", b =>
+                {
+                    b.Property<long>("ThumbnailId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("PhotoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("ThumbnailImage")
+                        .HasColumnType("BLOB");
+
+                    b.Property<int>("ThumbnailSize")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ThumbnailId");
+
+                    b.HasIndex("PhotoId");
+
+                    b.ToTable("Thumbnails");
+                });
+
             modelBuilder.Entity("SmallPhotos.Model.UserAccount", b =>
                 {
                     b.Property<long>("UserAccountId")
@@ -128,6 +150,17 @@ namespace SmallPhotos.Migrations
                         .IsRequired();
 
                     b.Navigation("AlbumSource");
+                });
+
+            modelBuilder.Entity("SmallPhotos.Model.Thumbnail", b =>
+                {
+                    b.HasOne("SmallPhotos.Model.Photo", "Photo")
+                        .WithMany()
+                        .HasForeignKey("PhotoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Photo");
                 });
 #pragma warning restore 612, 618
         }

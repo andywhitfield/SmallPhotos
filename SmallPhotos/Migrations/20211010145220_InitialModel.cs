@@ -73,6 +73,27 @@ namespace SmallPhotos.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Thumbnails",
+                columns: table => new
+                {
+                    ThumbnailId = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    PhotoId = table.Column<long>(type: "INTEGER", nullable: false),
+                    ThumbnailImage = table.Column<byte[]>(type: "BLOB", nullable: true),
+                    ThumbnailSize = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Thumbnails", x => x.ThumbnailId);
+                    table.ForeignKey(
+                        name: "FK_Thumbnails_Photos_PhotoId",
+                        column: x => x.PhotoId,
+                        principalTable: "Photos",
+                        principalColumn: "PhotoId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AlbumSources_UserAccountId",
                 table: "AlbumSources",
@@ -82,10 +103,18 @@ namespace SmallPhotos.Migrations
                 name: "IX_Photos_AlbumSourceId",
                 table: "Photos",
                 column: "AlbumSourceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Thumbnails_PhotoId",
+                table: "Thumbnails",
+                column: "PhotoId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Thumbnails");
+
             migrationBuilder.DropTable(
                 name: "Photos");
 

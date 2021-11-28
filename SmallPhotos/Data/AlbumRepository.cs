@@ -19,21 +19,21 @@ namespace SmallPhotos.Data
             _context = context;
         }
 
-        public Task<AlbumSource> GetAlbumSourceAsync(UserAccount user, long albumSourceId) =>
+        public Task<AlbumSource> GetAsync(UserAccount user, long albumSourceId) =>
             _context
                 .AlbumSources
-                .FirstOrDefaultAsync(
-                    a => a.UserAccountId == user.UserAccountId &&
+                .FirstOrDefaultAsync(a =>
+                    a.UserAccountId == user.UserAccountId &&
                     a.AlbumSourceId == albumSourceId &&
                     a.DeletedDateTime == null);
 
-        public Task<List<AlbumSource>> GetAllSourcesAsync(UserAccount user) =>
+        public Task<List<AlbumSource>> GetAllAsync(UserAccount user) =>
             _context
                 .AlbumSources
                 .Where(a => a.UserAccountId == user.UserAccountId && a.DeletedDateTime == null)
                 .ToListAsync();
 
-        public async Task AddAlbumSourceAsync(UserAccount userAccount, string folder)
+        public async Task AddAsync(UserAccount userAccount, string folder)
         {
             await _context.AlbumSources.AddAsync(new AlbumSource
             {

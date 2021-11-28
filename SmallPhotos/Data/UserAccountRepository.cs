@@ -32,7 +32,7 @@ namespace SmallPhotos.Data
 
         private string GetIdentifierFromPrincipal(ClaimsPrincipal user) => user?.FindFirstValue("sub");
 
-        public Task<UserAccount> GetUserAccountAsync(ClaimsPrincipal user) => GetUserAccountOrNullAsync(user) ?? throw new ArgumentException($"No UserAccount for the user: {GetIdentifierFromPrincipal(user)}");
+        public async Task<UserAccount> GetUserAccountAsync(ClaimsPrincipal user) => (await GetUserAccountOrNullAsync(user)) ?? throw new ArgumentException($"No UserAccount for the user: {GetIdentifierFromPrincipal(user)}");
 
         public Task<UserAccount> GetUserAccountOrNullAsync(ClaimsPrincipal user)
         {

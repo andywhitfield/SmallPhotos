@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -5,6 +6,7 @@ using ImageMagick;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SmallPhotos.Data;
+using SmallPhotos.Model;
 using SmallPhotos.Web.Handlers.Models;
 
 namespace SmallPhotos.Web.Handlers
@@ -13,24 +15,60 @@ namespace SmallPhotos.Web.Handlers
     {
         private readonly ILogger<GetPhotoRequestHandler> _logger;
         private readonly IUserAccountRepository _userAccountRepository;
+        private readonly IPhotoRepository _photoRepository;
 
-        public GetPhotoRequestHandler(ILogger<GetPhotoRequestHandler> logger, IUserAccountRepository userAccountRepository)
+        public GetPhotoRequestHandler(ILogger<GetPhotoRequestHandler> logger, IUserAccountRepository userAccountRepository,
+            IPhotoRepository photoRepository)
         {
             _logger = logger;
             _userAccountRepository = userAccountRepository;
+            _photoRepository = photoRepository;
         }
 
         public async Task<GetPhotoResponse> Handle(GetPhotoRequest request, CancellationToken cancellationToken)
         {
             var user = await _userAccountRepository.GetUserAccountAsync(request.User);
-            // TODO: load photo by id, validate user & name
+            var photo = await _photoRepository.GetAsync(user, request.PhotoId);
+            if (photo == null)
+            {
+                _logger.LogInformation($"No photo with id {request.PhotoId}");
+                return GetPhotoResponse.Empty;
+            }
 
-            var file = "/Users/andywhitfield/Dropbox/Camera uploads/2021-09-12 10.22.31.heic";
-            var jpegStream = new MemoryStream();
-            using (var image = new MagickImage(file, MagickFormat.Heic))
-                await image.WriteAsync(jpegStream, MagickFormat.Jpeg);
+            if (!string.Equals(photo.Filename, request.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInformation($"Found photo with id {request.PhotoId}, but names don't match [{photo.Filename}] vs [{request.Name}]");
+                return GetPhotoResponse.Empty;
+            }
 
-            jpegStream.Position = 0;
+            ThumbnailSize thumbnailSize;
+            if (string.IsNullOrEmpty(request.ThumbnailSize))
+                thumbnailSize = ThumbnailSize.Medium;
+            else if (!Enum.TryParse<ThumbnailSize>(request.ThumbnailSize, true, out thumbnailSize))
+            {
+                _logger.LogInformation($"Unknown thumbnail size [{request.ThumbnailSize}]");
+                return GetPhotoResponse.Empty;
+            }
+
+            // TODO: test this saved thumbnail
+            var thumbnail = await _photoRepository.GetThumbnailAsync(photo, thumbnailSize);
+
+            var jpegStream = thumbnail == null ? new MemoryStream() : new MemoryStream(thumbnail.ThumbnailImage);
+            if (thumbnail == null)
+            {
+                using (var image = new MagickImage(Path.Combine(photo.AlbumSource.Folder, photo.Filename), MagickFormat.Heic))
+                {
+                    // TODO: resize / scale to smaller thumbnail on home page
+                    var resizeTo = thumbnailSize.ToSize();
+                    image.Sample(resizeTo.Width, resizeTo.Height);
+                    await image.WriteAsync(jpegStream, MagickFormat.Jpeg);
+                }
+
+                await _photoRepository.SaveThumbnailAsync(photo, thumbnailSize, jpegStream.ToArray());
+
+                jpegStream.Position = 0;
+            }
+
             return new GetPhotoResponse(jpegStream);
         }
     }

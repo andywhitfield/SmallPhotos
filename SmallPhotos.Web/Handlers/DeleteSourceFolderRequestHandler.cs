@@ -26,7 +26,7 @@ namespace SmallPhotos.Web.Handlers
         public async Task<bool> Handle(DeleteSourceFolderRequest request, CancellationToken cancellationToken)
         {
             var user = await _userAccountRepository.GetUserAccountAsync(request.User);
-            var albumSource = await _albumRepository.GetAlbumSourceAsync(user, request.AlbumSourceId);
+            var albumSource = await _albumRepository.GetAsync(user, request.AlbumSourceId);
             if (albumSource == null)
                 return false;
 

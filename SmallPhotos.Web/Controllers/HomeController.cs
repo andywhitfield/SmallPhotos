@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmallPhotos.Model;
 using SmallPhotos.Web.Handlers.Models;
 using SmallPhotos.Web.Model.Home;
 
@@ -19,8 +20,15 @@ namespace SmallPhotos.Web.Controllers
 
         [Authorize]
         [HttpGet("~/")]
-        public async Task<IActionResult> Index() =>
-            View(new IndexViewModel(HttpContext, (await _mediator.Send(new HomePageRequest(User))).Photos));
+        public async Task<IActionResult> Index()
+        {
+            var thumbnailSize = ThumbnailSize.Small;
+            var response = await _mediator.Send(new HomePageRequest(User, thumbnailSize));
+            if (!response.IsUserValid)
+                return Redirect("~/signin");
+
+            return View(new IndexViewModel(HttpContext, thumbnailSize, response.Photos));
+        }
 
         public IActionResult Error() => View(new ErrorViewModel(HttpContext));
 
