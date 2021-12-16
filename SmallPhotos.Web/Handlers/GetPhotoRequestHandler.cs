@@ -50,7 +50,8 @@ namespace SmallPhotos.Web.Handlers
                 return GetPhotoResponse.Empty;
             }
 
-            // TODO: test this saved thumbnail
+            // TODO: this should have been created by the background process, but if not, we should
+            //       create the thumbnail & save...but probably needs to be a separate (shared) service
             var thumbnail = await _photoRepository.GetThumbnailAsync(photo, thumbnailSize);
 
             var jpegStream = thumbnail == null ? new MemoryStream() : new MemoryStream(thumbnail.ThumbnailImage);
@@ -58,7 +59,6 @@ namespace SmallPhotos.Web.Handlers
             {
                 using (var image = new MagickImage(Path.Combine(photo.AlbumSource.Folder, photo.Filename), MagickFormat.Heic))
                 {
-                    // TODO: resize / scale to smaller thumbnail on home page
                     var resizeTo = thumbnailSize.ToSize();
                     image.Sample(resizeTo.Width, resizeTo.Height);
                     await image.WriteAsync(jpegStream, MagickFormat.Jpeg);

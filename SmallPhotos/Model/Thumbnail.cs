@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace SmallPhotos.Model
@@ -10,5 +11,7 @@ namespace SmallPhotos.Model
         public Photo Photo { get; set; }
         public byte[] ThumbnailImage { get; set; }
         public ThumbnailSize ThumbnailSize { get; set; }
+        public DateTime CreatedDateTime { get; set; } = DateTime.UtcNow;
+        public DateTime? LastUpdateDateTime { get; set; }
     }
 }

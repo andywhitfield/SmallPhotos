@@ -6,17 +6,18 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmallPhotos.Data;
 
+#nullable disable
+
 namespace SmallPhotos.Migrations
 {
     [DbContext(typeof(SqliteDataContext))]
-    [Migration("20211010145220_InitialModel")]
+    [Migration("20211216112318_InitialModel")]
     partial class InitialModel
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
 
             modelBuilder.Entity("SmallPhotos.Model.AlbumSource", b =>
                 {
@@ -91,6 +92,12 @@ namespace SmallPhotos.Migrations
                     b.Property<long>("ThumbnailId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedDateTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastUpdateDateTime")
+                        .HasColumnType("TEXT");
 
                     b.Property<long>("PhotoId")
                         .HasColumnType("INTEGER");

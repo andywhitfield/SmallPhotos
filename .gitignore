@@ -33,3 +33,4 @@ publish/
 smallphotos.db*
 appSettings.Development.json
 appSettings.Production.json
+*.log

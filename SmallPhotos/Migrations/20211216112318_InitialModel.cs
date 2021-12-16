@@ -1,6 +1,8 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
+#nullable disable
+
 namespace SmallPhotos.Migrations
 {
     public partial class InitialModel : Migration
@@ -81,7 +83,9 @@ namespace SmallPhotos.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     PhotoId = table.Column<long>(type: "INTEGER", nullable: false),
                     ThumbnailImage = table.Column<byte[]>(type: "BLOB", nullable: true),
-                    ThumbnailSize = table.Column<int>(type: "INTEGER", nullable: false)
+                    ThumbnailSize = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    LastUpdateDateTime = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
