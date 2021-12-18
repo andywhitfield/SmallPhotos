@@ -95,18 +95,7 @@ namespace SmallPhotos.Web
                 o.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddDbContext<SqliteDataContext>((serviceProvider, options) =>
-            {
-                var sqliteConnectionString = Configuration.GetConnectionString("SmallPhotos");
-                serviceProvider.GetRequiredService<ILogger<Startup>>().LogInformation($"Using connection string: {sqliteConnectionString}");
-                options.UseSqlite(sqliteConnectionString);
-            });
-            services
-                .AddScoped(sp => (ISqliteDataContext)sp.GetRequiredService<SqliteDataContext>())
-                .AddScoped<IUserAccountRepository, UserAccountRepository>()
-                .AddScoped<IAlbumRepository, AlbumRepository>()
-                .AddScoped<IPhotoRepository, PhotoRepository>();
-
+            services.AddDataServices();
             services.AddMediatR(typeof(Startup));
             services.AddMvc().AddSessionStateTempDataProvider();
             var builder = services.AddRazorPages();

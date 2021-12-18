@@ -38,14 +38,7 @@ namespace SmallPhotos.Service
                 logging.AddDebug();
             });
 
-            services.AddDbContext<SqliteDataContext>((serviceProvider, options) =>
-            {
-                var sqliteConnectionString = Configuration.GetConnectionString("SmallPhotos");
-                serviceProvider.GetRequiredService<ILogger<Startup>>().LogInformation($"Using connection string: {sqliteConnectionString}");
-                options.UseSqlite(sqliteConnectionString);
-            });
-            services.AddScoped(sp => (ISqliteDataContext)sp.GetRequiredService<SqliteDataContext>());
-
+            services.AddDataServices();
             services.AddMvc();
             services.AddCors();
 

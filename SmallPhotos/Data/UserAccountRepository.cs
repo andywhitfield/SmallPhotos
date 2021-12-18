@@ -1,22 +1,18 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using SmallPhotos.Model;
 
 namespace SmallPhotos.Data
 {
     public class UserAccountRepository : IUserAccountRepository
     {
-        private readonly ILogger<UserAccountRepository> _logger;
         private readonly SqliteDataContext _context;
 
-        public UserAccountRepository(ILogger<UserAccountRepository> logger, SqliteDataContext context)
-        {
-            _logger = logger;
-            _context = context;
-        }
+        public UserAccountRepository(SqliteDataContext context) => _context = context;
 
         public Task<UserAccount> GetAsync(long userAccountId) =>
             _context.UserAccounts.SingleOrDefaultAsync(a => a.UserAccountId == userAccountId && a.DeletedDateTime == null);
@@ -42,5 +38,7 @@ namespace SmallPhotos.Data
 
             return _context.UserAccounts.FirstOrDefaultAsync(ua => ua.AuthenticationUri == authenticationUri && ua.DeletedDateTime == null);
         }
+
+        public Task<List<UserAccount>> GetAllAsync() => _context.UserAccounts.Where(ua => ua.DeletedDateTime == null).ToListAsync();
     }
 }

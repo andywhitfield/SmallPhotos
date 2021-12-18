@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using SmallPhotos.Model;
@@ -10,5 +11,6 @@ namespace SmallPhotos.Data
         Task<UserAccount> GetAsync(long userAccountId);
         Task<UserAccount> GetUserAccountAsync(ClaimsPrincipal user);
         Task<UserAccount> GetUserAccountOrNullAsync(ClaimsPrincipal user);
+        Task<List<UserAccount>> GetAllAsync();
     }
 }
