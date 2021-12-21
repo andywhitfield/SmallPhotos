@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -65,7 +66,7 @@ namespace SmallPhotos.Data
                 .Thumbnails
                 .FirstOrDefaultAsync(t => t.PhotoId == photo.PhotoId && t.ThumbnailSize == size);
 
-        public async Task<Photo> AddAsync(AlbumSource album, FileInfo file)
+        public async Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize)
         {
             var photo = await _context.Photos.AddAsync(new Photo
             {
@@ -73,20 +74,19 @@ namespace SmallPhotos.Data
                 Filename = file.Name,
                 FileCreationDateTime = file.CreationTimeUtc,
                 FileModificationDateTime = file.LastWriteTimeUtc,
-                Width = 100, // TODO - read image, create thumbnails, set width & height
-                Height = 100
+                Width = imageSize.Width,
+                Height = imageSize.Height
             });
             await _context.SaveChangesAsync();
             return photo.Entity;
         }
 
-        public Task UpdateAsync(Photo photo, FileInfo file)
+        public Task UpdateAsync(Photo photo, FileInfo file, Size imageSize)
         {
             photo.FileCreationDateTime = file.CreationTimeUtc;
             photo.FileModificationDateTime = file.LastWriteTimeUtc;
-            // TODO - read image, create thumbnails, set width & height
-            photo.Width = 100;
-            photo.Height = 100;
+            photo.Width = imageSize.Width;
+            photo.Height = imageSize.Height;
 
             return _context.SaveChangesAsync();
         }
