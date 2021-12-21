@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using System.Linq;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -12,7 +15,10 @@ namespace SmallPhotos.Service
 {
     public class Startup
     {
-        private IWebHostEnvironment hostingEnvironment;
+        public const string BackgroundServiceHttpClient = "BackgroundServiceHttpClient";
+
+        private IWebHostEnvironment _hostingEnvironment;
+        private IFeatureCollection _featureCollection;
 
         public Startup(IWebHostEnvironment env)
         {
@@ -23,7 +29,7 @@ namespace SmallPhotos.Service
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
 
-            hostingEnvironment = env;
+            _hostingEnvironment = env;
         }
 
         public IConfigurationRoot Configuration { get; }
@@ -38,7 +44,15 @@ namespace SmallPhotos.Service
                 logging.AddDebug();
             });
 
-            services.AddDataServices();
+            services
+                .AddDataServices()
+                .AddHttpClient(BackgroundServiceHttpClient, (provider, cfg) =>
+                {
+                    var logger = provider.GetRequiredService<ILogger<Startup>>();
+                    var serviceAddress = _featureCollection.Get<IServerAddressesFeature>().Addresses.First();
+                    logger.LogDebug($"Creating HttpClient[{BackgroundServiceHttpClient}] with address [{serviceAddress}]");
+                    cfg.BaseAddress = new Uri(serviceAddress);
+                });
             services.AddMvc();
             services.AddCors();
 
@@ -53,6 +67,8 @@ namespace SmallPhotos.Service
             app.UseEndpoints(options => options.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}"));
+
+            _featureCollection = app.ServerFeatures;
 
             using var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
             scope.ServiceProvider.GetRequiredService<ISqliteDataContext>().Migrate();

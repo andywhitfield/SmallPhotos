@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SmallPhotos.Data;
+using SmallPhotos.Service.Models;
 
 namespace SmallPhotos.Service.BackgroundServices
 {
@@ -42,10 +46,7 @@ namespace SmallPhotos.Service.BackgroundServices
 
                         pollPeriod = options.Value.PollPeriod;
 
-                        // get all sources
-                        // get all photos in sources & work out what is new / deleted / updated
-                        // delete any
-                        // for update / new, call an endpoint in the service to generate the thumbnail & save
+                        using var httpClient = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>().CreateClient(Startup.BackgroundServiceHttpClient);
 
                         foreach (var user in await userRepository.GetAllAsync())
                         {
@@ -70,19 +71,23 @@ namespace SmallPhotos.Service.BackgroundServices
                                     join p in photosInAlbum on f.Name equals p.Filename into j
                                     from m in j.DefaultIfEmpty()
                                     where m == null || m.FileModificationDateTime < f.LastWriteTimeUtc
-                                    select new { File = f, Photo = m }).ToList();
-                                
-                                _logger.LogInformation($"New or changed photos in album: [{string.Join(',', newOrChangedPhotos.Select(fi => fi.File.Name))}]");
+                                    select f).ToList();
 
-                                // TODO - temp, just add an entry for now...need to call an endpoint which
-                                //        does the thumbnail, and image parsing
-                                foreach (var newOrChanged in newOrChangedPhotos)
+                                _logger.LogInformation($"New or changed photos in album: [{string.Join(',', newOrChangedPhotos.Select(fi => fi.Name))}]");
+
+                                await Task.WhenAll(newOrChangedPhotos.Select(async newOrChanged =>
                                 {
-                                    if (newOrChanged.Photo == null)
-                                        await photoRepository.AddAsync(albumSource, newOrChanged.File);
-                                    else
-                                        await photoRepository.UpdateAsync(newOrChanged.Photo, newOrChanged.File);
-                                }
+                                    using var response = await httpClient.PostAsync("/api/photo", new StringContent(JsonSerializer.Serialize(
+                                        new CreateOrUpdatePhotoRequest { UserAccountId = user.UserAccountId, AlbumSourceId = albumSource.AlbumSourceId, Filename = newOrChanged.Name }),
+                                        Encoding.UTF8,
+                                        "application/json"));
+
+                                    var responseString = await response.Content.ReadAsStringAsync();
+                                    if (!response.IsSuccessStatusCode)
+                                        throw new InvalidOperationException($"Could not add/update photo [{newOrChanged.Name}] in album [{albumSource.AlbumSourceId}]: {responseString}");
+
+                                    _logger.LogInformation($"Successfully updated / added new photo: {responseString}");
+                                }));
 
                                 var deletedPhotos = (
                                     from p in photosInAlbum
@@ -91,7 +96,7 @@ namespace SmallPhotos.Service.BackgroundServices
                                     where m == null
                                     select p
                                 ).ToList();
-                                
+
                                 _logger.LogInformation($"Deleted photos in album: [{string.Join(',', deletedPhotos.Select(p => p.Filename))}]");
                                 foreach (var photo in deletedPhotos)
                                     await photoRepository.DeleteAsync(photo);
