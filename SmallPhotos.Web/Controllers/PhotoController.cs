@@ -33,7 +33,7 @@ namespace SmallPhotos.Web.Controllers
             if (response?.ImageStream == null)
                 return NotFound();
 
-            return File(response.ImageStream, "image/jpeg", filename, new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
+            return File(response.ImageStream, response.ImageContentType, filename, new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
         }
     }
 }

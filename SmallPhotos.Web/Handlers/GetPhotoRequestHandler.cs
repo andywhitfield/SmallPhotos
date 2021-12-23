@@ -2,8 +2,8 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using ImageMagick;
 using MediatR;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
 using SmallPhotos.Data;
 using SmallPhotos.Model;
@@ -41,35 +41,43 @@ namespace SmallPhotos.Web.Handlers
                 return GetPhotoResponse.Empty;
             }
 
+            if (request.ThumbnailSize.Equals("raw", StringComparison.OrdinalIgnoreCase))
+            {
+                var original = new FileInfo(Path.Combine(photo.AlbumSource.Folder, photo.Filename));
+                if (!original.Exists)
+                {
+                    _logger.LogInformation($"Photo with id {request.PhotoId} does not exist: [{original.FullName}]");
+                    return GetPhotoResponse.Empty;
+                }
+                
+                if (!new FileExtensionContentTypeProvider().TryGetContentType(original.Name, out var contentType))
+                {
+                    _logger.LogInformation($"Photo [{request.PhotoId} / {original.Name}] cannot be mapped to a known content type");
+                    return GetPhotoResponse.Empty;
+                }
+
+                return new GetPhotoResponse(original.OpenRead(), contentType);
+            }
+
             ThumbnailSize thumbnailSize;
             if (string.IsNullOrEmpty(request.ThumbnailSize))
+            {
                 thumbnailSize = ThumbnailSize.Medium;
+            }
             else if (!Enum.TryParse<ThumbnailSize>(request.ThumbnailSize, true, out thumbnailSize))
             {
                 _logger.LogInformation($"Unknown thumbnail size [{request.ThumbnailSize}]");
                 return GetPhotoResponse.Empty;
             }
 
-            // TODO: this should have been created by the background process, but if not, we should
-            //       create the thumbnail & save...but probably needs to be a separate (shared) service
             var thumbnail = await _photoRepository.GetThumbnailAsync(photo, thumbnailSize);
-
-            var jpegStream = thumbnail == null ? new MemoryStream() : new MemoryStream(thumbnail.ThumbnailImage);
             if (thumbnail == null)
             {
-                using (var image = new MagickImage(Path.Combine(photo.AlbumSource.Folder, photo.Filename), MagickFormat.Heic))
-                {
-                    var resizeTo = thumbnailSize.ToSize();
-                    image.Sample(resizeTo.Width, resizeTo.Height);
-                    await image.WriteAsync(jpegStream, MagickFormat.Jpeg);
-                }
-
-                await _photoRepository.SaveThumbnailAsync(photo, thumbnailSize, jpegStream.ToArray());
-
-                jpegStream.Position = 0;
+                _logger.LogInformation($"No thumbnail for photo [{request.PhotoId}]");
+                return GetPhotoResponse.Empty;
             }
 
-            return new GetPhotoResponse(jpegStream);
+            return new GetPhotoResponse(new MemoryStream(thumbnail.ThumbnailImage), "image/jpeg");
         }
     }
 }

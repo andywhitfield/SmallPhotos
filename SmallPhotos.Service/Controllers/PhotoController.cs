@@ -72,7 +72,8 @@ namespace SmallPhotos.Service.Controllers
         {
             using var jpegStream = new MemoryStream();
             var resizeTo = thumbnailSize.ToSize();
-            image.Sample(resizeTo.Width, resizeTo.Height);
+            var geometry = new MagickGeometry(resizeTo.Width, resizeTo.Height) { IgnoreAspectRatio = false };
+            image.Thumbnail(geometry);
             await image.WriteAsync(jpegStream, MagickFormat.Jpeg);
             await _photoRepository.SaveThumbnailAsync(photo, thumbnailSize, jpegStream.ToArray());
         }
