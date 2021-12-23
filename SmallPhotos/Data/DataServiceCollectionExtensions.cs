@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,8 @@ namespace SmallPhotos.Data
                 .AddScoped(sp => (ISqliteDataContext)sp.GetRequiredService<SqliteDataContext>())
                 .AddScoped<IUserAccountRepository, UserAccountRepository>()
                 .AddScoped<IAlbumRepository, AlbumRepository>()
-                .AddScoped<IPhotoRepository, PhotoRepository>();
+                .AddScoped<IPhotoRepository, PhotoRepository>()
+                .AddScoped<IPhotoReader, PhotoReader>()
+                .AddTransient<IContentTypeProvider, FileExtensionContentTypeProvider>();
     }
 }

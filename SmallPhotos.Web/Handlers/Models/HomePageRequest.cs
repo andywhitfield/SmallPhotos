@@ -9,7 +9,6 @@ namespace SmallPhotos.Web.Handlers.Models
         public ClaimsPrincipal User { get; }
         public ThumbnailSize ThumbnailSize { get; }
 
-        // TODO: get from user prefs
         public HomePageRequest(ClaimsPrincipal user, ThumbnailSize thumbnailSize)
         {
             User = user;

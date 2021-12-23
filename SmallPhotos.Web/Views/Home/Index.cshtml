@@ -14,7 +14,7 @@
     @if (Model.Photos.Any()) {
     <ul>
         @foreach(var photo in Model.Photos) {
-            <li><img src="/photo/@(photo.PhotoId)/@(photo.Filename)?size=@(Model.ThumbnailSize)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" /></li>
+            <li><a href="/gallery/@(photo.PhotoId)/@(photo.Filename)"><img src="/photo/thumbnail/@(Model.ThumbnailSize)/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" /></a></li>
         }
     </ul>
     } else {

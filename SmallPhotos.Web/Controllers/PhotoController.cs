@@ -21,15 +21,30 @@ namespace SmallPhotos.Web.Controllers
             _mediator = mediator;
         }
 
-        [HttpGet("~/photo/{photoId}/{filename}")]
-        public async Task<IActionResult> Index(string photoId, string filename, [FromQuery] string size = null)
+        [HttpGet("~/photo/thumbnail/{size}/{photoId}/{filename}")]
+        public async Task<IActionResult> Thumbnail(string size, string photoId, string filename)
         {
             if (!long.TryParse(photoId, out var photoIdValue))
                 return NotFound();
 
             _logger.LogInformation($"Getting image {photoId}, size {size}");
 
-            var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, size));
+            var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, size ?? ""));
+            if (response?.ImageStream == null)
+                return NotFound();
+
+            return File(response.ImageStream, response.ImageContentType, filename, new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
+        }
+
+        [HttpGet("~/photo/{photoId}/{filename}")]
+        public async Task<IActionResult> Photo(string photoId, string filename)
+        {
+            if (!long.TryParse(photoId, out var photoIdValue))
+                return NotFound();
+
+            _logger.LogInformation($"Getting image {photoId}");
+
+            var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, null));
             if (response?.ImageStream == null)
                 return NotFound();
 

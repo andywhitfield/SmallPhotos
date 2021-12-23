@@ -1,0 +1,22 @@
+﻿@model SmallPhotos.Web.Model.Gallery.IndexViewModel
+
+<aside>
+    <nav>
+        <ul>
+            <li><a href="/">Nav link 1</a></li>
+            <li><a href="/">Nav link 2</a></li>
+        </ul>
+    </nav>
+</aside>
+
+<article>
+    <p>
+        Prev | Next
+    </p>
+    <p>
+        <img src="/photo/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)" width="100%" />
+    </p>
+    <p>
+        Prev | Next
+    </p>
+</article>

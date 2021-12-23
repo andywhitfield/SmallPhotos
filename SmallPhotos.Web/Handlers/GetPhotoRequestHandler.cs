@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
 using SmallPhotos.Data;
 using SmallPhotos.Model;
@@ -16,13 +15,18 @@ namespace SmallPhotos.Web.Handlers
         private readonly ILogger<GetPhotoRequestHandler> _logger;
         private readonly IUserAccountRepository _userAccountRepository;
         private readonly IPhotoRepository _photoRepository;
+        private readonly IPhotoReader _photoReader;
 
-        public GetPhotoRequestHandler(ILogger<GetPhotoRequestHandler> logger, IUserAccountRepository userAccountRepository,
-            IPhotoRepository photoRepository)
+        public GetPhotoRequestHandler(
+            ILogger<GetPhotoRequestHandler> logger,
+            IUserAccountRepository userAccountRepository,
+            IPhotoRepository photoRepository,
+            IPhotoReader photoReader)
         {
             _logger = logger;
             _userAccountRepository = userAccountRepository;
             _photoRepository = photoRepository;
+            _photoReader = photoReader;
         }
 
         public async Task<GetPhotoResponse> Handle(GetPhotoRequest request, CancellationToken cancellationToken)
@@ -41,7 +45,7 @@ namespace SmallPhotos.Web.Handlers
                 return GetPhotoResponse.Empty;
             }
 
-            if (request.ThumbnailSize.Equals("raw", StringComparison.OrdinalIgnoreCase))
+            if (request.ThumbnailSize == null)
             {
                 var original = new FileInfo(Path.Combine(photo.AlbumSource.Folder, photo.Filename));
                 if (!original.Exists)
@@ -49,22 +53,20 @@ namespace SmallPhotos.Web.Handlers
                     _logger.LogInformation($"Photo with id {request.PhotoId} does not exist: [{original.FullName}]");
                     return GetPhotoResponse.Empty;
                 }
+
+                var (contentType, stream) = await _photoReader.GetPhotoStreamForWebAsync(original);
                 
-                if (!new FileExtensionContentTypeProvider().TryGetContentType(original.Name, out var contentType))
+                if (contentType == null)
                 {
                     _logger.LogInformation($"Photo [{request.PhotoId} / {original.Name}] cannot be mapped to a known content type");
                     return GetPhotoResponse.Empty;
                 }
 
-                return new GetPhotoResponse(original.OpenRead(), contentType);
+                return new GetPhotoResponse(stream, contentType);
             }
 
             ThumbnailSize thumbnailSize;
-            if (string.IsNullOrEmpty(request.ThumbnailSize))
-            {
-                thumbnailSize = ThumbnailSize.Medium;
-            }
-            else if (!Enum.TryParse<ThumbnailSize>(request.ThumbnailSize, true, out thumbnailSize))
+            if (!Enum.TryParse<ThumbnailSize>(request.ThumbnailSize, true, out thumbnailSize))
             {
                 _logger.LogInformation($"Unknown thumbnail size [{request.ThumbnailSize}]");
                 return GetPhotoResponse.Empty;
