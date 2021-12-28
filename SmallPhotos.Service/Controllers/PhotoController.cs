@@ -16,15 +16,18 @@ namespace SmallPhotos.Service.Controllers
         private readonly IUserAccountRepository _userAccountRepository;
         private readonly IAlbumRepository _albumRepository;
         private readonly IPhotoRepository _photoRepository;
+        private readonly IThumbnailCreator _thumbnailCreator;
 
         public PhotoController(
             IUserAccountRepository userAccountRepository,
             IAlbumRepository albumRepository,
-            IPhotoRepository photoRepository)
+            IPhotoRepository photoRepository,
+            IThumbnailCreator thumbnailCreator)
         {
             _userAccountRepository = userAccountRepository;
             _albumRepository = albumRepository;
             _photoRepository = photoRepository;
+            _thumbnailCreator = thumbnailCreator;
         }
 
         [HttpPost]
@@ -63,19 +66,12 @@ namespace SmallPhotos.Service.Controllers
                 await _photoRepository.UpdateAsync(photo, file, originalSize);
 
             foreach (var thumbnailSize in Enum.GetValues<ThumbnailSize>())
-                await SaveThumbnail(photo, image.Clone(), thumbnailSize);
+            {
+                var thumbnail = await _thumbnailCreator.CreateThumbnail(photo, image, thumbnailSize);
+                await _photoRepository.SaveThumbnailAsync(photo, thumbnailSize, thumbnail);
+            }
 
             return photo;
-        }
-
-        private async Task SaveThumbnail(Photo photo, IMagickImage image, ThumbnailSize thumbnailSize)
-        {
-            using var jpegStream = new MemoryStream();
-            var resizeTo = thumbnailSize.ToSize();
-            var geometry = new MagickGeometry(resizeTo.Width, resizeTo.Height) { IgnoreAspectRatio = false };
-            image.Thumbnail(geometry);
-            await image.WriteAsync(jpegStream, MagickFormat.Jpeg);
-            await _photoRepository.SaveThumbnailAsync(photo, thumbnailSize, jpegStream.ToArray());
         }
     }
 }

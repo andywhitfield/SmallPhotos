@@ -46,6 +46,7 @@ namespace SmallPhotos.Service
 
             services
                 .AddDataServices()
+                .AddTransient<IThumbnailCreator, ThumbnailCreator>()
                 .AddHttpClient(BackgroundServiceHttpClient, (provider, cfg) =>
                 {
                     var logger = provider.GetRequiredService<ILogger<Startup>>();
