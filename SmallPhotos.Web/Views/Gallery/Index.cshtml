@@ -1,5 +1,14 @@
 ﻿@model SmallPhotos.Web.Model.Gallery.IndexViewModel
 
+@section Scripts {
+<script type="text/javascript">
+    $(function() {
+        $(window).on('resize', fullSizeImage);
+        fullSizeImage();
+    });
+</script>
+}
+
 <aside>
     <nav>
         <ul>
@@ -14,7 +23,7 @@
         Prev | Next
     </p>
     <p>
-        <img src="/photo/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)" width="100%" />
+        <img id="fullimg" src="/photo/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)" />
     </p>
     <p>
         Prev | Next
