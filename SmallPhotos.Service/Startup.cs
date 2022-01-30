@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using SmallPhotos.Data;
 using SmallPhotos.Service.BackgroundServices;
+using SmallPhotos.Service.Services;
 
 namespace SmallPhotos.Service
 {
@@ -58,6 +59,7 @@ namespace SmallPhotos.Service
             services.AddCors();
 
             services.Configure<AlbumChangeServiceOptions>(Configuration.GetSection("AlbumChangeService"));
+            services.AddScoped<IAlbumSyncService, AlbumSyncService>();
             services.AddHostedService<AlbumChangeService>();
         }
 
