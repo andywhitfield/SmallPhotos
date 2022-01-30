@@ -9,6 +9,33 @@
 </script>
 }
 
+
+<style>
+
+.pagination {
+  margin-top: 10px;
+  display: inline-block;
+}
+
+.pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  transition: background-color .3s;
+}
+
+.pagination a.active {
+  background-color: #6be1ff;
+  color: white;
+}
+
+.pagination a:hover:not(.active) {
+    background-color: #f86bff;
+}
+
+</style>
+
 <aside>
     <nav>
         <ul>
@@ -19,13 +46,22 @@
 </aside>
 
 <article>
-    <p>
-        Prev | Next
-    </p>
+    <div>Taken: 20th Dec 2020</div>
+
+    <div class="pagination">
+        <a href="/?photoId=@(Model.Photo.PhotoId)#@(Model.Photo.PhotoId).@(Model.Photo.Filename)">&lsaquo; Thumbnails</a>
+        <a href="#">&laquo; Prev (#9 of 101)</a>
+        <a href="#">Next  (#11 of 101) &raquo;</a>
+    </div>
+
     <p>
         <img id="fullimg" src="/photo/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)" />
     </p>
-    <p>
-        Prev | Next
-    </p>
+
+    <div class="pagination">
+        <a href="/?photoId=@(Model.Photo.PhotoId)#@(Model.Photo.PhotoId).@(Model.Photo.Filename)">&lsaquo; Thumbnails</a>
+        <a href="#">&laquo; Prev (#9 of 101)</a>
+        <a href="#">Next  (#11 of 101) &raquo;</a>
+    </div>
+
 </article>

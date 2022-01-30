@@ -1,5 +1,41 @@
 ﻿@model SmallPhotos.Web.Model.Home.IndexViewModel
 
+<style>
+
+.thumbnails {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.thumbnails > div {
+  margin: 10px;
+}
+
+.pagination {
+  margin-top: 10px;
+  display: inline-block;
+}
+
+.pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  transition: background-color .3s;
+}
+
+.pagination a.active {
+  background-color: #6be1ff;
+  color: white;
+}
+
+.pagination a:hover:not(.active) {
+    background-color: #f86bff;
+}
+
+</style>
+
+
 <aside>
     <nav>
         <ul>
@@ -10,15 +46,39 @@
 </aside>
 
 <article>
-    <p>
     @if (Model.Photos.Any()) {
-    <ul>
+        <div>20th Dec 2020 - 28th Dec 2020</div>
+
+        <div class="pagination">
+            <a href="#">&laquo;</a>
+            <a href="#">1</a>
+            <a href="#" class="active">2</a>
+            <a href="#">3</a>
+            <a href="#">4</a>
+            <a href="#">5</a>
+            <a href="#">6</a>
+            <a href="#">&raquo;</a>
+        </div>
+
+        <div class="thumbnails">
         @foreach(var photo in Model.Photos) {
-            <li><a href="/gallery/@(photo.PhotoId)/@(photo.Filename)"><img src="/photo/thumbnail/@(Model.ThumbnailSize)/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" /></a></li>
+            <div><a href="/gallery/@(photo.PhotoId)/@(photo.Filename)" name="@(photo.PhotoId).@(photo.Filename)"><img src="/photo/thumbnail/@(Model.ThumbnailSize)/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" /></a></div>
         }
-    </ul>
+        </div>
+
+        <div class="pagination">
+            <a href="#">&laquo;</a>
+            <a href="#">1</a>
+            <a href="#" class="active">2</a>
+            <a href="#">3</a>
+            <a href="#">4</a>
+            <a href="#">5</a>
+            <a href="#">6</a>
+            <a href="#">&raquo;</a>
+        </div>
     } else {
+        <p>
         <text>You have no photos. Add a collection to your library in your <a href="/profile">profile</a>.</text>
+        </p>
     }
-    </p>
 </article>

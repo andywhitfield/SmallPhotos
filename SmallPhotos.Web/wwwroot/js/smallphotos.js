@@ -51,6 +51,6 @@ function fullSizeImage() {
     var win = $(window);
     var fullImg = $('#fullimg');
     var isCompact = win.width() <= 600;
-    fullImg.css('max-height', win.height() - (isCompact ? 300 : 250));
+    fullImg.css('max-height', win.height() - (isCompact ? 340 : 290));
     fullImg.css('max-width', win.width() - (isCompact ? 30 : 280));
 }

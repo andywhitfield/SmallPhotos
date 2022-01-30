@@ -20,7 +20,7 @@ namespace SmallPhotos.Web.Controllers
 
         [Authorize]
         [HttpGet("~/")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index([FromQuery]int? photoId = null)
         {
             // TODO: get from user prefs
             var thumbnailSize = ThumbnailSize.Large;
