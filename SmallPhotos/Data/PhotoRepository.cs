@@ -87,6 +87,7 @@ namespace SmallPhotos.Data
             photo.FileModificationDateTime = file.LastWriteTimeUtc;
             photo.Width = imageSize.Width;
             photo.Height = imageSize.Height;
+            photo.LastUpdateDateTime = DateTime.UtcNow;
 
             return _context.SaveChangesAsync();
         }

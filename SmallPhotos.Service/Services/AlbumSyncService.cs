@@ -39,6 +39,13 @@ namespace SmallPhotos.Service.Services
 
         public async Task SyncAllAsync(CancellationToken stoppingToken)
         {
+            using var httpClient = _httpClientFactory.CreateClient(Startup.BackgroundServiceHttpClient);
+            if (httpClient.BaseAddress == null)
+            {
+                _logger.LogError("Background http client not configured - cannot sync!");
+                return;
+            }
+
             foreach (var user in await _userAccountRepository.GetAllAsync())
             {
                 stoppingToken.ThrowIfCancellationRequested();
@@ -70,7 +77,6 @@ namespace SmallPhotos.Service.Services
 
                     _logger.LogInformation($"New or changed photos in album: [{string.Join(',', newOrChangedPhotos.Select(fi => fi.Name))}]");
 
-                    using var httpClient = _httpClientFactory.CreateClient(Startup.BackgroundServiceHttpClient);
                     await Task.WhenAll(newOrChangedPhotos.Select(async newOrChanged =>
                     {
                         using var response = await httpClient.PostAsync("/api/photo", new StringContent(JsonSerializer.Serialize(

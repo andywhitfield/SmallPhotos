@@ -51,7 +51,12 @@ namespace SmallPhotos.Service
                 .AddHttpClient(BackgroundServiceHttpClient, (provider, cfg) =>
                 {
                     var logger = provider.GetRequiredService<ILogger<Startup>>();
-                    var serviceAddress = _featureCollection.Get<IServerAddressesFeature>().Addresses.First();
+                    var serviceAddress = _featureCollection?.Get<IServerAddressesFeature>()?.Addresses?.FirstOrDefault();
+                    if (serviceAddress == null)
+                    {
+                        logger.LogCritical("Cannot get service address - background service will not be able to run successfully!");
+                        return;
+                    }
                     logger.LogDebug($"Creating HttpClient[{BackgroundServiceHttpClient}] with address [{serviceAddress}]");
                     cfg.BaseAddress = new Uri(serviceAddress);
                 });

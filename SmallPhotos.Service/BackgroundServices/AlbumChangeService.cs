@@ -45,7 +45,7 @@ namespace SmallPhotos.Service.BackgroundServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred running the album change background service");
+                _logger.LogError(ex, "An error occurred running the album change background service - stopping background service!");
             }
         }
     }
