@@ -28,10 +28,12 @@ namespace SmallPhotos.Web.Handlers
         {
             var user = await _userAccountRepository.GetUserAccountOrNullAsync(request.User);
             if (user == null)
-                return new HomePageResponse(false, Enumerable.Empty<PhotoModel>());
+                return new HomePageResponse(false, Enumerable.Empty<PhotoModel>(), Pagination.Empty);
 
-            var photos = await _photoRepository.GetAllAsync(user);
-            return new HomePageResponse(true, photos.Select(p => new PhotoModel(p.PhotoId, p.Filename, request.ThumbnailSize.ToSize())));
+            // TODO: should do better than loading everything, then taking the page size number of photos
+            var pagedPhotos = Pagination.Paginate(await _photoRepository.GetAllAsync(user), request.PageNumber);
+
+            return new HomePageResponse(true, pagedPhotos.Items.Select(p => new PhotoModel(p.PhotoId, p.Filename, request.ThumbnailSize.ToSize())), new Pagination(pagedPhotos.Page, pagedPhotos.PageCount));
         }
     }
 }

@@ -20,15 +20,15 @@ namespace SmallPhotos.Web.Controllers
 
         [Authorize]
         [HttpGet("~/")]
-        public async Task<IActionResult> Index([FromQuery]int? photoId = null)
+        public async Task<IActionResult> Index([FromQuery]int? photoId = null, [FromQuery]int? pageNumber = null)
         {
             // TODO: get from user prefs
             var thumbnailSize = ThumbnailSize.Large;
-            var response = await _mediator.Send(new HomePageRequest(User, thumbnailSize));
+            var response = await _mediator.Send(new HomePageRequest(User, thumbnailSize, pageNumber ?? 1));
             if (!response.IsUserValid)
                 return Redirect("~/signin");
 
-            return View(new IndexViewModel(HttpContext, thumbnailSize, response.Photos));
+            return View(new IndexViewModel(HttpContext, thumbnailSize, response.Photos, response.Pagination));
         }
 
         public IActionResult Error() => View(new ErrorViewModel(HttpContext));
