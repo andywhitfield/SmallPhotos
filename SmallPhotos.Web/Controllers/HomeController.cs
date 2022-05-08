@@ -24,7 +24,7 @@ namespace SmallPhotos.Web.Controllers
         {
             // TODO: get from user prefs
             var thumbnailSize = ThumbnailSize.Large;
-            var response = await _mediator.Send(new HomePageRequest(User, thumbnailSize, pageNumber ?? 1));
+            var response = await _mediator.Send(new HomePageRequest(User, thumbnailSize, pageNumber ?? 1, photoId));
             if (!response.IsUserValid)
                 return Redirect("~/signin");
 

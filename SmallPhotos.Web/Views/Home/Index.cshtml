@@ -49,15 +49,31 @@
     @if (Model.Photos.Any()) {
         <div>20th Dec 2020 - 28th Dec 2020</div>
 
-        <div class="pagination">
-            <a href="#">&laquo;</a>
-            <a href="#">1</a>
-            <a href="#" class="pagination-active">2</a>
-            <a href="#">3</a>
-            <a href="#">4</a>
-            <a href="#">5</a>
-            <a href="#">6</a>
-            <a href="#">&raquo;</a>
+        @if (Model.Pagination.PageCount > 1) {
+            <div class="pagination">
+                @if (Model.Pagination.PageNumber > 1) {
+                <a href="/?pageNumber=@(Model.Pagination.PageNumber - 1)">&laquo;</a>
+                }
+                @foreach (var pg in Model.Pagination.Pages) {
+                @if (pg.IsSelected) {
+                <a class="pagination-active">@pg.PageNumber</a>
+                } else {
+                <a href="/?pageNumber=@pg.PageNumber">@pg.PageNumber</a>
+                }
+                @if (pg.IsNextPageSkipped) {
+                <span>&bull;&bull;</span>
+                }
+                }
+                @if (Model.Pagination.PageNumber < Model.Pagination.PageCount) {
+                <a href="/?pageNumber=@(Model.Pagination.PageNumber + 1)">&raquo;</a>
+                }
+            </div>
+        }
+
+        <div class="thumbnails">
+        @foreach(var photo in Model.Photos) {
+            <div><a href="/gallery/@(photo.PhotoId)/@(photo.Filename)" name="@(photo.PhotoId).@(photo.Filename)"><img src="/photo/thumbnail/@(Model.ThumbnailSize)/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" loading="lazy" /></a></div>
+        }
         </div>
 
         @if (Model.Pagination.PageCount > 1) {
@@ -80,24 +96,6 @@
                 }
             </div>
         }
-
-
-        <div class="thumbnails">
-        @foreach(var photo in Model.Photos) {
-            <div><a href="/gallery/@(photo.PhotoId)/@(photo.Filename)" name="@(photo.PhotoId).@(photo.Filename)"><img src="/photo/thumbnail/@(Model.ThumbnailSize)/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" loading="lazy" /></a></div>
-        }
-        </div>
-
-        <div class="pagination">
-            <a href="#">&laquo;</a>
-            <a href="#">1</a>
-            <a href="#" class="pagination-active">2</a>
-            <a href="#">3</a>
-            <a href="#">4</a>
-            <a href="#">5</a>
-            <a href="#">6</a>
-            <a href="#">&raquo;</a>
-        </div>
     } else {
         <p>
         <text>You have no photos. Add a collection to your library in your <a href="/profile">profile</a>.</text>
