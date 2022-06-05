@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SmallPhotos.Data;
+using SmallPhotos.Model;
 using SmallPhotos.Web.Handlers.Models;
 using SmallPhotos.Web.Model;
 
@@ -30,10 +31,18 @@ namespace SmallPhotos.Web.Handlers
             if (photo == null || photo.Filename != request.PhotoFilename)
             {
                 _logger.LogInformation($"Could not find photo [{request.PhotoId}] for user [{user.UserAccountId}] with filename [{request.PhotoFilename}]");
-                return new GalleryResponse(null);
+                return new GalleryResponse(null, null, null, 0, 0);
             }
 
-            return new GalleryResponse(new PhotoModel(photo.PhotoId, photo.Filename, new Size(photo.Width, photo.Height)));
+            // TODO: loading all photos just to get previous & next is bad
+            var allPhotos = await _photoRepository.GetAllAsync(user);
+            var photoIndex = allPhotos.FindIndex(p => p.PhotoId == photo.PhotoId);
+            var previous = photoIndex > 0 ? allPhotos[photoIndex - 1] : null;
+            var next = photoIndex + 1 < allPhotos.Count ? allPhotos[photoIndex + 1] : null;
+
+            return new GalleryResponse(ToModel(photo), ToModel(previous), ToModel(next), photoIndex + 1, allPhotos.Count);
         }
+
+        private PhotoModel? ToModel(Photo? photo) => photo == null ? null : new PhotoModel(photo.PhotoId, photo.Filename ?? "", new Size(photo.Width, photo.Height));
     }
 }

@@ -51,10 +51,10 @@
     <div class="pagination">
         <a href="/?photoId=@(Model.Photo.PhotoId)#@(Model.Photo.PhotoId).@(Model.Photo.Filename)">&lsaquo; Thumbnails</a>
         @if (Model.PreviousPhoto != null) {
-        <a href="/gallery/@(Model.PreviousPhoto.PhotoId)/@(Model.PreviousPhoto.Filename)">&laquo; Prev (#9 of 101)</a>
+        <a href="/gallery/@(Model.PreviousPhoto.PhotoId)/@(Model.PreviousPhoto.Filename)">&laquo; Prev (#@(Model.PreviousPhotoNumber) of @(Model.PhotoCount))</a>
         }
         @if (Model.NextPhoto != null) {
-        <a href="/gallery/@(Model.NextPhoto.PhotoId)/@(Model.NextPhoto.Filename)">&laquo; Prev (#9 of 101)</a>
+        <a href="/gallery/@(Model.NextPhoto.PhotoId)/@(Model.NextPhoto.Filename)">Next  (#@(Model.NextPhotoNumber) of @(Model.PhotoCount)) &raquo;</a>
         }
     </div>
 
@@ -64,8 +64,12 @@
 
     <div class="pagination">
         <a href="/?photoId=@(Model.Photo.PhotoId)#@(Model.Photo.PhotoId).@(Model.Photo.Filename)">&lsaquo; Thumbnails</a>
-        <a href="#">&laquo; Prev (#9 of 101)</a>
-        <a href="#">Next  (#11 of 101) &raquo;</a>
+        @if (Model.PreviousPhoto != null) {
+        <a href="/gallery/@(Model.PreviousPhoto.PhotoId)/@(Model.PreviousPhoto.Filename)">&laquo; Prev (#@(Model.PreviousPhotoNumber) of @(Model.PhotoCount))</a>
+        }
+        @if (Model.NextPhoto != null) {
+        <a href="/gallery/@(Model.NextPhoto.PhotoId)/@(Model.NextPhoto.Filename)">Next  (#@(Model.NextPhotoNumber) of @(Model.PhotoCount)) &raquo;</a>
+        }
     </div>
 
 </article>
