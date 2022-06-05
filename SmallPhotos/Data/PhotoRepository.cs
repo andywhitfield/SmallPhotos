@@ -21,32 +21,32 @@ namespace SmallPhotos.Data
             _context = context;
         }
 
-        public Task<Photo> GetAsync(UserAccount user, long photoId) =>
+        public Task<Photo?> GetAsync(UserAccount user, long photoId) =>
             _context
-                .Photos
+                .Photos!
                 .Include(p => p.AlbumSource)
                 .FirstOrDefaultAsync(p =>
                     p.PhotoId == photoId &&
-                    p.AlbumSource.UserAccountId == user.UserAccountId &&
+                    p.AlbumSource!.UserAccountId == user.UserAccountId &&
                     p.AlbumSource.DeletedDateTime == null &&
                     p.DeletedDateTime == null);
 
-        public Task<Photo> GetAsync(UserAccount user, AlbumSource album, string filename) =>
+        public Task<Photo?> GetAsync(UserAccount user, AlbumSource album, string? filename) =>
             _context
-                .Photos
+                .Photos!
                 .Include(p => p.AlbumSource)
                 .FirstOrDefaultAsync(p =>
                     p.Filename == filename &&
-                    p.AlbumSource.AlbumSourceId == album.AlbumSourceId &&
+                    p.AlbumSource!.AlbumSourceId == album.AlbumSourceId &&
                     p.AlbumSource.UserAccountId == user.UserAccountId &&
                     p.AlbumSource.DeletedDateTime == null &&
                     p.DeletedDateTime == null);
 
         public Task<List<Photo>> GetAllAsync(UserAccount user) =>
             _context
-                .Photos
+                .Photos!
                 .Where(p =>
-                    p.AlbumSource.UserAccountId == user.UserAccountId &&
+                    p.AlbumSource!.UserAccountId == user.UserAccountId &&
                     p.AlbumSource.DeletedDateTime == null &&
                     p.DeletedDateTime == null)
                 .OrderBy(p => p.FileCreationDateTime)
@@ -54,21 +54,21 @@ namespace SmallPhotos.Data
 
         public Task<List<Photo>> GetAllAsync(AlbumSource album) =>
             _context
-                .Photos
+                .Photos!
                 .Where(p =>
                     p.AlbumSourceId == album.AlbumSourceId &&
                     p.DeletedDateTime == null)
                 .OrderBy(p => p.FileCreationDateTime)
                 .ToListAsync();
 
-        public Task<Thumbnail> GetThumbnailAsync(Photo photo, ThumbnailSize size) =>
+        public Task<Thumbnail?> GetThumbnailAsync(Photo photo, ThumbnailSize size) =>
             _context
-                .Thumbnails
+                .Thumbnails!
                 .FirstOrDefaultAsync(t => t.PhotoId == photo.PhotoId && t.ThumbnailSize == size);
 
         public async Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize)
         {
-            var photo = await _context.Photos.AddAsync(new Photo
+            var photo = await _context.Photos!.AddAsync(new Photo
             {
                 AlbumSource = album,
                 Filename = file.Name,
@@ -102,7 +102,7 @@ namespace SmallPhotos.Data
                 ThumbnailImage = image
             };
 
-            _context.Thumbnails.RemoveRange(_context.Thumbnails.Where(t => t.PhotoId == photo.PhotoId && t.ThumbnailSize == size));
+            _context.Thumbnails!.RemoveRange(_context.Thumbnails.Where(t => t.PhotoId == photo.PhotoId && t.ThumbnailSize == size));
             await _context.Thumbnails.AddAsync(thumbnail);
             await _context.SaveChangesAsync();
             return thumbnail;
@@ -111,7 +111,7 @@ namespace SmallPhotos.Data
         public Task DeleteAsync(Photo photo)
         {
             photo.DeletedDateTime = DateTime.UtcNow;
-            _context.Thumbnails.RemoveRange(_context.Thumbnails.Where(t => t.PhotoId == photo.PhotoId));
+            _context.Thumbnails!.RemoveRange(_context.Thumbnails.Where(t => t.PhotoId == photo.PhotoId));
             return _context.SaveChangesAsync();
         }
     }

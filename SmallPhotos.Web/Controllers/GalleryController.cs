@@ -24,7 +24,7 @@ namespace SmallPhotos.Web.Controllers
             if (response.Photo == null)
                 return NotFound();
 
-            return View(new IndexViewModel(HttpContext, response.Photo));
+            return View(new IndexViewModel(HttpContext, response.Photo, null, null));
         }
     }
 }

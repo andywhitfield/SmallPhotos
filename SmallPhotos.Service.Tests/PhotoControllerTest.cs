@@ -19,9 +19,9 @@ namespace SmallPhotos.Service.Tests
     public class PhotoControllerTest : IAsyncLifetime
     {
         private readonly IntegrationTestWebApplicationFactory _factory = new IntegrationTestWebApplicationFactory();
-        private UserAccount _userAccount;
-        private AlbumSource _albumSource;
-        private string _albumSourceFolder;
+        private UserAccount? _userAccount;
+        private AlbumSource? _albumSource;
+        private string? _albumSourceFolder;
 
         public async Task InitializeAsync()
         {
@@ -33,8 +33,8 @@ namespace SmallPhotos.Service.Tests
             Console.WriteLine($"Using photo source dir: [{_albumSourceFolder}]");
             Directory.CreateDirectory(_albumSourceFolder);
 
-            _userAccount = (await context.UserAccounts.AddAsync(new UserAccount { AuthenticationUri = "http://test/user/1" })).Entity;
-            _albumSource = (await context.AlbumSources.AddAsync(new AlbumSource { UserAccount = _userAccount, Folder = _albumSourceFolder })).Entity;
+            _userAccount = (await context.UserAccounts!.AddAsync(new UserAccount { AuthenticationUri = "http://test/user/1" })).Entity;
+            _albumSource = (await context.AlbumSources!.AddAsync(new AlbumSource { UserAccount = _userAccount, Folder = _albumSourceFolder })).Entity;
             await context.SaveChangesAsync();
         }
 
@@ -42,12 +42,12 @@ namespace SmallPhotos.Service.Tests
         public async Task Should_save_new_photo()
         {
             var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
-            await img.WriteAsync(Path.Combine(_albumSourceFolder, "test.jpg"), MagickFormat.Jpeg);
+            await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "test.jpg"), MagickFormat.Jpeg);
 
             var request = new CreateOrUpdatePhotoRequest
             {
-                UserAccountId = _userAccount.UserAccountId,
-                AlbumSourceId = _albumSource.AlbumSourceId,
+                UserAccountId = _userAccount!.UserAccountId,
+                AlbumSourceId = _albumSource!.AlbumSourceId,
                 Filename = "test.jpg"
             };
 
@@ -56,35 +56,36 @@ namespace SmallPhotos.Service.Tests
             var responseContent = await response.Content.ReadAsStringAsync();
             response.StatusCode.Should().Be(HttpStatusCode.OK, because: $"request is valid but failed: '{responseContent}'");
             var responsePhoto = JsonSerializer.Deserialize<Photo>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            responsePhoto.Filename.Should().Be("test.jpg");
+            responsePhoto.Should().NotBeNull();
+            responsePhoto!.Filename.Should().Be("test.jpg");
             responsePhoto.Width.Should().Be(15);
             responsePhoto.Height.Should().Be(10);
 
             // check saved photo
             using var serviceScope = _factory.Services.CreateScope();
             var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
-            (await context.Photos.CountAsync()).Should().Be(1);
-            var newPhoto = await context.Photos.FirstAsync();
+            (await context.Photos!.CountAsync()).Should().Be(1);
+            var newPhoto = await context.Photos!.FirstAsync();
             newPhoto.AlbumSourceId.Should().Be(_albumSource.AlbumSourceId);
             newPhoto.Filename.Should().Be("test.jpg");
             newPhoto.Width.Should().Be(15);
             newPhoto.Height.Should().Be(10);
 
             // check thumbnails
-            (await context.Thumbnails.CountAsync()).Should().Be(3);
-            var thumbnail = await context.Thumbnails.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Small);
+            (await context.Thumbnails!.CountAsync()).Should().Be(3);
+            var thumbnail = await context.Thumbnails!.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Small);
             thumbnail.Should().NotBeNull();
-            thumbnail.PhotoId.Should().Be(newPhoto.PhotoId);
+            thumbnail!.PhotoId.Should().Be(newPhoto.PhotoId);
             thumbnail.ThumbnailImage.Should().BeOfSize(ThumbnailSize.Small.ToSize());
 
-            thumbnail = await context.Thumbnails.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Medium);
+            thumbnail = await context.Thumbnails!.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Medium);
             thumbnail.Should().NotBeNull();
-            thumbnail.PhotoId.Should().Be(newPhoto.PhotoId);
+            thumbnail!.PhotoId.Should().Be(newPhoto.PhotoId);
             thumbnail.ThumbnailImage.Should().BeOfSize(ThumbnailSize.Medium.ToSize());
 
-            thumbnail = await context.Thumbnails.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Large);
+            thumbnail = await context.Thumbnails!.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Large);
             thumbnail.Should().NotBeNull();
-            thumbnail.PhotoId.Should().Be(newPhoto.PhotoId);
+            thumbnail!.PhotoId.Should().Be(newPhoto.PhotoId);
             thumbnail.ThumbnailImage.Should().BeOfSize(ThumbnailSize.Large.ToSize());
         }
 
@@ -95,12 +96,12 @@ namespace SmallPhotos.Service.Tests
             {
                 // create and upload an image
                 var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
-                await img.WriteAsync(Path.Combine(_albumSourceFolder, "test.jpg"), MagickFormat.Jpeg);
+                await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "test.jpg"), MagickFormat.Jpeg);
 
                 var request = new CreateOrUpdatePhotoRequest
                 {
-                    UserAccountId = _userAccount.UserAccountId,
-                    AlbumSourceId = _albumSource.AlbumSourceId,
+                    UserAccountId = _userAccount!.UserAccountId,
+                    AlbumSourceId = _albumSource!.AlbumSourceId,
                     Filename = "test.jpg"
                 };
 
@@ -109,21 +110,22 @@ namespace SmallPhotos.Service.Tests
                 var responseContent = await response.Content.ReadAsStringAsync();
                 response.StatusCode.Should().Be(HttpStatusCode.OK, because: $"request is valid but failed: '{responseContent}'");
                 var responsePhoto = JsonSerializer.Deserialize<Photo>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                responsePhoto.Filename.Should().Be("test.jpg");
+                responsePhoto.Should().NotBeNull();
+                responsePhoto!.Filename.Should().Be("test.jpg");
                 responsePhoto.Width.Should().Be(15);
                 responsePhoto.Height.Should().Be(10);
 
                 using var serviceScope = _factory.Services.CreateScope();
                 var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
-                (await context.Photos.CountAsync()).Should().Be(1);
-                newPhoto = await context.Photos.FirstAsync();
+                (await context.Photos!.CountAsync()).Should().Be(1);
+                newPhoto = await context.Photos!.FirstAsync();
                 newPhoto.LastUpdateDateTime.Should().BeNull();
             }
 
             {
                 // the image has been updated - made twice as wide
                 var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 30, 10);
-                await img.WriteAsync(Path.Combine(_albumSourceFolder, "test.jpg"), MagickFormat.Jpeg);
+                await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "test.jpg"), MagickFormat.Jpeg);
 
                 var request = new CreateOrUpdatePhotoRequest
                 {
@@ -137,7 +139,8 @@ namespace SmallPhotos.Service.Tests
                 var responseContent = await response.Content.ReadAsStringAsync();
                 response.StatusCode.Should().Be(HttpStatusCode.OK, because: $"request is valid but failed: '{responseContent}'");
                 var responsePhoto = JsonSerializer.Deserialize<Photo>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                responsePhoto.Filename.Should().Be("test.jpg");
+                responsePhoto.Should().NotBeNull();
+                responsePhoto!.Filename.Should().Be("test.jpg");
                 responsePhoto.Width.Should().Be(30);
                 responsePhoto.Height.Should().Be(10);
             }
@@ -146,8 +149,8 @@ namespace SmallPhotos.Service.Tests
             {
                 using var serviceScope = _factory.Services.CreateScope();
                 var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
-                (await context.Photos.CountAsync()).Should().Be(1);
-                updatedPhoto = await context.Photos.FirstAsync();
+                (await context.Photos!.CountAsync()).Should().Be(1);
+                updatedPhoto = await context.Photos!.FirstAsync();
             }
             updatedPhoto.PhotoId.Should().Be(newPhoto.PhotoId);
             updatedPhoto.CreatedDateTime.Should().Be(newPhoto.CreatedDateTime);
@@ -164,20 +167,20 @@ namespace SmallPhotos.Service.Tests
                 var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
 
                 // check thumbnails
-                (await context.Thumbnails.CountAsync()).Should().Be(3);
-                var thumbnail = await context.Thumbnails.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Small);
+                (await context.Thumbnails!.CountAsync()).Should().Be(3);
+                var thumbnail = await context.Thumbnails!.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Small);
                 thumbnail.Should().NotBeNull();
-                thumbnail.PhotoId.Should().Be(updatedPhoto.PhotoId);
+                thumbnail!.PhotoId.Should().Be(updatedPhoto.PhotoId);
                 thumbnail.ThumbnailImage.Should().BeOfSize(ThumbnailSize.Small.ToSize());
 
-                thumbnail = await context.Thumbnails.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Medium);
+                thumbnail = await context.Thumbnails!.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Medium);
                 thumbnail.Should().NotBeNull();
-                thumbnail.PhotoId.Should().Be(updatedPhoto.PhotoId);
+                thumbnail!.PhotoId.Should().Be(updatedPhoto.PhotoId);
                 thumbnail.ThumbnailImage.Should().BeOfSize(ThumbnailSize.Medium.ToSize());
 
-                thumbnail = await context.Thumbnails.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Large);
+                thumbnail = await context.Thumbnails!.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Large);
                 thumbnail.Should().NotBeNull();
-                thumbnail.PhotoId.Should().Be(updatedPhoto.PhotoId);
+                thumbnail!.PhotoId.Should().Be(updatedPhoto.PhotoId);
                 thumbnail.ThumbnailImage.Should().BeOfSize(ThumbnailSize.Large.ToSize());
             }
         }

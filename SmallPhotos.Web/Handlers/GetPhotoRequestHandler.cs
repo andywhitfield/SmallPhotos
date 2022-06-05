@@ -47,7 +47,7 @@ namespace SmallPhotos.Web.Handlers
 
             if (request.ThumbnailSize == null)
             {
-                var original = new FileInfo(Path.Combine(photo.AlbumSource.Folder, photo.Filename));
+                var original = new FileInfo(Path.Combine(photo.AlbumSource!.Folder ?? "", photo.Filename ?? ""));
                 if (!original.Exists)
                 {
                     _logger.LogInformation($"Photo with id {request.PhotoId} does not exist: [{original.FullName}]");
@@ -73,7 +73,7 @@ namespace SmallPhotos.Web.Handlers
             }
 
             var thumbnail = await _photoRepository.GetThumbnailAsync(photo, thumbnailSize);
-            if (thumbnail == null)
+            if (thumbnail?.ThumbnailImage == null)
             {
                 _logger.LogInformation($"No thumbnail for photo [{request.PhotoId}]");
                 return GetPhotoResponse.Empty;

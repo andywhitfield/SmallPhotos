@@ -56,7 +56,7 @@ namespace SmallPhotos.Service.Controllers
             if (format == MagickFormat.Unknown)
                 return BadRequest($"Unknown image format: [{file.Extension}]");
 
-            using var image = new MagickImage(Path.Combine(albumSource.Folder, file.Name), format);
+            using var image = new MagickImage(Path.Combine(albumSource.Folder ?? "", file.Name), format);
             var originalSize = new Size(image.Width, image.Height);
 
             var photo = await _photoRepository.GetAsync(userAccount, albumSource, request.Filename);

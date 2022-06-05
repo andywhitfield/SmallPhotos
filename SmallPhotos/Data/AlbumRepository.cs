@@ -19,9 +19,9 @@ namespace SmallPhotos.Data
             _context = context;
         }
 
-        public Task<AlbumSource> GetAsync(UserAccount user, long albumSourceId) =>
+        public Task<AlbumSource?> GetAsync(UserAccount user, long albumSourceId) =>
             _context
-                .AlbumSources
+                .AlbumSources!
                 .FirstOrDefaultAsync(a =>
                     a.UserAccountId == user.UserAccountId &&
                     a.AlbumSourceId == albumSourceId &&
@@ -29,13 +29,13 @@ namespace SmallPhotos.Data
 
         public Task<List<AlbumSource>> GetAllAsync(UserAccount user) =>
             _context
-                .AlbumSources
+                .AlbumSources!
                 .Where(a => a.UserAccountId == user.UserAccountId && a.DeletedDateTime == null)
                 .ToListAsync();
 
         public async Task AddAsync(UserAccount userAccount, string folder)
         {
-            await _context.AlbumSources.AddAsync(new AlbumSource
+            await _context.AlbumSources!.AddAsync(new AlbumSource
             {
                 UserAccount = userAccount,
                 Folder = folder

@@ -7,10 +7,10 @@ namespace SmallPhotos.Data
     {
         public SqliteDataContext(DbContextOptions<SqliteDataContext> options) : base(options) { }
 
-        public DbSet<UserAccount> UserAccounts { get; set; }
-        public DbSet<AlbumSource> AlbumSources { get; set; }
-        public DbSet<Photo> Photos { get; set; }
-        public DbSet<Thumbnail> Thumbnails { get; set; }
+        public DbSet<UserAccount>? UserAccounts { get; set; }
+        public DbSet<AlbumSource>? AlbumSources { get; set; }
+        public DbSet<Photo>? Photos { get; set; }
+        public DbSet<Thumbnail>? Thumbnails { get; set; }
 
         public void Migrate() => Database.Migrate();
     }

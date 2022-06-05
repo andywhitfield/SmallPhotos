@@ -10,7 +10,7 @@ namespace SmallPhotos.Web.Model
 
         public static readonly Pagination Empty = new Pagination(0, 0);
 
-        public static (IEnumerable<T> Items, int Page, int PageCount) Paginate<T>(IEnumerable<T> items, int page, Func<T, bool> selectedItem = null)
+        public static (IEnumerable<T> Items, int Page, int PageCount) Paginate<T>(IEnumerable<T> items, int page, Func<T, bool>? selectedItem = null)
         {
             var itemCount = items.Count();
             if (itemCount <= PageSize || page < 1)

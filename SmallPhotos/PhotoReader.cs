@@ -11,7 +11,7 @@ namespace SmallPhotos
         private readonly IContentTypeProvider _contentTypeProvider;
         public PhotoReader(IContentTypeProvider contentTypeProvider) => _contentTypeProvider = contentTypeProvider;
 
-        public async Task<(string ContentType, Stream ContentStream)> GetPhotoStreamForWebAsync(FileInfo file)
+        public async Task<(string? ContentType, Stream? ContentStream)> GetPhotoStreamForWebAsync(FileInfo file)
         {
             if (!_contentTypeProvider.TryGetContentType(file.Name, out var contentType) &&
                 (contentType = IsHeic(file) ? "image/jpeg" : null) == null)

@@ -8,11 +8,11 @@ namespace SmallPhotos.Data
 {
     public interface IPhotoRepository
     {
-        Task<Photo> GetAsync(UserAccount user, long photoId);
-        Task<Photo> GetAsync(UserAccount user, AlbumSource album, string filename);
+        Task<Photo?> GetAsync(UserAccount user, long photoId);
+        Task<Photo?> GetAsync(UserAccount user, AlbumSource album, string? filename);
         Task<List<Photo>> GetAllAsync(UserAccount user);
         Task<List<Photo>> GetAllAsync(AlbumSource album);
-        Task<Thumbnail> GetThumbnailAsync(Photo photo, ThumbnailSize size);
+        Task<Thumbnail?> GetThumbnailAsync(Photo photo, ThumbnailSize size);
         Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize);
         Task UpdateAsync(Photo photo, FileInfo file, Size imageSize);
         Task<Thumbnail> SaveThumbnailAsync(Photo photo, ThumbnailSize size, byte[] image);

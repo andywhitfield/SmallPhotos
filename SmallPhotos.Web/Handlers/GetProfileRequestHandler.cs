@@ -29,7 +29,7 @@ namespace SmallPhotos.Web.Handlers
         {
             var user = await _userAccountRepository.GetUserAccountAsync(request.User);
             var allAlbumSources = await _albumRepository.GetAllAsync(user);
-            return new GetProfileResponse(allAlbumSources.Select(a => new AlbumSourceFolderModel(a.AlbumSourceId, a.Folder)));
+            return new GetProfileResponse(allAlbumSources.Select(a => new AlbumSourceFolderModel(a.AlbumSourceId, a.Folder ?? "")));
         }
     }
 }

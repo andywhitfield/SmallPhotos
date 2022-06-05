@@ -58,7 +58,7 @@ namespace SmallPhotos.Service.Services
 
                     _logger.LogDebug($"Checking albums changes for user [{user.UserAccountId}] / album [{albumSource.AlbumSourceId}:{albumSource.Folder}]");
 
-                    var src = new DirectoryInfo(albumSource.Folder);
+                    var src = new DirectoryInfo(albumSource.Folder ?? "");
                     var filesInAlbum = (src.Exists ? src.EnumerateFiles() : Enumerable.Empty<FileInfo>())
                         .Where(f => _supportedPhotoExtensions.Contains(f.Extension.ToLowerInvariant()))
                         .ToList();

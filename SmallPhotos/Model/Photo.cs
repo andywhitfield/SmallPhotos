@@ -8,8 +8,8 @@ namespace SmallPhotos.Model
         public long PhotoId { get; set; }
         public long AlbumSourceId { get; set; }
         [Required]
-        public AlbumSource AlbumSource { get; set; }
-        public string Filename { get; set; }
+        public AlbumSource? AlbumSource { get; set; }
+        public string? Filename { get; set; }
         public DateTime FileCreationDateTime { get; set; }
         public DateTime FileModificationDateTime { get; set; }
         public int Width { get; set; }

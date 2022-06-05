@@ -15,7 +15,7 @@ namespace SmallPhotos.Web.Model
 
         public override string ToString() => $"{PageNumber}{(IsSelected ? " (selected)" : "")}";
         public override int GetHashCode() => PageNumber;
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is Page other)
                 return PageNumber == other.PageNumber && IsSelected == other.IsSelected;

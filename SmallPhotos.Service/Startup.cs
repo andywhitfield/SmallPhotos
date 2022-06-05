@@ -19,7 +19,7 @@ namespace SmallPhotos.Service
         public const string BackgroundServiceHttpClient = "BackgroundServiceHttpClient";
 
         private IWebHostEnvironment _hostingEnvironment;
-        private IFeatureCollection _featureCollection;
+        private IFeatureCollection? _featureCollection;
 
         public Startup(IWebHostEnvironment env)
         {

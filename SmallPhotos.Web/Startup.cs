@@ -79,7 +79,7 @@ namespace SmallPhotos.Web
 
             services
                 .AddDataProtection()
-                .SetApplicationName(typeof(Startup).Namespace)
+                .SetApplicationName(typeof(Startup).Namespace ?? "")
                 .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Environment.ContentRootPath, ".keys")));
 
             services.AddLogging(logging =>

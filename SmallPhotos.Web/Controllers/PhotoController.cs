@@ -30,7 +30,7 @@ namespace SmallPhotos.Web.Controllers
             _logger.LogInformation($"Getting image {photoId}, size {size}");
 
             var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, size ?? ""));
-            if (response?.ImageStream == null)
+            if (response?.ImageStream == null || response.ImageContentType == null)
                 return NotFound();
 
             return File(response.ImageStream, response.ImageContentType, filename, new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
@@ -45,7 +45,7 @@ namespace SmallPhotos.Web.Controllers
             _logger.LogInformation($"Getting image {photoId}");
 
             var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, null));
-            if (response?.ImageStream == null)
+            if (response?.ImageStream == null || response.ImageContentType == null)
                 return NotFound();
 
             return File(response.ImageStream, response.ImageContentType, filename, new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
