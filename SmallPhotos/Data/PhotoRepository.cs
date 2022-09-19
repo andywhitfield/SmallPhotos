@@ -66,7 +66,7 @@ namespace SmallPhotos.Data
                 .Thumbnails!
                 .FirstOrDefaultAsync(t => t.PhotoId == photo.PhotoId && t.ThumbnailSize == size);
 
-        public async Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize)
+        public async Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize, DateTime? dateTaken)
         {
             var photo = await _context.Photos!.AddAsync(new Photo
             {
@@ -74,6 +74,7 @@ namespace SmallPhotos.Data
                 Filename = file.Name,
                 FileCreationDateTime = file.CreationTimeUtc,
                 FileModificationDateTime = file.LastWriteTimeUtc,
+                DateTaken = dateTaken,
                 Width = imageSize.Width,
                 Height = imageSize.Height
             });
@@ -81,10 +82,11 @@ namespace SmallPhotos.Data
             return photo.Entity;
         }
 
-        public Task UpdateAsync(Photo photo, FileInfo file, Size imageSize)
+        public Task UpdateAsync(Photo photo, FileInfo file, Size imageSize, DateTime? dateTaken)
         {
             photo.FileCreationDateTime = file.CreationTimeUtc;
             photo.FileModificationDateTime = file.LastWriteTimeUtc;
+            photo.DateTaken = dateTaken;
             photo.Width = imageSize.Width;
             photo.Height = imageSize.Height;
             photo.LastUpdateDateTime = DateTime.UtcNow;

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using SmallPhotos.Data;
@@ -55,6 +56,7 @@ namespace SmallPhotos.Service
                     if (serviceAddress == null)
                     {
                         logger.LogCritical("Cannot get service address - background service will not be able to run successfully!");
+                        provider.GetService<IHostApplicationLifetime>()?.StopApplication();
                         return;
                     }
                     logger.LogDebug($"Creating HttpClient[{BackgroundServiceHttpClient}] with address [{serviceAddress}]");

@@ -9,7 +9,7 @@ namespace SmallPhotos.Data
         public SqliteDataContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<SqliteDataContext>();
-            optionsBuilder.UseSqlite("Data Source=SmallPhotos.Web/smallphotos.db");
+            optionsBuilder.UseSqlite(":memory:");
             return new SqliteDataContext(optionsBuilder.Options);
         }
     }

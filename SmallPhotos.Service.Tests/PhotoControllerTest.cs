@@ -60,6 +60,7 @@ namespace SmallPhotos.Service.Tests
             responsePhoto!.Filename.Should().Be("test.jpg");
             responsePhoto.Width.Should().Be(15);
             responsePhoto.Height.Should().Be(10);
+            responsePhoto.DateTaken.Should().BeNull();
 
             // check saved photo
             using var serviceScope = _factory.Services.CreateScope();
@@ -70,6 +71,7 @@ namespace SmallPhotos.Service.Tests
             newPhoto.Filename.Should().Be("test.jpg");
             newPhoto.Width.Should().Be(15);
             newPhoto.Height.Should().Be(10);
+            newPhoto.DateTaken.Should().BeNull();
 
             // check thumbnails
             (await context.Thumbnails!.CountAsync()).Should().Be(3);
@@ -96,6 +98,9 @@ namespace SmallPhotos.Service.Tests
             {
                 // create and upload an image
                 var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
+                var profile = new ExifProfile();
+                profile.SetValue(ExifTag.DateTimeOriginal, "2022:09:19 13:20:10");
+                img.SetProfile(profile);
                 await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "test.jpg"), MagickFormat.Jpeg);
 
                 var request = new CreateOrUpdatePhotoRequest
@@ -114,12 +119,14 @@ namespace SmallPhotos.Service.Tests
                 responsePhoto!.Filename.Should().Be("test.jpg");
                 responsePhoto.Width.Should().Be(15);
                 responsePhoto.Height.Should().Be(10);
+                responsePhoto.DateTaken.Should().Be(new DateTime(2022, 9, 19, 13, 20, 10));
 
                 using var serviceScope = _factory.Services.CreateScope();
                 var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
                 (await context.Photos!.CountAsync()).Should().Be(1);
                 newPhoto = await context.Photos!.FirstAsync();
                 newPhoto.LastUpdateDateTime.Should().BeNull();
+                newPhoto.DateTaken.Should().Be(new DateTime(2022, 9, 19, 13, 20, 10));
             }
 
             {
@@ -143,6 +150,7 @@ namespace SmallPhotos.Service.Tests
                 responsePhoto!.Filename.Should().Be("test.jpg");
                 responsePhoto.Width.Should().Be(30);
                 responsePhoto.Height.Should().Be(10);
+                responsePhoto.DateTaken.Should().BeNull();
             }
 
             Photo updatedPhoto;
@@ -158,6 +166,7 @@ namespace SmallPhotos.Service.Tests
             updatedPhoto.Filename.Should().Be("test.jpg");
             updatedPhoto.Width.Should().Be(30);
             updatedPhoto.Height.Should().Be(10);
+            updatedPhoto.DateTaken.Should().BeNull();
             updatedPhoto.FileCreationDateTime.Should().Be(newPhoto.FileCreationDateTime);
             updatedPhoto.FileModificationDateTime.Should().BeAfter(newPhoto.FileModificationDateTime);
             updatedPhoto.LastUpdateDateTime.Should().NotBeNull();

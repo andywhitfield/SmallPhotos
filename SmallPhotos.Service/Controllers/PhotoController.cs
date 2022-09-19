@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using ImageMagick;
@@ -61,9 +62,9 @@ namespace SmallPhotos.Service.Controllers
 
             var photo = await _photoRepository.GetAsync(userAccount, albumSource, request.Filename);
             if (photo == null)
-                photo = await _photoRepository.AddAsync(albumSource, file, originalSize);
+                photo = await _photoRepository.AddAsync(albumSource, file, originalSize, ExtractDateTaken(image));
             else
-                await _photoRepository.UpdateAsync(photo, file, originalSize);
+                await _photoRepository.UpdateAsync(photo, file, originalSize, ExtractDateTaken(image));
 
             foreach (var thumbnailSize in Enum.GetValues<ThumbnailSize>())
             {
@@ -72,6 +73,18 @@ namespace SmallPhotos.Service.Controllers
             }
 
             return photo;
+        }
+
+        private DateTime? ExtractDateTaken(MagickImage image)
+        {
+            var exifData = image.GetExifProfile();
+            
+            return ExtractDateTaken(ExifTag.DateTimeOriginal)
+                ?? ExtractDateTaken(ExifTag.DateTimeDigitized)
+                ?? ExtractDateTaken(ExifTag.DateTime);
+
+            DateTime? ExtractDateTaken(ExifTag<string> tag) =>
+                DateTime.TryParseExact(exifData?.GetValue<string>(tag)?.Value, "yyyy:MM:dd HH:mm:ss", null, DateTimeStyles.AssumeLocal, out var timeTaken) ? timeTaken : default(DateTime?);
         }
     }
 }

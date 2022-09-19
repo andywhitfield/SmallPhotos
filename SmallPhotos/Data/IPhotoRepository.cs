@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -13,8 +14,8 @@ namespace SmallPhotos.Data
         Task<List<Photo>> GetAllAsync(UserAccount user);
         Task<List<Photo>> GetAllAsync(AlbumSource album);
         Task<Thumbnail?> GetThumbnailAsync(Photo photo, ThumbnailSize size);
-        Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize);
-        Task UpdateAsync(Photo photo, FileInfo file, Size imageSize);
+        Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize, DateTime? dateTaken);
+        Task UpdateAsync(Photo photo, FileInfo file, Size imageSize, DateTime? dateTaken);
         Task<Thumbnail> SaveThumbnailAsync(Photo photo, ThumbnailSize size, byte[] image);
         Task DeleteAsync(Photo photo);
     }
