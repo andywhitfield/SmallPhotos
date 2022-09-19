@@ -12,12 +12,14 @@ namespace SmallPhotos.Service.BackgroundServices
     public class AlbumChangeService : BackgroundService
     {
         private readonly ILogger<AlbumChangeService> _logger;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IHostApplicationLifetime _applicationLifetime;
 
-        public AlbumChangeService(ILogger<AlbumChangeService> logger, IServiceProvider serviceProvider)
+        public AlbumChangeService(ILogger<AlbumChangeService> logger, IServiceScopeFactory serviceScopeFactory, IHostApplicationLifetime applicationLifetime)
         {
             _logger = logger;
-            _serviceProvider = serviceProvider;
+            _serviceScopeFactory = serviceScopeFactory;
+            _applicationLifetime = applicationLifetime;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -25,11 +27,23 @@ namespace SmallPhotos.Service.BackgroundServices
             _logger.LogInformation("Running album change background service");
             try
             {
+                var waitForStart = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
+                _applicationLifetime.ApplicationStarted.Register(obj =>
+                {
+                    var tcs = obj as TaskCompletionSource<object>;
+                    tcs?.TrySetResult(0);
+                }, waitForStart);
+
+                _logger.LogDebug("Waiting for application start");
+                await waitForStart.Task;
+
+                _logger.LogDebug("Application started, waiting 1s before inital sync");
                 await Task.Delay(1000, stoppingToken);
+
                 do
                 {
                     TimeSpan pollPeriod;
-                    using (var scope = _serviceProvider.CreateScope())
+                    using (var scope = _serviceScopeFactory.CreateScope())
                     {
                         pollPeriod = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<AlbumChangeServiceOptions>>().Value.PollPeriod;
                         await scope.ServiceProvider.GetRequiredService<IAlbumSyncService>().SyncAllAsync(stoppingToken);
