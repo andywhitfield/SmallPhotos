@@ -33,7 +33,7 @@ namespace SmallPhotos.Web.Handlers
             // TODO: should do better than loading everything, then taking the page size number of photos
             var pagedPhotos = Pagination.Paginate(await _photoRepository.GetAllAsync(user), request.PageNumber, request.PhotoId == null ? null : photo => photo.PhotoId == request.PhotoId);
 
-            return new HomePageResponse(true, pagedPhotos.Items.Select(p => new PhotoModel(p.PhotoId, p.Filename ?? "", request.ThumbnailSize.ToSize())), new Pagination(pagedPhotos.Page, pagedPhotos.PageCount));
+            return new HomePageResponse(true, pagedPhotos.Items.Select(p => new PhotoModel(p.PhotoId, p.Filename ?? "", request.ThumbnailSize.ToSize(), p.DateTaken ?? p.FileCreationDateTime)), new Pagination(pagedPhotos.Page, pagedPhotos.PageCount));
         }
     }
 }
