@@ -45,6 +45,7 @@ namespace SmallPhotos.Data
         public Task<List<Photo>> GetAllAsync(UserAccount user) =>
             _context
                 .Photos!
+                .Include(p => p.AlbumSource)
                 .Where(p =>
                     p.AlbumSource!.UserAccountId == user.UserAccountId &&
                     p.AlbumSource.DeletedDateTime == null &&

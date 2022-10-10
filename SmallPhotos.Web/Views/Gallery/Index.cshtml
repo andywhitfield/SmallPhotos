@@ -49,12 +49,12 @@
     <div>Taken: @Model.Photo.DateTaken</div>
 
     <div class="pagination">
-        <a href="/?photoId=@(Model.Photo.PhotoId)#@(Model.Photo.PhotoId).@(Model.Photo.Filename)">&lsaquo; Thumbnails</a>
+        <a title="Back to photo thumbnails" href="/?photoId=@(Model.Photo.PhotoId)#@(Model.Photo.PhotoId).@(Model.Photo.Filename)">&lsaquo;<span class="pagination-info"> Thumbnails</span></a>
         @if (Model.PreviousPhoto != null) {
-        <a href="/gallery/@(Model.PreviousPhoto.PhotoId)/@(Model.PreviousPhoto.Filename)">&laquo; Prev (#@(Model.PreviousPhotoNumber) of @(Model.PhotoCount))</a>
+        <a title="Previous page of photos" href="/gallery/@(Model.PreviousPhoto.PhotoId)/@(Model.PreviousPhoto.Filename)">&laquo;<span class="pagination-info"> Prev</span> (#@(Model.PreviousPhotoNumber) of @(Model.PhotoCount))</a>
         }
         @if (Model.NextPhoto != null) {
-        <a href="/gallery/@(Model.NextPhoto.PhotoId)/@(Model.NextPhoto.Filename)">Next  (#@(Model.NextPhotoNumber) of @(Model.PhotoCount)) &raquo;</a>
+        <a title="Next page of photos" href="/gallery/@(Model.NextPhoto.PhotoId)/@(Model.NextPhoto.Filename)"><span class="pagination-info">Next </span>(#@(Model.NextPhotoNumber) of @(Model.PhotoCount)) &raquo;</a>
         }
     </div>
 
@@ -63,13 +63,22 @@
     </p>
 
     <div class="pagination">
-        <a href="/?photoId=@(Model.Photo.PhotoId)#@(Model.Photo.PhotoId).@(Model.Photo.Filename)">&lsaquo; Thumbnails</a>
+        <a title="Back to photo thumbnails" href="/?photoId=@(Model.Photo.PhotoId)#@(Model.Photo.PhotoId).@(Model.Photo.Filename)">&lsaquo;<span class="pagination-info"> Thumbnails</span></a>
         @if (Model.PreviousPhoto != null) {
-        <a href="/gallery/@(Model.PreviousPhoto.PhotoId)/@(Model.PreviousPhoto.Filename)">&laquo; Prev (#@(Model.PreviousPhotoNumber) of @(Model.PhotoCount))</a>
+        <a title="Previous page of photos" href="/gallery/@(Model.PreviousPhoto.PhotoId)/@(Model.PreviousPhoto.Filename)">&laquo;<span class="pagination-info"> Prev</span> (#@(Model.PreviousPhotoNumber) of @(Model.PhotoCount))</a>
         }
         @if (Model.NextPhoto != null) {
-        <a href="/gallery/@(Model.NextPhoto.PhotoId)/@(Model.NextPhoto.Filename)">Next  (#@(Model.NextPhotoNumber) of @(Model.PhotoCount)) &raquo;</a>
+        <a title="Next page of photos" href="/gallery/@(Model.NextPhoto.PhotoId)/@(Model.NextPhoto.Filename)"><span class="pagination-info">Next </span>(#@(Model.NextPhotoNumber) of @(Model.PhotoCount)) &raquo;</a>
         }
     </div>
+
+    <details>
+        <summary>Image details</summary>
+        <div>Source: @Model.Photo.Source</div>
+        <div>File: @Model.Photo.Filename</div>
+        <div>Size: @Model.Photo.SizeInfo</div>
+        <div>Taken: @Model.Photo.DateTaken</div>
+        <div>File time: @Model.Photo.FileCreationDate</div>
+    </details>
 
 </article>

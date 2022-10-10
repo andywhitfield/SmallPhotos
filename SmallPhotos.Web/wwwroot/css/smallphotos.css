@@ -153,6 +153,9 @@ footer {
     .narrow-hide {
         display: none;
     }
+    .pagination-info {
+        display: none;
+    }
 }
 
 @media (prefers-color-scheme: dark) {

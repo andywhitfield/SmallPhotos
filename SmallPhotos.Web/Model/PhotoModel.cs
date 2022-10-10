@@ -5,17 +5,27 @@ namespace SmallPhotos.Web.Model
 {
     public class PhotoModel
     {
-        public PhotoModel(long photoId, string filename, Size size, DateTime dateTaken)
+        private const string _dateFormat = "HH:mm' on 'dd MMMM yyyy";
+
+        public PhotoModel(long photoId, string source, string filename, Size size, DateTime dateTaken, DateTime fileCreationDate)
         {
             PhotoId = photoId;
+            Source = source;
             Filename = filename;
             Size = size;
-            DateTaken = dateTaken.ToString("HH:mm:ss' on 'dd MMMM yyyy");
+            SizeInfo = $"{size.Width}w x {size.Height}h";
+            DateTimeTaken = dateTaken;
+            DateTaken = dateTaken.ToString(_dateFormat);
+            FileCreationDate = fileCreationDate.ToString(_dateFormat);            
         }
 
         public long PhotoId { get; }
+        public string Source { get; }
         public string Filename { get; }
         public Size Size { get; }
+        public string SizeInfo { get; }
+        public DateTime DateTimeTaken { get; }
         public string DateTaken { get; }
+        public string FileCreationDate { get; }
     }
 }

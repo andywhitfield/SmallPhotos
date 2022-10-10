@@ -43,6 +43,6 @@ namespace SmallPhotos.Web.Handlers
             return new GalleryResponse(ToModel(photo), ToModel(previous), ToModel(next), photoIndex + 1, allPhotos.Count);
         }
 
-        private PhotoModel? ToModel(Photo? photo) => photo == null ? null : new PhotoModel(photo.PhotoId, photo.Filename ?? "", new Size(photo.Width, photo.Height), photo.DateTaken ?? photo.FileCreationDateTime);
+        private PhotoModel? ToModel(Photo? photo) => photo == null ? null : new PhotoModel(photo.PhotoId, photo.AlbumSource?.Folder ?? "", photo.Filename ?? "", new Size(photo.Width, photo.Height), photo.DateTaken ?? photo.FileCreationDateTime, photo.FileCreationDateTime);
     }
 }
