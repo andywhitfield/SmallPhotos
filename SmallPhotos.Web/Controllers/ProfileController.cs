@@ -1,9 +1,12 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using SmallPhotos.Model;
 using SmallPhotos.Web.Handlers.Models;
 using SmallPhotos.Web.Model.Profile;
 
@@ -60,6 +63,23 @@ namespace SmallPhotos.Web.Controllers
                 return BadRequest();
 
             return Redirect("~/profile");
+        }
+
+        [HttpPost("~/profile/thumbnailsize")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ThumnailSize([FromForm, Required, ModelBinder(Name="thumbnail-size-selector")]int thumbnailSize)
+        {
+            if (!ModelState.IsValid || !Enum.IsDefined(typeof(ThumbnailSize), thumbnailSize))
+                return BadRequest();
+
+            var headers = Request.GetTypedHeaders();
+            var uriReferer = headers.Referer ?? new("~/");
+            var updateThumbnailSize = (ThumbnailSize)thumbnailSize;
+            if (!await _mediator.Send(new UpdateUserThumbnailSizeRequest(User, updateThumbnailSize)))
+                return BadRequest();
+
+            _logger.LogDebug($"Updated user thumbnail size to {updateThumbnailSize} - redirect to [{uriReferer}]");
+            return Redirect(uriReferer.ToString());
         }
     }
 }

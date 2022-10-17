@@ -50,7 +50,7 @@ namespace SmallPhotos.Data
                     p.AlbumSource!.UserAccountId == user.UserAccountId &&
                     p.AlbumSource.DeletedDateTime == null &&
                     p.DeletedDateTime == null)
-                .OrderBy(p => p.FileCreationDateTime)
+                .OrderByDescending(p => p.DateTaken ?? p.FileCreationDateTime)
                 .ToListAsync();
 
         public Task<List<Photo>> GetAllAsync(AlbumSource album) =>

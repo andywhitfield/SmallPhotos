@@ -40,5 +40,11 @@ namespace SmallPhotos.Data
         }
 
         public Task<List<UserAccount>> GetAllAsync() => _context.UserAccounts!.Where(ua => ua.DeletedDateTime == null).ToListAsync();
+
+        public Task UpdateAsync(UserAccount user)
+        {
+            user.LastUpdateDateTime = DateTime.UtcNow;
+            return _context.SaveChangesAsync();
+        }
     }
 }

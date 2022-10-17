@@ -33,8 +33,12 @@
     background-color: #f86bff;
 }
 
-</style>
+.pagination span {
+  float: left;
+  padding: 8px 1px;
+}
 
+</style>
 
 <aside>
     <nav>
@@ -74,6 +78,15 @@
         @foreach(var photo in Model.Photos) {
             <div><a title="Taken: @photo.DateTaken" href="/gallery/@(photo.PhotoId)/@(photo.Filename)" name="@(photo.PhotoId).@(photo.Filename)"><img src="/photo/thumbnail/@(Model.ThumbnailSize)/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" loading="lazy" /></a></div>
         }
+        </div>
+
+        <div class="thumbnail-size-toggle" title="Thumbnail size">
+            <form method="post" action="/profile/thumbnailsize">
+            @Html.AntiForgeryToken()
+            <label for="thumbnail-size-selector-s"><input checked="@(Model.ThumbnailSize == SmallPhotos.Model.ThumbnailSize.Small)" type="radio" id="thumbnail-size-selector-s" name="thumbnail-size-selector" value="@((int)SmallPhotos.Model.ThumbnailSize.Small)" onchange="this.form.submit();"> small</label>
+            <label for="thumbnail-size-selector-m"><input checked="@(Model.ThumbnailSize == SmallPhotos.Model.ThumbnailSize.Medium)" type="radio" id="thumbnail-size-selector-m" name="thumbnail-size-selector" value="@((int)SmallPhotos.Model.ThumbnailSize.Medium)" onchange="this.form.submit();"> medium</label>
+            <label for="thumbnail-size-selector-l"><input checked="@(Model.ThumbnailSize == SmallPhotos.Model.ThumbnailSize.Large)" type="radio" id="thumbnail-size-selector-l" name="thumbnail-size-selector" value="@((int)SmallPhotos.Model.ThumbnailSize.Large)" onchange="this.form.submit();"> large</label>
+            </form>
         </div>
 
         @if (Model.Pagination.PageCount > 1) {

@@ -12,5 +12,6 @@ namespace SmallPhotos.Data
         Task<UserAccount> GetUserAccountAsync(ClaimsPrincipal user);
         Task<UserAccount?> GetUserAccountOrNullAsync(ClaimsPrincipal user);
         Task<List<UserAccount>> GetAllAsync();
+        Task UpdateAsync(UserAccount user);
     }
 }
