@@ -1,6 +1,7 @@
 ﻿@model SmallPhotos.Web.Model.Profile.IndexViewModel
 
 <article>
+    <h3>Folders</h3>
     <p>
     @if (Model.Folders.Any()) {
     <ul>
@@ -20,7 +21,7 @@
         @Html.AntiForgeryToken()
         <fieldset>
             <legend>Add album folder</legend>
-                <div>
+            <div>
                 <label for="smp-add-folder">Folder path:</label>
                 <input type="text" id="smp-add-folder" name="folder" />
             </div>
@@ -28,7 +29,32 @@
                 <label></label>
                 <button type="submit" data-depends="input.smp-add-folder">Add</button>
             </div>
-            </fieldset>            
+        </fieldset>            
+    </form>
+    </p>
+    <h3>View options</h3>
+    <p>
+    <form method="post" action="/profile/viewoptions">
+        @Html.AntiForgeryToken()
+        <div>
+            <label for="smp-image=size">Gallery image preview size:</label>
+            <select id="smp-image-size" name="thumbnailsize">
+                <option selected="@(Model.ThumbnailSize == SmallPhotos.Model.ThumbnailSize.Small)" value="@((int)SmallPhotos.Model.ThumbnailSize.Small)">Small</option>
+                <option selected="@(Model.ThumbnailSize == SmallPhotos.Model.ThumbnailSize.Medium)" value="@((int)SmallPhotos.Model.ThumbnailSize.Medium)">Medium</option>
+                <option selected="@(Model.ThumbnailSize == SmallPhotos.Model.ThumbnailSize.Large)" value="@((int)SmallPhotos.Model.ThumbnailSize.Large)">Large</option>
+            </select>
+        </div>
+        <div>
+            <label for="smp-image=pagesize">Gallery images per page:</label>
+            <select id="smp-image-pagesize" name="pagesize">
+                <option selected="@(Model.GalleryImagePageSize == 20)">20</option>
+                <option selected="@(Model.GalleryImagePageSize == 50)">50</option>
+                <option selected="@(Model.GalleryImagePageSize == 100)">100</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit">Update</button>
+        </div>
     </form>
     </p>
 </article>

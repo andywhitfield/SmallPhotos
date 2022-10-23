@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SmallPhotos.Model;
 using SmallPhotos.Web.Handlers.Models;
+using SmallPhotos.Web.Model;
 using SmallPhotos.Web.Model.Profile;
 
 namespace SmallPhotos.Web.Controllers
@@ -28,7 +29,7 @@ namespace SmallPhotos.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var response = await _mediator.Send(new GetProfileRequest(User));
-            return View(new IndexViewModel(HttpContext, response.Folders));
+            return View(new IndexViewModel(HttpContext, response.Folders, response.ThumbnailSize, response.GalleryImagePageSize));
         }
 
         [HttpPost("~/profile/folder/add")]
@@ -80,6 +81,21 @@ namespace SmallPhotos.Web.Controllers
 
             _logger.LogDebug($"Updated user thumbnail size to {updateThumbnailSize} - redirect to [{uriReferer}]");
             return Redirect(uriReferer.ToString());
+        }
+
+        [HttpPost("~/profile/viewoptions")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveViewOptions([FromForm, Required]int thumbnailSize, [FromForm, Required]int pageSize)
+        {
+            if (!ModelState.IsValid || !Enum.IsDefined(typeof(ThumbnailSize), thumbnailSize) || pageSize < 1 || pageSize > Pagination.MaxPageSize)
+                return BadRequest();
+
+            var updateThumbnailSize = (ThumbnailSize)thumbnailSize;
+            if (!await _mediator.Send(new SaveViewOptionsRequest(User, updateThumbnailSize, pageSize)))
+                return BadRequest();
+
+            _logger.LogDebug($"Updated user thumbnail size to {updateThumbnailSize} and page size to {pageSize}");
+            return Redirect("~/profile");
         }
     }
 }
