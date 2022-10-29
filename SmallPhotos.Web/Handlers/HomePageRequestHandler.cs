@@ -31,7 +31,7 @@ namespace SmallPhotos.Web.Handlers
                 return new HomePageResponse(false, ThumbnailSize.Small, Enumerable.Empty<PhotoModel>(), Pagination.Empty);
 
             // TODO: should do better than loading everything, then taking the page size number of photos
-            var pagedPhotos = Pagination.Paginate(await _photoRepository.GetAllAsync(user), request.PageNumber, request.PhotoId == null ? null : photo => photo.PhotoId == request.PhotoId);
+            var pagedPhotos = Pagination.Paginate(await _photoRepository.GetAllAsync(user), request.PageNumber, user.GalleryImagePageSize, request.PhotoId == null ? null : photo => photo.PhotoId == request.PhotoId);
 
             return new HomePageResponse(true, user.ThumbnailSize, pagedPhotos.Items.Select(p => new PhotoModel(p.PhotoId, p.AlbumSource?.Folder ?? "", p.Filename ?? "", user.ThumbnailSize.ToSize(), p.DateTaken ?? p.FileCreationDateTime, p.FileCreationDateTime)), new Pagination(pagedPhotos.Page, pagedPhotos.PageCount));
         }

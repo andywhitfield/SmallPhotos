@@ -6,29 +6,29 @@ namespace SmallPhotos.Web.Model
 {
     public class Pagination
     {
-        public const int DefaultPageSize = 1;
+        public const int DefaultPageSize = 20;
         public const int MaxPageSize = 100;
 
         public static readonly Pagination Empty = new Pagination(0, 0);
 
-        public static (IEnumerable<T> Items, int Page, int PageCount) Paginate<T>(IEnumerable<T> items, int page, Func<T, bool>? selectedItem = null)
+        public static (IEnumerable<T> Items, int Page, int PageCount) Paginate<T>(IEnumerable<T> items, int page, int? pageSize = null, Func<T, bool>? selectedItem = null)
         {
-            var pageSize = DefaultPageSize;
+            var actualPageSize = Math.Min(MaxPageSize, Math.Max(1, pageSize ?? DefaultPageSize));
 
             var itemCount = items.Count();
-            if (itemCount <= pageSize || page < 1)
+            if (itemCount <= actualPageSize || page < 1)
                 return (items, 1, 1);
             
             if (selectedItem != null)
             {
-                var pageForSelectedItem = items.Chunk(pageSize).Select((pgItems, pgIdx) => pgItems.Any(i => selectedItem(i)) ? pgIdx + 1 : 0).FirstOrDefault(pgNum => pgNum > 0);
+                var pageForSelectedItem = items.Chunk(actualPageSize).Select((pgItems, pgIdx) => pgItems.Any(i => selectedItem(i)) ? pgIdx + 1 : 0).FirstOrDefault(pgNum => pgNum > 0);
                 if (pageForSelectedItem > 0)
                     page = pageForSelectedItem;
             }
 
-            var pageCount = (itemCount / pageSize) + (itemCount % pageSize == 0 ? 0 : 1);
+            var pageCount = (itemCount / actualPageSize) + (itemCount % actualPageSize == 0 ? 0 : 1);
             var skip = Math.Min(page, pageCount);
-            return (items.Skip((skip - 1) * pageSize).Take(pageSize), skip, pageCount);
+            return (items.Skip((skip - 1) * actualPageSize).Take(actualPageSize), skip, pageCount);
         }
 
         public Pagination(int pageNumber, int pageCount)
