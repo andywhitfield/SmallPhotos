@@ -50,7 +50,18 @@ function smpInitialise() {
 function fullSizeImage() {
     var win = $(window);
     var fullImg = $('#fullimg');
-    var isCompact = win.width() <= 600;
-    fullImg.css('max-height', win.height() - (isCompact ? 340 : 290));
-    fullImg.css('max-width', win.width() - (isCompact ? 30 : 280));
+    var isFullImgScaled = $('#fullimg-scaled').prop('checked');
+    if (isFullImgScaled) {
+        var isCompact = win.width() <= 600;
+        var height = win.height() - (isCompact ? 340 : 290);
+        var width = win.width() - (isCompact ? 30 : 280);
+        console.log('scaling image size to ' + width + 'x' + height);
+
+        fullImg.css('max-height', height);
+        fullImg.css('max-width', width);
+    } else {
+        console.log('disabled image scaling, removing max height/width css');
+        fullImg.css('max-height', '');
+        fullImg.css('max-width', '');
+    }
 }

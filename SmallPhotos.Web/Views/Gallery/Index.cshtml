@@ -62,6 +62,8 @@
         <img id="fullimg" src="/photo/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)" />
     </p>
 
+    <div><input type="checkbox" id="fullimg-scaled" name="fullimg-scaled" checked onchange="fullSizeImage()" /><label for="fullimg-scaled"> scale to window</label></div>
+
     <div class="pagination">
         <a title="Back to photo thumbnails" href="/?photoId=@(Model.Photo.PhotoId)#@(Model.Photo.PhotoId).@(Model.Photo.Filename)">&lsaquo;<span class="pagination-info"> Thumbnails</span></a>
         @if (Model.PreviousPhoto != null) {
