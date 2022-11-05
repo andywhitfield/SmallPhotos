@@ -1,53 +1,6 @@
 ﻿@model SmallPhotos.Web.Model.Home.IndexViewModel
 
-<style>
-
-.thumbnails {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.thumbnails > div {
-  margin: 10px;
-}
-
-.pagination {
-  margin-top: 10px;
-  display: inline-block;
-}
-
-.pagination a {
-  color: black;
-  float: left;
-  padding: 8px 16px;
-  text-decoration: none;
-  transition: background-color .3s;
-}
-
-.pagination a.pagination-active {
-  background-color: #6be1ff;
-  color: white;
-}
-
-.pagination a:hover:not(.pagination-active) {
-    background-color: #f86bff;
-}
-
-.pagination span {
-  float: left;
-  padding: 8px 1px;
-}
-
-</style>
-
-<aside>
-    <nav>
-        <ul>
-            <li><a href="/">Nav link 1</a></li>
-            <li><a href="/">Nav link 2</a></li>
-        </ul>
-    </nav>
-</aside>
+@await Component.InvokeAsync("Navigation")
 
 <article>
     @if (Model.Photos.Any()) {
