@@ -10,6 +10,7 @@ namespace SmallPhotos.Model
         [Required]
         public UserAccount? UserAccount { get; set; }
         public string? Folder { get; set; }
+        public bool? RecurseSubFolders { get; set; }
         public DateTime CreatedDateTime { get; set; } = DateTime.UtcNow;
         public DateTime? LastUpdateDateTime { get; set; }
         public DateTime? DeletedDateTime { get; set; }

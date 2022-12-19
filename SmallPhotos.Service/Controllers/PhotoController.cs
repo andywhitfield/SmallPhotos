@@ -42,7 +42,7 @@ namespace SmallPhotos.Service.Controllers
             if (albumSource == null)
                 return BadRequest($"Album [{request.AlbumSourceId}] not found");
 
-            var file = new FileInfo(Path.Join(albumSource.Folder, request.Filename));
+            var file = new FileInfo(albumSource.PhotoPath(request.FilePath, request.Filename ?? ""));
             if (!file.Exists)
                 return BadRequest($"File [{request.Filename}] does not exist");
 
@@ -57,7 +57,7 @@ namespace SmallPhotos.Service.Controllers
             if (format == MagickFormat.Unknown)
                 return BadRequest($"Unknown image format: [{file.Extension}]");
 
-            using var image = new MagickImage(Path.Combine(albumSource.Folder ?? "", file.Name), format);
+            using var image = new MagickImage(file.FullName, format);
             var originalSize = new Size(image.Width, image.Height);
 
             var photo = await _photoRepository.GetAsync(userAccount, albumSource, request.Filename);

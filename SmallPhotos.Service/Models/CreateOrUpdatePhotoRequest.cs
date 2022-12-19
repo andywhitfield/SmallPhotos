@@ -4,6 +4,7 @@ namespace SmallPhotos.Service.Models
     {
         public long UserAccountId { get; set; }
         public long AlbumSourceId { get; set; }
+        public string? FilePath { get; set; }
         public string? Filename { get; set; }
     }
 }

@@ -47,7 +47,7 @@ namespace SmallPhotos.Web.Handlers
 
             if (request.ThumbnailSize == null)
             {
-                var original = new FileInfo(Path.Combine(photo.AlbumSource!.Folder ?? "", photo.Filename ?? ""));
+                var original = new FileInfo(photo.AlbumSource!.PhotoPath(photo.RelativePath, photo.Filename ?? ""));
                 if (!original.Exists)
                 {
                     _logger.LogInformation($"Photo with id {request.PhotoId} does not exist: [{original.FullName}]");

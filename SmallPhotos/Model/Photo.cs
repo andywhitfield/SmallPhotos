@@ -10,6 +10,7 @@ namespace SmallPhotos.Model
         [Required]
         public AlbumSource? AlbumSource { get; set; }
         public string? Filename { get; set; }
+        public string? RelativePath { get; set; }
         public DateTime FileCreationDateTime { get; set; }
         public DateTime FileModificationDateTime { get; set; }
         public DateTime? DateTaken { get; set; }

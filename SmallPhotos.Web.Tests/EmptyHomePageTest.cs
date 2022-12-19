@@ -8,7 +8,7 @@ using Xunit;
 
 namespace SmallPhotos.Web.Tests
 {
-    public class HomeIntegrationTest : IAsyncLifetime
+    public class EmptyHomePageTest : IAsyncLifetime
     {
         private readonly IntegrationTestWebApplicationFactory _factory = new IntegrationTestWebApplicationFactory();
 
@@ -22,13 +22,14 @@ namespace SmallPhotos.Web.Tests
         }
 
         [Fact]
-        public async Task Should_display_expected_items()
+        public async Task Should_be_logged_in_and_have_no_photos()
         {
             using var client = _factory.CreateAuthenticatedClient();
             var response = await client.GetAsync("/");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var responseContent = await response.Content.ReadAsStringAsync();
             responseContent.Should().Contain("Logout");
+            responseContent.Should().Contain("You have no photos");
         }
 
         public Task DisposeAsync()

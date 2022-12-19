@@ -80,7 +80,7 @@ namespace SmallPhotos.Service.Services
                     await Task.WhenAll(newOrChangedPhotos.Select(async newOrChanged =>
                     {
                         using var response = await httpClient.PostAsync("/api/photo", new StringContent(JsonSerializer.Serialize(
-                            new CreateOrUpdatePhotoRequest { UserAccountId = user.UserAccountId, AlbumSourceId = albumSource.AlbumSourceId, Filename = newOrChanged.Name }),
+                            new CreateOrUpdatePhotoRequest { UserAccountId = user.UserAccountId, AlbumSourceId = albumSource.AlbumSourceId, Filename = newOrChanged.Name, FilePath = null /* TODO - suport relative path here */ }),
                             Encoding.UTF8,
                             "application/json"));
 
