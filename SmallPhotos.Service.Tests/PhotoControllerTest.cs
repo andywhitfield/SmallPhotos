@@ -41,7 +41,7 @@ namespace SmallPhotos.Service.Tests
         [Fact]
         public async Task Should_save_new_photo()
         {
-            var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
+            using var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
             await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "test.jpg"), MagickFormat.Jpeg);
 
             var request = new CreateOrUpdatePhotoRequest
@@ -97,7 +97,7 @@ namespace SmallPhotos.Service.Tests
             Photo newPhoto;
             {
                 // create and upload an image
-                var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
+                using var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
                 var profile = new ExifProfile();
                 profile.SetValue(ExifTag.DateTimeOriginal, "2022:09:19 13:20:10");
                 img.SetProfile(profile);
@@ -131,7 +131,7 @@ namespace SmallPhotos.Service.Tests
 
             {
                 // the image has been updated - made twice as wide
-                var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 30, 10);
+                using var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 30, 10);
                 await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "test.jpg"), MagickFormat.Jpeg);
 
                 var request = new CreateOrUpdatePhotoRequest

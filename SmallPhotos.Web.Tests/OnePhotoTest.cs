@@ -29,7 +29,7 @@ namespace SmallPhotos.Web.Tests
             var userAccount = context.UserAccounts!.Add(new UserAccount { AuthenticationUri = "http://test/user/1" });
             var album = context.AlbumSources!.Add(new AlbumSource { CreatedDateTime = DateTime.UtcNow, Folder = _albumSourceFolder, UserAccount = userAccount.Entity });
 
-            var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
+            using var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
             await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "photo1.jpg"), MagickFormat.Jpeg);
 
             context.Photos!.Add(new Photo { AlbumSource = album.Entity, CreatedDateTime = DateTime.UtcNow, FileCreationDateTime = DateTime.UtcNow, Filename = "photo1.jpg", Height = 10, Width = 15 });
@@ -40,7 +40,7 @@ namespace SmallPhotos.Web.Tests
         public async Task Should_be_logged_in_and_have_one_photo()
         {
             using var client = _factory.CreateAuthenticatedClient();
-            var response = await client.GetAsync("/");
+            using var response = await client.GetAsync("/");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var responseContent = await response.Content.ReadAsStringAsync();
             responseContent.Should().Contain("Logout");

@@ -25,7 +25,7 @@ namespace SmallPhotos.Web.Tests
         public async Task Should_be_logged_in_and_have_no_photos()
         {
             using var client = _factory.CreateAuthenticatedClient();
-            var response = await client.GetAsync("/");
+            using var response = await client.GetAsync("/");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var responseContent = await response.Content.ReadAsStringAsync();
             responseContent.Should().Contain("Logout");
