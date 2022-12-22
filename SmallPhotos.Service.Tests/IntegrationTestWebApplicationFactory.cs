@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using SmallPhotos.Data;
+using SmallPhotos.Service.BackgroundServices;
 
 namespace SmallPhotos.Service.Tests
 {
@@ -16,12 +18,14 @@ namespace SmallPhotos.Service.Tests
     {
         private readonly SqliteConnection _connection;
         private readonly DbContextOptions<SqliteDataContext> _options;
+        private readonly Func<IServiceCollection, IServiceCollection> _testServiceConfiguration;
 
-        public IntegrationTestWebApplicationFactory()
+        public IntegrationTestWebApplicationFactory(Func<IServiceCollection, IServiceCollection>? testServiceConfiguration = null)
         {
             _connection = new SqliteConnection("DataSource=:memory:");
             _connection.Open();
             _options = new DbContextOptionsBuilder<SqliteDataContext>().UseSqlite(_connection).Options;
+            _testServiceConfiguration = testServiceConfiguration ?? (s => s);
         }
 
         protected override IHostBuilder CreateHostBuilder()
@@ -36,8 +40,9 @@ namespace SmallPhotos.Service.Tests
                 .ConfigureWebHostDefaults(x => x
                     .UseStartup<Startup>()
                     .UseTestServer()
-                    .ConfigureTestServices(services => services
-                        .Replace(ServiceDescriptor.Scoped<SqliteDataContext>(_ => new SqliteDataContext(_options)))))
+                    .ConfigureTestServices(services => _testServiceConfiguration(services
+                        .RemoveAll<IHostedService>()
+                        .Replace(ServiceDescriptor.Scoped<SqliteDataContext>(_ => new SqliteDataContext(_options))))))
                 .UseSerilog();
         }
 

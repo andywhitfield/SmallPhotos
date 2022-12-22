@@ -99,12 +99,11 @@ namespace SmallPhotos.Service.Services
                         select p
                     ).ToList();
 
-                    _logger.LogInformation($"Deleted photos in album: [{string.Join(',', deletedPhotos.Select(p => p.Filename))}]");
+                    _logger.LogInformation($"Deleting photos in album: [{string.Join(',', deletedPhotos.Select(p => p.Filename))}]");
                     foreach (var photo in deletedPhotos)
                         await _photoRepository.DeleteAsync(photo);
                 }
             }
-
         }
     }
 }

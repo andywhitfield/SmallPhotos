@@ -14,7 +14,7 @@ using SmallPhotos.Model;
 using SmallPhotos.Service.Models;
 using Xunit;
 
-namespace SmallPhotos.Service.Tests
+namespace SmallPhotos.Service.Tests.Controllers
 {
     public class PhotoControllerTest : IAsyncLifetime
     {
