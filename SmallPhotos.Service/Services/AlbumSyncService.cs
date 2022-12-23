@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SmallPhotos.Data;
+using SmallPhotos.Model;
 using SmallPhotos.Service.Models;
 
 namespace SmallPhotos.Service.Services
@@ -58,10 +59,7 @@ namespace SmallPhotos.Service.Services
 
                     _logger.LogDebug($"Checking albums changes for user [{user.UserAccountId}] / album [{albumSource.AlbumSourceId}:{albumSource.Folder}]");
 
-                    var src = new DirectoryInfo(albumSource.Folder ?? "");
-                    var filesInAlbum = (src.Exists ? src.EnumerateFiles() : Enumerable.Empty<FileInfo>())
-                        .Where(f => _supportedPhotoExtensions.Contains(f.Extension.ToLowerInvariant()))
-                        .ToList();
+                    var filesInAlbum = GetFilesForAlbumSource(albumSource);
 
                     var photosInAlbum = await _photoRepository.GetAllAsync(albumSource);
 
@@ -70,17 +68,18 @@ namespace SmallPhotos.Service.Services
 
                     var newOrChangedPhotos = (
                         from f in filesInAlbum
-                        join p in photosInAlbum on f.Name equals p.Filename into j
+                        join p in photosInAlbum on new { Filename = f.Name, RelativePath = albumSource.Folder.GetRelativePath(f) } equals new { p.Filename, RelativePath = string.IsNullOrEmpty(p.RelativePath) ? "" : p.RelativePath } into j
                         from m in j.DefaultIfEmpty()
                         where m == null || m.FileModificationDateTime < f.LastWriteTimeUtc
                         select f).ToList();
 
                     _logger.LogInformation($"New or changed photos in album: [{string.Join(',', newOrChangedPhotos.Select(fi => fi.Name))}]");
 
+                    // TODO: might want to change this so as to have explicit control on the number of parallel requests we are kicking off
                     await Task.WhenAll(newOrChangedPhotos.Select(async newOrChanged =>
                     {
                         using var response = await httpClient.PostAsync("/api/photo", new StringContent(JsonSerializer.Serialize(
-                            new CreateOrUpdatePhotoRequest { UserAccountId = user.UserAccountId, AlbumSourceId = albumSource.AlbumSourceId, Filename = newOrChanged.Name, FilePath = null /* TODO - suport relative path here */ }),
+                            new CreateOrUpdatePhotoRequest { UserAccountId = user.UserAccountId, AlbumSourceId = albumSource.AlbumSourceId, Filename = newOrChanged.Name, FilePath = albumSource.Folder.GetRelativePath(newOrChanged) }),
                             Encoding.UTF8,
                             "application/json"));
 
@@ -103,6 +102,25 @@ namespace SmallPhotos.Service.Services
                     foreach (var photo in deletedPhotos)
                         await _photoRepository.DeleteAsync(photo);
                 }
+            }
+        }
+
+        private IEnumerable<FileInfo> GetFilesForAlbumSource(AlbumSource albumSource) =>
+            GetPhotoFilesInDirectory(new DirectoryInfo(albumSource.Folder ?? ""), albumSource.RecurseSubFolders ?? false);
+
+        private IEnumerable<FileInfo> GetPhotoFilesInDirectory(DirectoryInfo dir, bool recurse)
+        {
+            if (!dir.Exists)
+                yield break;
+
+            foreach (var file in dir.EnumerateFiles().Where(f => _supportedPhotoExtensions.Contains(f.Extension.ToLowerInvariant())))
+                yield return file;
+
+            if (recurse)
+            {
+                foreach (var subDir in dir.EnumerateDirectories())
+                    foreach (var file in GetPhotoFilesInDirectory(subDir, recurse))
+                        yield return file;
             }
         }
     }

@@ -60,7 +60,7 @@ namespace SmallPhotos.Service.Controllers
             using var image = new MagickImage(file.FullName, format);
             var originalSize = new Size(image.Width, image.Height);
 
-            var photo = await _photoRepository.GetAsync(userAccount, albumSource, request.Filename);
+            var photo = await _photoRepository.GetAsync(userAccount, albumSource, request.Filename, request.FilePath);
             if (photo == null)
                 photo = await _photoRepository.AddAsync(albumSource, file, originalSize, ExtractDateTaken(image));
             else

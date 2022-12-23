@@ -31,12 +31,13 @@ namespace SmallPhotos.Data
                     p.AlbumSource.DeletedDateTime == null &&
                     p.DeletedDateTime == null);
 
-        public Task<Photo?> GetAsync(UserAccount user, AlbumSource album, string? filename) =>
+        public Task<Photo?> GetAsync(UserAccount user, AlbumSource album, string? filename, string? filepath) =>
             _context
                 .Photos!
                 .Include(p => p.AlbumSource)
                 .FirstOrDefaultAsync(p =>
                     p.Filename == filename &&
+                    (string.IsNullOrEmpty(p.RelativePath) ? "" : p.RelativePath) == (string.IsNullOrEmpty(filepath) ? "" : filepath) &&
                     p.AlbumSource!.AlbumSourceId == album.AlbumSourceId &&
                     p.AlbumSource.UserAccountId == user.UserAccountId &&
                     p.AlbumSource.DeletedDateTime == null &&
@@ -73,6 +74,7 @@ namespace SmallPhotos.Data
             {
                 AlbumSource = album,
                 Filename = file.Name,
+                RelativePath = album.Folder.GetRelativePath(file),
                 FileCreationDateTime = file.CreationTimeUtc,
                 FileModificationDateTime = file.LastWriteTimeUtc,
                 DateTaken = dateTaken,

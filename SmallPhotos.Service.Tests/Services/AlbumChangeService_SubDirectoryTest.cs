@@ -16,14 +16,14 @@ using Xunit;
 
 namespace SmallPhotos.Service.Tests.Services;
 
-public class AlbumChangeServiceTest : IAsyncLifetime
+public class AlbumChangeService_SubDirectoryTest : IAsyncLifetime
 {
     private readonly IntegrationTestWebApplicationFactory _factory;
     private UserAccount? _userAccount;
     private AlbumSource? _albumSource;
     private string? _albumSourceFolder;
 
-    public AlbumChangeServiceTest() => _factory = new(ConfigureTestServices);
+    public AlbumChangeService_SubDirectoryTest() => _factory = new(ConfigureTestServices);
 
     public async Task InitializeAsync()
     {
@@ -36,7 +36,7 @@ public class AlbumChangeServiceTest : IAsyncLifetime
         Directory.CreateDirectory(_albumSourceFolder);
 
         _userAccount = (await context.UserAccounts!.AddAsync(new() { AuthenticationUri = "http://test/user/1" })).Entity;
-        _albumSource = (await context.AlbumSources!.AddAsync(new() { UserAccount = _userAccount, Folder = _albumSourceFolder })).Entity;
+        _albumSource = (await context.AlbumSources!.AddAsync(new() { UserAccount = _userAccount, Folder = _albumSourceFolder, RecurseSubFolders = true })).Entity;
         await context.SaveChangesAsync();
     }
 
@@ -48,70 +48,22 @@ public class AlbumChangeServiceTest : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Should_sync_new_photo()
-    {
-        using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
-        await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "test.jpg"), MagickFormat.Jpeg);
-
-        {
-            using var serviceScope = _factory.Services.CreateScope();
-            var albumSyncService = serviceScope.ServiceProvider.GetRequiredService<IAlbumSyncService>();
-            await albumSyncService.SyncAllAsync(CancellationToken.None);
-        }
-
-        {
-            using var serviceScope = _factory.Services.CreateScope();
-            var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
-            (await context.Photos!.CountAsync()).Should().Be(1);
-            var newPhoto = await context.Photos!.FirstAsync();
-            newPhoto.AlbumSourceId.Should().Be(_albumSource!.AlbumSourceId);
-            newPhoto.Filename.Should().Be("test.jpg");
-            newPhoto.Width.Should().Be(15);
-            newPhoto.Height.Should().Be(10);
-            newPhoto.DateTaken.Should().BeNull();
-            newPhoto.DeletedDateTime.Should().BeNull();
-        }
-    }
-
-    [Fact]
-    public async Task Should_remove_old_photo_and_add_new()
+    public async Task Should_add_all_photos_from_subdirectories()
     {
         {
-            // initial image
-            using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
-            await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "test1.jpg"), MagickFormat.Jpeg);
-        }
-
-        {
-            using var serviceScope = _factory.Services.CreateScope();
-            var albumSyncService = serviceScope.ServiceProvider.GetRequiredService<IAlbumSyncService>();
-            await albumSyncService.SyncAllAsync(CancellationToken.None);
-        }
-
-        {
-            using var serviceScope = _factory.Services.CreateScope();
-            var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
-            (await context.Photos!.CountAsync()).Should().Be(1);
-            var newPhoto = await context.Photos!.SingleAsync();
-            newPhoto.AlbumSourceId.Should().Be(_albumSource!.AlbumSourceId);
-            newPhoto.Filename.Should().Be("test1.jpg");
-            newPhoto.Width.Should().Be(15);
-            newPhoto.Height.Should().Be(10);
-            newPhoto.DateTaken.Should().BeNull();
-            newPhoto.DeletedDateTime.Should().BeNull();
-            (await context.Thumbnails!.CountAsync(t => t.PhotoId == newPhoto.PhotoId)).Should().Be(3);
-        }
-
-        {
-            // test1.jpg has been deleted and test2.jpg and test3.jpg has been created
-            File.Delete(Path.Combine(_albumSourceFolder ?? "", "test1.jpg"));
+            Directory.CreateDirectory(Path.Combine(_albumSourceFolder ?? "", "subdir1"));
+            Directory.CreateDirectory(Path.Combine(_albumSourceFolder ?? "", "subdir2"));
+            {
+                using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
+                await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "test1.jpg"), MagickFormat.Jpeg);
+            }
             {
                 using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 25, 20);
-                await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "test2.jpg"), MagickFormat.Jpeg);
+                await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "subdir1", "test1.jpg"), MagickFormat.Jpeg);
             }
             {
                 using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 35, 30);
-                await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "test3.jpg"), MagickFormat.Jpeg);
+                await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "subdir2", "test1.jpg"), MagickFormat.Jpeg);
             }
         }
 
@@ -125,15 +77,15 @@ public class AlbumChangeServiceTest : IAsyncLifetime
             using var serviceScope = _factory.Services.CreateScope();
             var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
             (await context.Photos!.CountAsync()).Should().Be(3);
-            var newPhoto = await context.Photos!.SingleAsync(p => p.Filename == "test1.jpg");
+            var newPhoto = await context.Photos!.SingleAsync(p => p.Filename == "test1.jpg" && string.IsNullOrEmpty(p.RelativePath));
             newPhoto.AlbumSourceId.Should().Be(_albumSource!.AlbumSourceId);
             newPhoto.Width.Should().Be(15);
             newPhoto.Height.Should().Be(10);
             newPhoto.DateTaken.Should().BeNull();
-            newPhoto.DeletedDateTime.Should().NotBeNull();
-            (await context.Thumbnails!.CountAsync(t => t.PhotoId == newPhoto.PhotoId)).Should().Be(0);
+            newPhoto.DeletedDateTime.Should().BeNull();
+            (await context.Thumbnails!.CountAsync(t => t.PhotoId == newPhoto.PhotoId)).Should().Be(3);
 
-            newPhoto = await context.Photos!.SingleAsync(p => p.Filename == "test2.jpg");
+            newPhoto = await context.Photos!.SingleAsync(p => p.Filename == "test1.jpg" && p.RelativePath == "subdir1");
             newPhoto.AlbumSourceId.Should().Be(_albumSource!.AlbumSourceId);
             newPhoto.Width.Should().Be(25);
             newPhoto.Height.Should().Be(20);
@@ -141,7 +93,7 @@ public class AlbumChangeServiceTest : IAsyncLifetime
             newPhoto.DeletedDateTime.Should().BeNull();
             (await context.Thumbnails!.CountAsync(t => t.PhotoId == newPhoto.PhotoId)).Should().Be(3);
 
-            newPhoto = await context.Photos!.SingleAsync(p => p.Filename == "test3.jpg");
+            newPhoto = await context.Photos!.SingleAsync(p => p.Filename == "test1.jpg" && p.RelativePath == "subdir2");
             newPhoto.AlbumSourceId.Should().Be(_albumSource!.AlbumSourceId);
             newPhoto.Width.Should().Be(35);
             newPhoto.Height.Should().Be(30);
