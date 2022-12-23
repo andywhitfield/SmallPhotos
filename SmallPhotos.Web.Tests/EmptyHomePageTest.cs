@@ -15,9 +15,9 @@ namespace SmallPhotos.Web.Tests
         public async Task InitializeAsync()
         {
             using var serviceScope = _factory.Services.CreateScope();
-            await using var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
+            var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
             context.Migrate();
-            var userAccount = await context.UserAccounts!.AddAsync(new UserAccount { AuthenticationUri = "http://test/user/1" });
+            var userAccount = context.UserAccounts!.Add(new UserAccount { AuthenticationUri = "http://test/user/1" });
             await context.SaveChangesAsync();
         }
 

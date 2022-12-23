@@ -7,7 +7,12 @@
     <ul>
         @foreach(var folder in Model.Folders) {
             <li>
-                <div>@folder.Folder</div>
+                <div>
+                    @folder.Folder
+                    @if (folder.Recursive) {
+                        <span title="Includes photos from this directory and all sub-folders">(+ sub-folders)</span>
+                    }
+                </div>
                 <form method="post" action="/profile/folder/delete/@folder.AlbumSourceId">
                 @Html.AntiForgeryToken()
                 <button title="Delete this folder as a source of photos for your album" data-confirm="Are you sure you want to delete this folder?"><img src="/images/close.png" height="15" width="15" /> Delete</button>
@@ -24,6 +29,10 @@
             <div>
                 <label for="smp-add-folder">Folder path:</label>
                 <input type="text" id="smp-add-folder" name="folder" />
+            </div>
+            <div>
+                <label for="smp-add-folder-recursive">Include sub-folders:</label>
+                <input type="checkbox" id="smp-add-folder-recursive" name="folderrecursive" value="true" />
             </div>
             <div>
                 <label></label>

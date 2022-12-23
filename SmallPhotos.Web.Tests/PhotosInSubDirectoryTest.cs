@@ -29,7 +29,7 @@ namespace SmallPhotos.Web.Tests
             Directory.CreateDirectory(Path.Combine(_albumSourceFolder, subdir1));
             Directory.CreateDirectory(Path.Combine(_albumSourceFolder, subdir2));
 
-            await using var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
+            var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
             context.Migrate();
             var userAccount = context.UserAccounts!.Add(new UserAccount { AuthenticationUri = "http://test/user/1" });
             var album = context.AlbumSources!.Add(new AlbumSource { CreatedDateTime = DateTime.UtcNow, Folder = _albumSourceFolder, UserAccount = userAccount.Entity });

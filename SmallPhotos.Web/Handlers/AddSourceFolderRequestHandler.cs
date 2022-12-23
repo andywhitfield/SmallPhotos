@@ -36,7 +36,7 @@ namespace SmallPhotos.Web.Handlers
             }
 
             var user = await _userAccountRepository.GetUserAccountAsync(request.User);
-            await _albumRepository.AddAsync(user, request.Folder);
+            await _albumRepository.AddAsync(user, request.Folder, request.Recursive);
             return true;
         }
     }

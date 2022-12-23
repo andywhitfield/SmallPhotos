@@ -70,7 +70,7 @@ namespace SmallPhotos.Data
 
         public async Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize, DateTime? dateTaken)
         {
-            var photo = await _context.Photos!.AddAsync(new Photo
+            var photo = _context.Photos!.Add(new Photo
             {
                 AlbumSource = album,
                 Filename = file.Name,
@@ -108,7 +108,7 @@ namespace SmallPhotos.Data
             };
 
             _context.Thumbnails!.RemoveRange(_context.Thumbnails.Where(t => t.PhotoId == photo.PhotoId && t.ThumbnailSize == size));
-            await _context.Thumbnails.AddAsync(thumbnail);
+            _context.Thumbnails.Add(thumbnail);
             await _context.SaveChangesAsync();
             return thumbnail;
         }

@@ -33,14 +33,15 @@ namespace SmallPhotos.Data
                 .Where(a => a.UserAccountId == user.UserAccountId && a.DeletedDateTime == null)
                 .ToListAsync();
 
-        public async Task AddAsync(UserAccount userAccount, string folder)
+        public Task AddAsync(UserAccount userAccount, string folder, bool recursive)
         {
-            await _context.AlbumSources!.AddAsync(new AlbumSource
+            _context.AlbumSources!.Add(new AlbumSource
             {
                 UserAccount = userAccount,
-                Folder = folder
+                Folder = folder,
+                RecurseSubFolders = recursive
             });
-            await _context.SaveChangesAsync();
+            return _context.SaveChangesAsync();
         }
 
         public async Task DeleteAlbumSourceAsync(AlbumSource albumSource)

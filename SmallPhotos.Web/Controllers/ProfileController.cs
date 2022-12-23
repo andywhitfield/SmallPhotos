@@ -34,7 +34,7 @@ namespace SmallPhotos.Web.Controllers
 
         [HttpPost("~/profile/folder/add")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddFolder([FromForm, Required]string folder)
+        public async Task<IActionResult> AddFolder([FromForm, Required]string folder, [FromForm]bool? folderRecursive)
         {
             if (!ModelState.IsValid)
             {
@@ -42,7 +42,7 @@ namespace SmallPhotos.Web.Controllers
                 return BadRequest();
             }
 
-            var added = await _mediator.Send(new AddSourceFolderRequest(User, folder));
+            var added = await _mediator.Send(new AddSourceFolderRequest(User, folder, folderRecursive ?? false));
             if (!added)
                 return BadRequest();
 
