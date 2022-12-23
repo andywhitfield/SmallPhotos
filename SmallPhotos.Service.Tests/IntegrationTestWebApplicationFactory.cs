@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -15,15 +16,14 @@ namespace SmallPhotos.Service.Tests;
 
 public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Startup>
 {
-    private readonly SqliteConnection _connection;
-    private readonly DbContextOptions<SqliteDataContext> _options;
+    private readonly string _tempDbDir;
     private readonly Func<IServiceCollection, IServiceCollection> _testServiceConfiguration;
 
     public IntegrationTestWebApplicationFactory(Func<IServiceCollection, IServiceCollection>? testServiceConfiguration = null)
     {
-        _connection = new("DataSource=:memory:");
-        _connection.Open();
-        _options = new DbContextOptionsBuilder<SqliteDataContext>().UseSqlite(_connection).Options;
+        _tempDbDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_tempDbDir);
+        Console.WriteLine($"Using directory {_tempDbDir} for the test db");
         _testServiceConfiguration = testServiceConfiguration ?? (s => s);
     }
 
@@ -41,7 +41,7 @@ public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Startu
                 .UseTestServer()
                 .ConfigureTestServices(services => _testServiceConfiguration(services
                     .RemoveAll<IHostedService>()
-                    .Replace(ServiceDescriptor.Scoped<SqliteDataContext>(_ => new SqliteDataContext(_options))))))
+                    .Replace(ServiceDescriptor.Scoped<SqliteDataContext>(_ => new SqliteDataContext(new DbContextOptionsBuilder<SqliteDataContext>().UseSqlite(new SqliteConnection($"Data Source={Path.Combine(_tempDbDir, "test.db")}")).Options))))))
             .UseSerilog();
     }
 
@@ -49,7 +49,8 @@ public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Startu
     {
         base.Dispose(disposing);
 
-        if (disposing)
-            _connection.Dispose();
+        Console.WriteLine($"Cleaning up test db directory: [{_tempDbDir}]");
+        if (!string.IsNullOrEmpty(_tempDbDir) && Directory.Exists(_tempDbDir))
+            Directory.Delete(_tempDbDir, true);
     }
 }
