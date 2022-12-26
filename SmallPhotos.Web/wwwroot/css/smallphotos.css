@@ -166,7 +166,12 @@ footer {
     color: white;
 }
 
-.pagination a:hover:not(.active) {
+.pagination a.skip {
+    color: white;
+    padding: 8px 4px;
+}
+
+.pagination a:hover:not(.active):not(.skip) {
     background-color: #f86bff;
 }
 

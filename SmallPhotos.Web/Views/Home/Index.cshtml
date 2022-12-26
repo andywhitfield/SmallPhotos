@@ -13,12 +13,12 @@
                 }
                 @foreach (var pg in Model.Pagination.Pages) {
                 @if (pg.IsSelected) {
-                <a class="pagination-active">@pg.PageNumber</a>
+                <a class="active">@pg.PageNumber</a>
                 } else {
                 <a title="Go to photo page @pg.PageNumber" href="/?pageNumber=@pg.PageNumber">@pg.PageNumber</a>
                 }
                 @if (pg.IsNextPageSkipped) {
-                <span>&bull;&bull;</span>
+                <a class="skip">&bull;&bull;</a>
                 }
                 }
                 @if (Model.Pagination.PageNumber < Model.Pagination.PageCount) {
@@ -49,12 +49,12 @@
                 }
                 @foreach (var pg in Model.Pagination.Pages) {
                 @if (pg.IsSelected) {
-                <a class="pagination-active">@pg.PageNumber</a>
+                <a class="active">@pg.PageNumber</a>
                 } else {
                 <a title="Go to photo page @pg.PageNumber" href="/?pageNumber=@pg.PageNumber">@pg.PageNumber</a>
                 }
                 @if (pg.IsNextPageSkipped) {
-                <span>&bull;&bull;</span>
+                <a class="skip">&bull;&bull;</a>
                 }
                 }
                 @if (Model.Pagination.PageNumber < Model.Pagination.PageCount) {
