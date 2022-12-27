@@ -76,6 +76,7 @@ namespace SmallPhotos.Service.Services
                         join p in photosInAlbum on new { Filename = f.Name, RelativePath = albumSource.Folder.GetRelativePath(f) } equals new { p.Filename, RelativePath = string.IsNullOrEmpty(p.RelativePath) ? "" : p.RelativePath } into j
                         from m in j.DefaultIfEmpty()
                         where m == null || m.FileModificationDateTime < f.LastWriteTimeUtc
+                        orderby f.LastWriteTimeUtc descending
                         select f).ToList();
 
                     _logger.LogInformation($"New or changed photos in album: [{string.Join(',', newOrChangedPhotos.Select(fi => fi.Name))}]");
