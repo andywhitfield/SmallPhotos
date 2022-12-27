@@ -7,7 +7,7 @@ namespace SmallPhotos.Web.Model
     public class Pagination
     {
         public const int DefaultPageSize = 20;
-        public const int MaxPageSize = 100;
+        public const int MaxPageSize = 500;
 
         public static readonly Pagination Empty = new Pagination(0, 0);
 

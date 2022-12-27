@@ -8,8 +8,10 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SmallPhotos.Data;
 using SmallPhotos.Model;
+using SmallPhotos.Service.BackgroundServices;
 using SmallPhotos.Service.Models;
 
 namespace SmallPhotos.Service.Services
@@ -23,19 +25,22 @@ namespace SmallPhotos.Service.Services
         private readonly IAlbumRepository _albumRepository;
         private readonly IPhotoRepository _photoRepository;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IOptionsSnapshot<AlbumChangeServiceOptions> _options;
 
         public AlbumSyncService(
             ILogger<AlbumSyncService> logger,
             IUserAccountRepository userAccountRepository,
             IAlbumRepository albumRepository,
             IPhotoRepository photoRepository,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            IOptionsSnapshot<AlbumChangeServiceOptions> options)
         {
             _logger = logger;
             _userAccountRepository = userAccountRepository;
             _albumRepository = albumRepository;
             _photoRepository = photoRepository;
             _httpClientFactory = httpClientFactory;
+            _options = options;
         }
 
         public async Task SyncAllAsync(CancellationToken stoppingToken)
@@ -75,20 +80,22 @@ namespace SmallPhotos.Service.Services
 
                     _logger.LogInformation($"New or changed photos in album: [{string.Join(',', newOrChangedPhotos.Select(fi => fi.Name))}]");
 
-                    // TODO: might want to change this so as to have explicit control on the number of parallel requests we are kicking off
-                    await Task.WhenAll(newOrChangedPhotos.Select(async newOrChanged =>
+                    foreach (var requestBatch in newOrChangedPhotos.Chunk(_options.Value.SyncPhotoBatchSize))
                     {
-                        using var response = await httpClient.PostAsync("/api/photo", new StringContent(JsonSerializer.Serialize(
-                            new CreateOrUpdatePhotoRequest { UserAccountId = user.UserAccountId, AlbumSourceId = albumSource.AlbumSourceId, Filename = newOrChanged.Name, FilePath = albumSource.Folder.GetRelativePath(newOrChanged) }),
-                            Encoding.UTF8,
-                            "application/json"));
+                        await Task.WhenAll(requestBatch.Select(async newOrChanged =>
+                        {
+                            using var response = await httpClient.PostAsync("/api/photo", new StringContent(JsonSerializer.Serialize(
+                                new CreateOrUpdatePhotoRequest { UserAccountId = user.UserAccountId, AlbumSourceId = albumSource.AlbumSourceId, Filename = newOrChanged.Name, FilePath = albumSource.Folder.GetRelativePath(newOrChanged) }),
+                                Encoding.UTF8,
+                                "application/json"));
 
-                        var responseString = await response.Content.ReadAsStringAsync();
-                        if (!response.IsSuccessStatusCode)
-                            throw new InvalidOperationException($"Could not add/update photo [{newOrChanged.Name}] in album [{albumSource.AlbumSourceId}]: {responseString}");
+                            var responseString = await response.Content.ReadAsStringAsync();
+                            if (!response.IsSuccessStatusCode)
+                                throw new InvalidOperationException($"Could not add/update photo [{newOrChanged.Name}] in album [{albumSource.AlbumSourceId}]: {responseString}");
 
-                        _logger.LogInformation($"Successfully updated / added new photo: {responseString}");
-                    }));
+                            _logger.LogInformation($"Successfully updated / added new photo: {responseString}");
+                        }));
+                    }
 
                     var deletedPhotos = (
                         from p in photosInAlbum
