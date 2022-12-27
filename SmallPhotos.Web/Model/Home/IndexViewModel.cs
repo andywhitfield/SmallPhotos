@@ -21,9 +21,9 @@ namespace SmallPhotos.Web.Model.Home
                 if (firstPhotoByDate.DateTaken == lastPhotoByDate.DateTaken)
                     ImageDateRange = firstPhotoByDate.DateTaken;
                 else if (firstPhotoByDate.DateTimeTaken.Date == lastPhotoByDate.DateTimeTaken.Date)
-                    ImageDateRange = $"{firstPhotoByDate.DateTaken} - {lastPhotoByDate.DateTaken}";
+                    ImageDateRange = $"{lastPhotoByDate.DateTaken} - {firstPhotoByDate.DateTaken}";
                 else
-                    ImageDateRange = $"{firstPhotoByDate.DateTimeTaken:dd MMM yyyy} - {lastPhotoByDate.DateTimeTaken:dd MMM yyyy}";
+                    ImageDateRange = $"{lastPhotoByDate.DateTimeTaken:dd MMM yyyy} - {firstPhotoByDate.DateTimeTaken:dd MMM yyyy}";
             }
             else
             {

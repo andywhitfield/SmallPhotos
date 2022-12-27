@@ -146,6 +146,35 @@ footer {
 
 .thumbnails>div {
     margin: 10px;
+    position: relative;
+}
+
+.star-off {
+    filter: brightness(0.9);
+    -webkit-filter: brightness(0.9);
+    opacity: 0.8;
+    border: 0;
+}
+
+.star {
+    float: left;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    display: none;
+}
+
+.thumbnails>div:hover .star,
+.starred {
+    display: inline;
+}
+
+.star:hover,
+.star-on {
+    display: inline;
+    filter: brightness(1);
+    -webkit-filter: brightness(1);
+    opacity: 1;
 }
 
 .pagination {

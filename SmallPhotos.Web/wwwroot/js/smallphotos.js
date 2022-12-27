@@ -45,6 +45,28 @@ function smpInitialise() {
             return false;
         }
     });
+
+    $('[data-starred]').each(function() {
+        let star = $(this);
+
+        star.click(function() {
+            // TODO: actually do a callback to star the photo
+            star.attr('data-starred', star.attr('data-starred').toLowerCase() === 'true' ? 'false' : 'true');
+            onDataStarredChange();
+        });
+
+        onDataStarredChange();
+
+        function onDataStarredChange() {
+            if (star.attr('data-starred').toLowerCase() === 'true') {
+                star.attr('title', 'Click to un-star this photo');
+                star.addClass('starred');
+            } else {
+                star.attr('title', 'Click to star this photo');
+                star.removeClass('starred');
+            }
+        }
+    });
 }
 
 function fullSizeImage() {
