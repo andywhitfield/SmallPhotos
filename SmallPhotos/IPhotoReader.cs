@@ -1,10 +1,9 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace SmallPhotos
+namespace SmallPhotos;
+
+public interface IPhotoReader
 {
-    public interface IPhotoReader
-    {
-        Task<(string? ContentType, Stream? ContentStream)> GetPhotoStreamForWebAsync(FileInfo file);
-    }
+    Task<(string? ContentType, Stream? ContentStream)> GetPhotoStreamForWebAsync(FileInfo file);
 }

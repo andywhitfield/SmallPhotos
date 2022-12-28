@@ -13,5 +13,4 @@ public static class ModelExtensions
         (string.IsNullOrEmpty(root) ? (file.DirectoryName ?? "") : Path.GetRelativePath(root, file.DirectoryName ?? "")).GetRelativePath();
     private static string GetRelativePath(this string? relativePath) =>
         string.IsNullOrEmpty(relativePath) ? "" : relativePath == "." ? "" : relativePath;
-
 }

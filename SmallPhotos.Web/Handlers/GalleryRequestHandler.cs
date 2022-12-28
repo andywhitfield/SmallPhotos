@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -40,9 +42,11 @@ namespace SmallPhotos.Web.Handlers
             var previous = photoIndex > 0 ? allPhotos[photoIndex - 1] : null;
             var next = photoIndex + 1 < allPhotos.Count ? allPhotos[photoIndex + 1] : null;
 
-            return new GalleryResponse(ToModel(photo), ToModel(previous), ToModel(next), photoIndex + 1, allPhotos.Count);
+            var starredPhotos = (await _photoRepository.GetStarredAsync(user, new[] { photo, previous, next }.Where(p => p != null).Select(p => p!.PhotoId).ToHashSet())).Select(p => p.PhotoId).ToHashSet();
+
+            return new GalleryResponse(ToModel(photo, starredPhotos), ToModel(previous, starredPhotos), ToModel(next, starredPhotos), photoIndex + 1, allPhotos.Count);
         }
 
-        private PhotoModel? ToModel(Photo? photo) => photo == null ? null : new PhotoModel(photo.PhotoId, photo.AlbumSource?.Folder ?? "", photo.Filename ?? "", photo.RelativePath ?? "", new Size(photo.Width, photo.Height), photo.DateTaken ?? photo.FileCreationDateTime, photo.FileCreationDateTime);
+        private PhotoModel? ToModel(Photo? photo, IEnumerable<long> starredPhotos) => photo == null ? null : new PhotoModel(photo.PhotoId, photo.AlbumSource?.Folder ?? "", photo.Filename ?? "", photo.RelativePath ?? "", new Size(photo.Width, photo.Height), photo.DateTaken ?? photo.FileCreationDateTime, photo.FileCreationDateTime, starredPhotos.Contains(photo.PhotoId));
     }
 }

@@ -13,8 +13,11 @@
 
 <article>
     <div>
-        <a href="#TODO" title="Click to star this photo" class="star-off"><img src="/images/star.png" width="15" height="15" alt="star" loading="lazy" /></a>
+        @if (Model.Photo.IsStarred) {
         <a href="#TODO" title="Click to un-star this photo" class="star-on"><img src="/images/star.png" width="15" height="15" alt="star" loading="lazy" /></a>
+        } else {
+        <a href="#TODO" title="Click to star this photo" class="star-off"><img src="/images/star.png" width="15" height="15" alt="star" loading="lazy" /></a>
+        }
         Taken: @Model.Photo.DateTaken
     </div>
 
@@ -51,7 +54,7 @@
         <div>Size: @Model.Photo.SizeInfo</div>
         <div>Taken: @Model.Photo.DateTaken</div>
         <div>File time: @Model.Photo.FileCreationDate</div>
-        <div>Starred: yes (or no)</div>
+        <div>Starred: @(Model.Photo.IsStarred ? "yes" : "no")</div>
     </details>
 
 </article>

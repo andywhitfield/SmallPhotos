@@ -3,15 +3,14 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using SmallPhotos.Model;
 
-namespace SmallPhotos.Data
+namespace SmallPhotos.Data;
+
+public interface IUserAccountRepository
 {
-    public interface IUserAccountRepository
-    {
-        Task CreateNewUserAsync(ClaimsPrincipal user);
-        Task<UserAccount?> GetAsync(long userAccountId);
-        Task<UserAccount> GetUserAccountAsync(ClaimsPrincipal user);
-        Task<UserAccount?> GetUserAccountOrNullAsync(ClaimsPrincipal user);
-        Task<List<UserAccount>> GetAllAsync();
-        Task UpdateAsync(UserAccount user);
-    }
+    Task CreateNewUserAsync(ClaimsPrincipal user);
+    Task<UserAccount?> GetAsync(long userAccountId);
+    Task<UserAccount> GetUserAccountAsync(ClaimsPrincipal user);
+    Task<UserAccount?> GetUserAccountOrNullAsync(ClaimsPrincipal user);
+    Task<List<UserAccount>> GetAllAsync();
+    Task UpdateAsync(UserAccount user);
 }

@@ -1,7 +1,6 @@
-namespace SmallPhotos.Data
+namespace SmallPhotos.Data;
+
+public interface ISqliteDataContext
 {
-    public interface ISqliteDataContext
-    {
-        void Migrate();
-    }
+    void Migrate();
 }

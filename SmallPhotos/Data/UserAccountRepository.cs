@@ -6,45 +6,44 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SmallPhotos.Model;
 
-namespace SmallPhotos.Data
+namespace SmallPhotos.Data;
+
+public class UserAccountRepository : IUserAccountRepository
 {
-    public class UserAccountRepository : IUserAccountRepository
+    private readonly SqliteDataContext _context;
+
+    public UserAccountRepository(SqliteDataContext context) => _context = context;
+
+    public Task<UserAccount?> GetAsync(long userAccountId) =>
+        _context.UserAccounts!.SingleOrDefaultAsync(a => a.UserAccountId == userAccountId && a.DeletedDateTime == null);
+
+    public Task CreateNewUserAsync(ClaimsPrincipal user)
     {
-        private readonly SqliteDataContext _context;
+        var authenticationUri = GetIdentifierFromPrincipal(user);
+        var newUser = new UserAccount { AuthenticationUri = authenticationUri };
 
-        public UserAccountRepository(SqliteDataContext context) => _context = context;
+        _context.UserAccounts!.Add(newUser);
+        return _context.SaveChangesAsync();
+    }
 
-        public Task<UserAccount?> GetAsync(long userAccountId) =>
-            _context.UserAccounts!.SingleOrDefaultAsync(a => a.UserAccountId == userAccountId && a.DeletedDateTime == null);
+    private string? GetIdentifierFromPrincipal(ClaimsPrincipal user) => user?.FindFirstValue("sub");
 
-        public Task CreateNewUserAsync(ClaimsPrincipal user)
-        {
-            var authenticationUri = GetIdentifierFromPrincipal(user);
-            var newUser = new UserAccount { AuthenticationUri = authenticationUri };
+    public async Task<UserAccount> GetUserAccountAsync(ClaimsPrincipal user) => (await GetUserAccountOrNullAsync(user)) ?? throw new ArgumentException($"No UserAccount for the user: {GetIdentifierFromPrincipal(user)}");
 
-            _context.UserAccounts!.Add(newUser);
-            return _context.SaveChangesAsync();
-        }
+    public Task<UserAccount?> GetUserAccountOrNullAsync(ClaimsPrincipal user)
+    {
+        var authenticationUri = GetIdentifierFromPrincipal(user);
+        if (string.IsNullOrWhiteSpace(authenticationUri))
+            return Task.FromResult((UserAccount?)null);
 
-        private string? GetIdentifierFromPrincipal(ClaimsPrincipal user) => user?.FindFirstValue("sub");
+        return _context.UserAccounts!.FirstOrDefaultAsync(ua => ua.AuthenticationUri == authenticationUri && ua.DeletedDateTime == null);
+    }
 
-        public async Task<UserAccount> GetUserAccountAsync(ClaimsPrincipal user) => (await GetUserAccountOrNullAsync(user)) ?? throw new ArgumentException($"No UserAccount for the user: {GetIdentifierFromPrincipal(user)}");
+    public Task<List<UserAccount>> GetAllAsync() => _context.UserAccounts!.Where(ua => ua.DeletedDateTime == null).ToListAsync();
 
-        public Task<UserAccount?> GetUserAccountOrNullAsync(ClaimsPrincipal user)
-        {
-            var authenticationUri = GetIdentifierFromPrincipal(user);
-            if (string.IsNullOrWhiteSpace(authenticationUri))
-                return Task.FromResult((UserAccount?)null);
-
-            return _context.UserAccounts!.FirstOrDefaultAsync(ua => ua.AuthenticationUri == authenticationUri && ua.DeletedDateTime == null);
-        }
-
-        public Task<List<UserAccount>> GetAllAsync() => _context.UserAccounts!.Where(ua => ua.DeletedDateTime == null).ToListAsync();
-
-        public Task UpdateAsync(UserAccount user)
-        {
-            user.LastUpdateDateTime = DateTime.UtcNow;
-            return _context.SaveChangesAsync();
-        }
+    public Task UpdateAsync(UserAccount user)
+    {
+        user.LastUpdateDateTime = DateTime.UtcNow;
+        return _context.SaveChangesAsync();
     }
 }
