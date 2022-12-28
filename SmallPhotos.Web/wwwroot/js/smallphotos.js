@@ -50,16 +50,20 @@ function smpInitialise() {
         let star = $(this);
 
         star.click(function() {
-            // TODO: actually do a callback to star the photo
-            star.attr('data-starred', star.attr('data-starred').toLowerCase() === 'true' ? 'false' : 'true');
-            onDataStarredChange();
+            let photoId = star.attr('data-photoid');
+            let isStarred = star.attr('data-starred').toLowerCase() === 'true';
+            let uri = 'api/photoapi/' + (isStarred ? 'unstar' : 'star') + '/' + photoId;
+            $.post(uri, {}, function() {
+                star.attr('data-starred', isStarred ? 'false' : 'true');
+                onDataStarredChange();
+            });
         });
 
         onDataStarredChange();
 
         function onDataStarredChange() {
             if (star.attr('data-starred').toLowerCase() === 'true') {
-                star.attr('title', 'Click to un-star this photo');
+                star.attr('title', 'Click to unstar this photo');
                 star.addClass('starred');
             } else {
                 star.attr('title', 'Click to star this photo');

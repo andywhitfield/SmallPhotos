@@ -5,6 +5,19 @@
     $(function() {
         $(window).on('resize', fullSizeImage);
         fullSizeImage();
+
+        $('[data-photoid]').each(function() {
+            let star = $(this);
+
+            star.click(function() {
+                let photoId = star.attr('data-photoid');
+                let isStarred = @(Model.Photo.IsStarred ? "true" : "false");
+                let uri = '/api/photoapi/' + (isStarred ? 'unstar' : 'star') + '/' + photoId;
+                $.post(uri, {}, function() {
+                    window.location.reload();
+                });
+            });
+        });
     });
 </script>
 }
@@ -14,9 +27,9 @@
 <article>
     <div>
         @if (Model.Photo.IsStarred) {
-        <a href="#TODO" title="Click to un-star this photo" class="star-on"><img src="/images/star.png" width="15" height="15" alt="star" loading="lazy" /></a>
+        <span data-photoid="@Model.Photo.PhotoId" title="Click to unstar this photo" class="star-on"><img src="/images/star.png" width="15" height="15" alt="star" loading="lazy" /></span>
         } else {
-        <a href="#TODO" title="Click to star this photo" class="star-off"><img src="/images/star.png" width="15" height="15" alt="star" loading="lazy" /></a>
+        <span data-photoid="@Model.Photo.PhotoId" title="Click to star this photo" class="star-off"><img src="/images/star.png" width="15" height="15" alt="star" loading="lazy" /></span>
         }
         Taken: @Model.Photo.DateTaken
     </div>
