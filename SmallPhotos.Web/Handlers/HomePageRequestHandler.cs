@@ -8,33 +8,33 @@ using SmallPhotos.Model;
 using SmallPhotos.Web.Handlers.Models;
 using SmallPhotos.Web.Model;
 
-namespace SmallPhotos.Web.Handlers
+namespace SmallPhotos.Web.Handlers;
+
+public class HomePageRequestHandler : IRequestHandler<HomePageRequest, HomePageResponse>
 {
-    public class HomePageRequestHandler : IRequestHandler<HomePageRequest, HomePageResponse>
+    private readonly ILogger<HomePageRequestHandler> _logger;
+    private readonly IUserAccountRepository _userAccountRepository;
+    private readonly IPhotoRepository _photoRepository;
+
+    public HomePageRequestHandler(ILogger<HomePageRequestHandler> logger, IUserAccountRepository userAccountRepository,
+        IPhotoRepository photoRepository)
     {
-        private readonly ILogger<HomePageRequestHandler> _logger;
-        private readonly IUserAccountRepository _userAccountRepository;
-        private readonly IPhotoRepository _photoRepository;
+        _logger = logger;
+        _userAccountRepository = userAccountRepository;
+        _photoRepository = photoRepository;
+    }
 
-        public HomePageRequestHandler(ILogger<HomePageRequestHandler> logger, IUserAccountRepository userAccountRepository,
-            IPhotoRepository photoRepository)
-        {
-            _logger = logger;
-            _userAccountRepository = userAccountRepository;
-            _photoRepository = photoRepository;
-        }
+    public async Task<HomePageResponse> Handle(HomePageRequest request, CancellationToken cancellationToken)
+    {
+        var user = await _userAccountRepository.GetUserAccountOrNullAsync(request.User);
+        if (user == null)
+            return new HomePageResponse(false, ThumbnailSize.Small, Enumerable.Empty<PhotoModel>(), Pagination.Empty);
 
-        public async Task<HomePageResponse> Handle(HomePageRequest request, CancellationToken cancellationToken)
-        {
-            var user = await _userAccountRepository.GetUserAccountOrNullAsync(request.User);
-            if (user == null)
-                return new HomePageResponse(false, ThumbnailSize.Small, Enumerable.Empty<PhotoModel>(), Pagination.Empty);
+        var photos = await (request.OnlyStarred ? _photoRepository.GetAllStarredAsync(user) : _photoRepository.GetAllAsync(user));
+        // TODO: should do better than loading everything, then taking the page size number of photos
+        var pagedPhotos = Pagination.Paginate(photos, request.PageNumber, user.GalleryImagePageSize, request.PhotoId == null ? null : photo => photo.PhotoId == request.PhotoId);
+        var starredPhotoIds = (await _photoRepository.GetStarredAsync(user, pagedPhotos.Items.Select(p => p.PhotoId).ToHashSet())).Select(p => p.PhotoId).ToHashSet();
 
-            // TODO: should do better than loading everything, then taking the page size number of photos
-            var pagedPhotos = Pagination.Paginate(await _photoRepository.GetAllAsync(user), request.PageNumber, user.GalleryImagePageSize, request.PhotoId == null ? null : photo => photo.PhotoId == request.PhotoId);
-            var starredPhotoIds = (await _photoRepository.GetStarredAsync(user, pagedPhotos.Items.Select(p => p.PhotoId).ToHashSet())).Select(p => p.PhotoId).ToHashSet();
-
-            return new HomePageResponse(true, user.ThumbnailSize, pagedPhotos.Items.Select(p => new PhotoModel(p.PhotoId, p.AlbumSource?.Folder ?? "", p.Filename ?? "", p.RelativePath ?? "", user.ThumbnailSize.ToSize(), p.DateTaken ?? p.FileCreationDateTime, p.FileCreationDateTime, starredPhotoIds.Contains(p.PhotoId))), new Pagination(pagedPhotos.Page, pagedPhotos.PageCount));
-        }
+        return new HomePageResponse(true, user.ThumbnailSize, pagedPhotos.Items.Select(p => new PhotoModel(p.PhotoId, p.AlbumSource?.Folder ?? "", p.Filename ?? "", p.RelativePath ?? "", user.ThumbnailSize.ToSize(), p.DateTaken ?? p.FileCreationDateTime, p.FileCreationDateTime, starredPhotoIds.Contains(p.PhotoId))), new Pagination(pagedPhotos.Page, pagedPhotos.PageCount));
     }
 }

@@ -1,19 +1,20 @@
 using System.Security.Claims;
 using MediatR;
 
-namespace SmallPhotos.Web.Handlers.Models
-{
-    public class GalleryRequest : IRequest<GalleryResponse>
-    {
-        public ClaimsPrincipal User { get; }
-        public long PhotoId { get; }
-        public string PhotoFilename { get; }
+namespace SmallPhotos.Web.Handlers.Models;
 
-        public GalleryRequest(ClaimsPrincipal user, long photoId, string photoFilename)
-        {
-            User = user;
-            PhotoId = photoId;
-            PhotoFilename = photoFilename;
-        }
+public class GalleryRequest : IRequest<GalleryResponse>
+{
+    public ClaimsPrincipal User { get; }
+    public long PhotoId { get; }
+    public string PhotoFilename { get; }
+    public bool OnlyStarred { get; }
+
+    public GalleryRequest(ClaimsPrincipal user, long photoId, string photoFilename, bool onlyStarred = false)
+    {
+        User = user;
+        PhotoId = photoId;
+        PhotoFilename = photoFilename;
+        OnlyStarred = onlyStarred;
     }
 }

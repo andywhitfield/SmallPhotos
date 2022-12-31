@@ -5,26 +5,25 @@ using Microsoft.AspNetCore.Mvc;
 using SmallPhotos.Web.Handlers.Models;
 using SmallPhotos.Web.Model.Gallery;
 
-namespace SmallPhotos.Web.Controllers
+namespace SmallPhotos.Web.Controllers;
+
+[Authorize]
+public class GalleryController : Controller
 {
-    [Authorize]
-    public class GalleryController : Controller
+    private readonly IMediator _mediator;
+
+    public GalleryController(IMediator mediator) => _mediator = mediator;
+
+    [HttpGet("~/gallery/{photoId}/{photoFilename}")]
+    public async Task<IActionResult> Index(string photoId, string photoFilename, [FromQuery] string? from)
     {
-        private readonly IMediator _mediator;
+        if (!long.TryParse(photoId, out var photoIdValue))
+            return NotFound();
 
-        public GalleryController(IMediator mediator) => _mediator = mediator;
+        var response = await _mediator.Send(new GalleryRequest(User, photoIdValue, photoFilename, from == "starred"));
+        if (response.Photo == null)
+            return NotFound();
 
-        [HttpGet("~/gallery/{photoId}/{photoFilename}")]
-        public async Task<IActionResult> Index(string photoId, string photoFilename)
-        {
-            if (!long.TryParse(photoId, out var photoIdValue))
-                return NotFound();
-
-            var response = await _mediator.Send(new GalleryRequest(User, photoIdValue, photoFilename));
-            if (response.Photo == null)
-                return NotFound();
-
-            return View(new IndexViewModel(HttpContext, response.Photo, response.PreviousPhoto, response.NextPhoto, response.PhotoNumber, response.PhotoCount));
-        }
+        return View(new IndexViewModel(HttpContext, response.Photo, response.PreviousPhoto, response.NextPhoto, response.PhotoNumber, response.PhotoCount, from));
     }
 }

@@ -7,48 +7,47 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using SmallPhotos.Web.Handlers.Models;
 
-namespace SmallPhotos.Web.Controllers
+namespace SmallPhotos.Web.Controllers;
+
+[Authorize]
+public class PhotoController : Controller
 {
-    [Authorize]
-    public class PhotoController : Controller
+    private readonly ILogger<PhotoController> _logger;
+    private readonly IMediator _mediator;
+
+    public PhotoController(ILogger<PhotoController> logger, IMediator mediator)
     {
-        private readonly ILogger<PhotoController> _logger;
-        private readonly IMediator _mediator;
+        _logger = logger;
+        _mediator = mediator;
+    }
 
-        public PhotoController(ILogger<PhotoController> logger, IMediator mediator)
-        {
-            _logger = logger;
-            _mediator = mediator;
-        }
+    [HttpGet("~/photo/thumbnail/{size}/{photoId}/{filename}")]
+    public async Task<IActionResult> Thumbnail(string size, string photoId, string filename)
+    {
+        if (!long.TryParse(photoId, out var photoIdValue))
+            return NotFound();
 
-        [HttpGet("~/photo/thumbnail/{size}/{photoId}/{filename}")]
-        public async Task<IActionResult> Thumbnail(string size, string photoId, string filename)
-        {
-            if (!long.TryParse(photoId, out var photoIdValue))
-                return NotFound();
+        _logger.LogInformation($"Getting image {photoId}, size {size}");
 
-            _logger.LogInformation($"Getting image {photoId}, size {size}");
+        var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, size ?? ""));
+        if (response?.ImageStream == null || response.ImageContentType == null)
+            return NotFound();
 
-            var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, size ?? ""));
-            if (response?.ImageStream == null || response.ImageContentType == null)
-                return NotFound();
+        return File(response.ImageStream, response.ImageContentType, filename, new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
+    }
 
-            return File(response.ImageStream, response.ImageContentType, filename, new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
-        }
+    [HttpGet("~/photo/{photoId}/{filename}")]
+    public async Task<IActionResult> Photo(string photoId, string filename)
+    {
+        if (!long.TryParse(photoId, out var photoIdValue))
+            return NotFound();
 
-        [HttpGet("~/photo/{photoId}/{filename}")]
-        public async Task<IActionResult> Photo(string photoId, string filename)
-        {
-            if (!long.TryParse(photoId, out var photoIdValue))
-                return NotFound();
+        _logger.LogInformation($"Getting image {photoId}");
 
-            _logger.LogInformation($"Getting image {photoId}");
+        var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, null));
+        if (response?.ImageStream == null || response.ImageContentType == null)
+            return NotFound();
 
-            var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, null));
-            if (response?.ImageStream == null || response.ImageContentType == null)
-                return NotFound();
-
-            return File(response.ImageStream, response.ImageContentType, filename, new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
-        }
+        return File(response.ImageStream, response.ImageContentType, filename, new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
     }
 }
