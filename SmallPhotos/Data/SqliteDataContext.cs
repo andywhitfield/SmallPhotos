@@ -12,6 +12,7 @@ public class SqliteDataContext : DbContext, ISqliteDataContext
     public DbSet<Photo>? Photos { get; set; }
     public DbSet<Thumbnail>? Thumbnails { get; set; }
     public DbSet<StarredPhoto>? StarredPhotos { get; set; }
+    public DbSet<PhotoTag>? PhotoTags { get; set; }
 
     public void Migrate() => Database.Migrate();
 }
