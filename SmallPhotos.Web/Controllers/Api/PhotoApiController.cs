@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using SmallPhotos.Data;
 
 namespace SmallPhotos.Web.Controllers.Api;
@@ -8,11 +9,13 @@ namespace SmallPhotos.Web.Controllers.Api;
 [ApiController, Authorize, Route("api/[controller]")]
 public class PhotoApiController : ControllerBase
 {
+    private readonly ILogger<PhotoApiController> _logger;
     private readonly IUserAccountRepository _userAccountRepository;
     private readonly IPhotoRepository _photoRepository;
 
-    public PhotoApiController(IUserAccountRepository userAccountRepository, IPhotoRepository photoRepository)
+    public PhotoApiController(ILogger<PhotoApiController> logger, IUserAccountRepository userAccountRepository, IPhotoRepository photoRepository)
     {
+        _logger = logger;
         _userAccountRepository = userAccountRepository;
         _photoRepository = photoRepository;
     }
@@ -23,8 +26,19 @@ public class PhotoApiController : ControllerBase
     [HttpPost("unstar/{photoId}")]
     public Task<ActionResult> Unstar(long photoId) => StarUnstar(photoId, false);
 
+    [HttpPost("tag/{photoId}")]
+    public ActionResult Tag(long photoId, AddTagRequest addTagRequest)
+    {
+        _logger.LogInformation($"Adding tag to photo {photoId}: {addTagRequest.Tag}");
+        return Ok();
+    }
+
+    public class AddTagRequest { public string? Tag { get; set; } }
+
     private async Task<ActionResult> StarUnstar(long photoId, bool star)
     {
+        _logger.LogInformation($"Starring / Unstarring photo: {photoId} - {star}");
+
         var user = await _userAccountRepository.GetUserAccountOrNullAsync(User);
         if (user == null)
             return BadRequest();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace SmallPhotos.Web.Model;
@@ -7,7 +8,7 @@ public class PhotoModel
 {
     private const string _dateFormat = "HH:mm' on 'dd MMMM yyyy";
 
-    public PhotoModel(long photoId, string source, string filename, string filepath, Size size, DateTime dateTaken, DateTime fileCreationDate, bool isStarred)
+    public PhotoModel(long photoId, string source, string filename, string filepath, Size size, DateTime dateTaken, DateTime fileCreationDate, bool isStarred, IEnumerable<string> tags)
     {
         PhotoId = photoId;
         Source = source;
@@ -19,6 +20,7 @@ public class PhotoModel
         DateTaken = dateTaken.ToString(_dateFormat);
         FileCreationDate = fileCreationDate.ToString(_dateFormat);
         IsStarred = isStarred;
+        Tags = tags;
     }
 
     public long PhotoId { get; }
@@ -31,4 +33,5 @@ public class PhotoModel
     public string DateTaken { get; }
     public string FileCreationDate { get; }
     public bool IsStarred { get; }
+    public IEnumerable<string> Tags { get; }
 }

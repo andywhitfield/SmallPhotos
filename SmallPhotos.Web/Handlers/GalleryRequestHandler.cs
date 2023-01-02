@@ -47,5 +47,5 @@ public class GalleryRequestHandler : IRequestHandler<GalleryRequest, GalleryResp
         return new GalleryResponse(ToModel(photo, starredPhotos), ToModel(previous, starredPhotos), ToModel(next, starredPhotos), photoIndex + 1, allPhotos.Count);
     }
 
-    private PhotoModel? ToModel(Photo? photo, IEnumerable<long> starredPhotos) => photo == null ? null : new PhotoModel(photo.PhotoId, photo.AlbumSource?.Folder ?? "", photo.Filename ?? "", photo.RelativePath ?? "", new Size(photo.Width, photo.Height), photo.DateTaken ?? photo.FileCreationDateTime, photo.FileCreationDateTime, starredPhotos.Contains(photo.PhotoId));
+    private PhotoModel? ToModel(Photo? photo, IEnumerable<long> starredPhotos) => photo == null ? null : new PhotoModel(photo.PhotoId, photo.AlbumSource?.Folder ?? "", photo.Filename ?? "", photo.RelativePath ?? "", new Size(photo.Width, photo.Height), photo.DateTaken ?? photo.FileCreationDateTime, photo.FileCreationDateTime, starredPhotos.Contains(photo.PhotoId), Enumerable.Empty<string>() /* TODO */);
 }

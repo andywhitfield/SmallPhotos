@@ -6,7 +6,7 @@
         $(window).on('resize', fullSizeImage);
         fullSizeImage();
 
-        $('[data-photoid]').each(function() {
+        $('span[data-photoid]').each(function() {
             let star = $(this);
 
             star.click(function() {
@@ -18,7 +18,51 @@
                 });
             });
         });
+
+        closeAddTag();
+        $('input[name="tag"]').keyup(function(e) {
+            if (e.key === "Escape") {
+                closeAddTag();
+            } else if (e.key === "Enter") {
+                addTag();
+            }
+        });
+        $('#photo-tag-cancel').click(function() {
+            closeAddTag();
+        });
+        $('#photo-tag-add').click(function() {
+            let tagInput = $('input[name="tag"]');
+            if (tagInput.is(':visible')) {
+                addTag();
+            } else {
+                tagInput.show().focus();
+                $('#photo-tag-cancel').show();
+                $('#photo-tag-clearall').hide();
+            }
+        });
     });
+
+    function addTag() {
+        let inputTag = $('input[name="tag"]');
+        let photoId = inputTag.attr('data-photoid');
+        let tag = inputTag.val();
+        if (tag === '')
+            return;
+
+        let uri = '/api/photoapi/tag/' + photoId;
+        console.log('adding tag to photo ' + photoId + ': ' + tag);
+        $.ajax({url:uri, type:'POST', data: JSON.stringify({tag:tag}), contentType:'application/json; charset=utf-8', dataType:'json'}).always(function() {
+            closeAddTag();
+            window.location.reload();
+        });
+    }
+
+    function closeAddTag() {
+        $('input[name="tag"]').hide();
+        $('input[name="tag"]').val('');
+        $('#photo-tag-cancel').hide();
+        $('#photo-tag-clearall').show();
+    }
 </script>
 }
 
@@ -48,7 +92,26 @@
         <img id="fullimg" src="/photo/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)" />
     </p>
 
-    <div><input type="checkbox" id="fullimg-scaled" name="fullimg-scaled" checked onchange="fullSizeImage()" /><label for="fullimg-scaled"> scale to window</label></div>
+    <div>
+        <input type="checkbox" id="fullimg-scaled" name="fullimg-scaled" checked onchange="fullSizeImage()" /><label for="fullimg-scaled"> scale to window</label>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        @if (Model.Photo.Tags.Any()) {
+            @foreach (var tag in Model.Photo.Tags) {
+            <a title="Tag: @tag" href="#TODO" class="photo-tag">@tag</a>
+            }
+            <text>
+            &nbsp;&nbsp;
+            </text>
+        }
+        <span style="white-space: nowrap;">
+            <input type="text" name="tag" data-photoid="@Model.Photo.PhotoId" />
+            <a title="Add a new tag" name="photo-tag-add" class="photo-tag" id="photo-tag-add">+</a>
+            <a title="Cancel add tag" name="photo-tag-cancel" class="photo-tag" id="photo-tag-cancel">x</a>
+            @if (Model.Photo.Tags.Any()) {
+            <a data-tags="true" title="Clear all tags" name="photo-tag-clearall" class="photo-tag" id="photo-tag-clearall">x</a>
+            }
+        </span>
+    </div>
 
     <div class="pagination">
         <a title="Back to photo thumbnails" href="@(Model.FromPage == "starred" ? "/starred" : "/")?photoId=@(Model.Photo.PhotoId)#@(Model.Photo.PhotoId).@(Model.Photo.Filename)">&lsaquo;<span class="pagination-info"> Thumbnails</span></a>
@@ -68,6 +131,7 @@
         <div>Taken: @Model.Photo.DateTaken</div>
         <div>File time: @Model.Photo.FileCreationDate</div>
         <div>Starred: @(Model.Photo.IsStarred ? "yes" : "no")</div>
+        <div>Tags: @(string.Join(", ", Model.Photo.Tags))</div>
     </details>
 
 </article>

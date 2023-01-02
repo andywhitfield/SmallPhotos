@@ -204,6 +204,18 @@ footer {
     background-color: #f86bff;
 }
 
+.photo-tag {
+    display: inline-block;
+    cursor: pointer;
+    padding: 4px 16px;
+    text-decoration: none;
+    transition: background-color .3s;
+}
+
+a.photo-tag:hover {
+    background-color: #f86bff;
+}
+
 @media (max-width: 600px) {
     header {
         -webkit-flex-direction: column;
