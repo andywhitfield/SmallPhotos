@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SmallPhotos.Data;
+using SmallPhotos.Web.Model.Gallery;
 
 namespace SmallPhotos.Web.Controllers.Api;
 
@@ -33,7 +34,12 @@ public class PhotoApiController : ControllerBase
         return Ok();
     }
 
-    public class AddTagRequest { public string? Tag { get; set; } }
+    [HttpDelete("tag/{photoId}")]
+    public ActionResult ClearAllTags(long photoId)
+    {
+        _logger.LogInformation($"Clearing all tags on photo {photoId}");
+        return Ok();
+    }
 
     private async Task<ActionResult> StarUnstar(long photoId, bool star)
     {

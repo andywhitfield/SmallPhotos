@@ -40,6 +40,15 @@
                 $('#photo-tag-clearall').hide();
             }
         });
+        $('#photo-tag-clearall').click(function() {
+            let inputTag = $('input[name="tag"]');
+            let photoId = inputTag.attr('data-photoid');
+            let uri = '/api/photoapi/tag/' + photoId;
+            console.log('clearing all tags on photo ' + photoId);
+            $.ajax({url:uri, type:'DELETE', contentType:'application/json; charset=utf-8', dataType:'json'}).always(function() {
+                window.location.reload();
+            });
+        });
     });
 
     function addTag() {
