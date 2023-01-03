@@ -28,16 +28,37 @@ public class PhotoApiController : ControllerBase
     public Task<ActionResult> Unstar(long photoId) => StarUnstar(photoId, false);
 
     [HttpPost("tag/{photoId}")]
-    public ActionResult Tag(long photoId, AddTagRequest addTagRequest)
+    public async Task<ActionResult> Tag(long photoId, AddTagRequest addTagRequest)
     {
         _logger.LogInformation($"Adding tag to photo {photoId}: {addTagRequest.Tag}");
+        if (string.IsNullOrWhiteSpace(addTagRequest.Tag))
+            return BadRequest();
+
+        var user = await _userAccountRepository.GetUserAccountOrNullAsync(User);
+        if (user == null)
+            return BadRequest();
+
+        var photo = await _photoRepository.GetAsync(user, photoId);
+        if (photo == null)
+            return BadRequest();
+
+        await _photoRepository.AddTagAsync(user, photo, addTagRequest.Tag);
         return Ok();
     }
 
     [HttpDelete("tag/{photoId}")]
-    public ActionResult ClearAllTags(long photoId)
+    public async Task<ActionResult> ClearAllTags(long photoId)
     {
         _logger.LogInformation($"Clearing all tags on photo {photoId}");
+        var user = await _userAccountRepository.GetUserAccountOrNullAsync(User);
+        if (user == null)
+            return BadRequest();
+
+        var photo = await _photoRepository.GetAsync(user, photoId);
+        if (photo == null)
+            return BadRequest();
+
+        await _photoRepository.DeleteTagsAsync(user, photo);
         return Ok();
     }
 

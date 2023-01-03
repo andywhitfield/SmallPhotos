@@ -22,4 +22,7 @@ public interface IPhotoRepository
     Task<List<Photo>> GetStarredAsync(UserAccount user, ISet<long> photoIds);
     Task StarAsync(UserAccount user, Photo photo);
     Task UnstarAsync(UserAccount user, Photo photo);
+    Task<List<PhotoTag>> GetTagsAsync(UserAccount user, Photo photo);
+    Task AddTagAsync(UserAccount user, Photo photo, string tag);
+    Task DeleteTagsAsync(UserAccount user, Photo photo);
 }

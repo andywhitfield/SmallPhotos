@@ -70,7 +70,7 @@ public class PhotoRepository : IPhotoRepository
 
     public async Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize, DateTime? dateTaken)
     {
-        var photo = _context.Photos!.Add(new Photo
+        var photo = _context.Photos!.Add(new()
         {
             AlbumSource = album,
             Filename = file.Name,
@@ -100,7 +100,7 @@ public class PhotoRepository : IPhotoRepository
     public async Task<Thumbnail> SaveThumbnailAsync(Photo photo, ThumbnailSize size, byte[] image)
     {
         _logger.LogDebug($"Saving thumbnail of size {size} for photo {photo.PhotoId}");
-        var thumbnail = new Thumbnail
+        Thumbnail thumbnail = new()
         {
             Photo = photo,
             ThumbnailSize = size,
@@ -152,6 +152,27 @@ public class PhotoRepository : IPhotoRepository
     public Task UnstarAsync(UserAccount user, Photo photo)
     {
         _context.StarredPhotos!.RemoveRange(_context.StarredPhotos.Where(s => s.UserAccountId == user.UserAccountId && s.PhotoId == photo.PhotoId));
+        return _context.SaveChangesAsync();
+    }
+
+    public Task<List<PhotoTag>> GetTagsAsync(UserAccount user, Photo photo) =>
+        _context.PhotoTags!.Where(t => t.UserAccountId == user.UserAccountId && t.PhotoId == photo.PhotoId).OrderBy(t => t.Tag.ToLower()).ToListAsync();
+
+    public Task AddTagAsync(UserAccount user, Photo photo, string tag)
+    {
+        _context.PhotoTags!.Add(new()
+        {
+            UserAccount = user,
+            Photo = photo,
+            Tag = tag.Trim(),
+            CreatedDateTime = DateTime.UtcNow
+        });
+        return _context.SaveChangesAsync();
+    }
+
+    public Task DeleteTagsAsync(UserAccount user, Photo photo)
+    {
+        _context.PhotoTags!.RemoveRange(_context.PhotoTags!.Where(t => t.UserAccountId == user.UserAccountId && t.PhotoId == photo.PhotoId));
         return _context.SaveChangesAsync();
     }
 }

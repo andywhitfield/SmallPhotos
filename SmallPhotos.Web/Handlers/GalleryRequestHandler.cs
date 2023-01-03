@@ -44,8 +44,8 @@ public class GalleryRequestHandler : IRequestHandler<GalleryRequest, GalleryResp
 
         var starredPhotos = (await _photoRepository.GetStarredAsync(user, new[] { photo, previous, next }.Where(p => p != null).Select(p => p!.PhotoId).ToHashSet())).Select(p => p.PhotoId).ToHashSet();
 
-        return new GalleryResponse(ToModel(photo, starredPhotos), ToModel(previous, starredPhotos), ToModel(next, starredPhotos), photoIndex + 1, allPhotos.Count);
+        return new GalleryResponse(await ToModelAsync(user, photo, starredPhotos), await ToModelAsync(null, previous, starredPhotos), await ToModelAsync(null, next, starredPhotos), photoIndex + 1, allPhotos.Count);
     }
 
-    private PhotoModel? ToModel(Photo? photo, IEnumerable<long> starredPhotos) => photo == null ? null : new PhotoModel(photo.PhotoId, photo.AlbumSource?.Folder ?? "", photo.Filename ?? "", photo.RelativePath ?? "", new Size(photo.Width, photo.Height), photo.DateTaken ?? photo.FileCreationDateTime, photo.FileCreationDateTime, starredPhotos.Contains(photo.PhotoId), Enumerable.Empty<string>() /* TODO */);
+    private async Task<PhotoModel?> ToModelAsync(UserAccount? user, Photo? photo, IEnumerable<long> starredPhotos) => photo == null ? null : new PhotoModel(photo.PhotoId, photo.AlbumSource?.Folder ?? "", photo.Filename ?? "", photo.RelativePath ?? "", new Size(photo.Width, photo.Height), photo.DateTaken ?? photo.FileCreationDateTime, photo.FileCreationDateTime, starredPhotos.Contains(photo.PhotoId), user == null ? Enumerable.Empty<string>() : (await _photoRepository.GetTagsAsync(user, photo)).Select(t => t.Tag));
 }
