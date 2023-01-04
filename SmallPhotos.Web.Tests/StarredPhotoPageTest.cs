@@ -10,7 +10,7 @@ using Xunit;
 
 namespace SmallPhotos.Web.Tests;
 
-public class TaggedPhotoPageTest : IAsyncLifetime
+public class StarredPhotoPageTest : IAsyncLifetime
 {
     private readonly IntegrationTestWebApplicationFactory _factory = new IntegrationTestWebApplicationFactory();
     private string? _albumSourceFolder;
@@ -38,49 +38,24 @@ public class TaggedPhotoPageTest : IAsyncLifetime
         }
 
         var photo = context.Photos!.Add(new() { AlbumSource = album.Entity, CreatedDateTime = DateTime.UtcNow, FileCreationDateTime = DateTime.UtcNow, Filename = "photo1.jpg", Height = 10, Width = 15 });
-        context.PhotoTags!.AddRange(
-            new() { UserAccount = userAccount.Entity, Photo = photo.Entity, Tag = "test-tag-1" },
-            new() { UserAccount = userAccount.Entity, Photo = photo.Entity, Tag = "test-tag-2" }
-        );
-
         photo = context.Photos!.Add(new() { AlbumSource = album.Entity, CreatedDateTime = DateTime.UtcNow, FileCreationDateTime = DateTime.UtcNow, Filename = "photo2.jpg", Height = 20, Width = 25 });
-        context.PhotoTags!.AddRange(
-            new() { UserAccount = userAccount.Entity, Photo = photo.Entity, Tag = "test-tag-2" },
-            new() { UserAccount = userAccount.Entity, Photo = photo.Entity, Tag = "test-tag-3" }
-        );
-
+        // only the second photo is starred
+        context.StarredPhotos!.Add(new() { UserAccount = userAccount.Entity, Photo = photo.Entity, CreatedDateTime = DateTime.UtcNow });
         await context.SaveChangesAsync();
     }
 
     [Fact]
-    public async Task Should_list_all_tags()
+    public async Task Should_show_all_starred_photos()
     {
         using var client = _factory.CreateAuthenticatedClient();
-        using var response = await client.GetAsync("/tagged");
+        using var response = await client.GetAsync("/starred");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var responseContent = await response.Content.ReadAsStringAsync();
         responseContent.Should().Contain("Logout");
-        responseContent.Should().NotContain("You have no photos with tags");
-        responseContent.Should().Contain(""" title="Tag: test-tag-1" """, Exactly.Once());
-        responseContent.Should().Contain(""" title="Tag: test-tag-2" """, Exactly.Once());
-        responseContent.Should().Contain(""" title="Tag: test-tag-3" """, Exactly.Once());
-        responseContent.Should().Contain("test-tag-2 (2)", Exactly.Once());
-        responseContent.Should().Contain("test-tag-1 (1)", Exactly.Once());
-        responseContent.Should().Contain("test-tag-3 (1)", Exactly.Once());
-    }
-
-    [Fact]
-    public async Task Should_show_all_photos_with_tag()
-    {
-        using var client = _factory.CreateAuthenticatedClient();
-        using var response = await client.GetAsync("/tagged/test-tag-2");
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var responseContent = await response.Content.ReadAsStringAsync();
-        responseContent.Should().Contain("Logout");
-        responseContent.Should().NotContain("You have no photos with tags");
-        responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/1/photo1.jpg" """, Exactly.Once());
+        responseContent.Should().NotContain("You have no starred photos");
+        responseContent.Should().NotContain("""<img src="/photo/thumbnail/Small/1/photo1.jpg" """);
         responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/2/photo2.jpg" """, Exactly.Once());
-        responseContent.Should().Contain("from=tagged_test-tag-2", Exactly.Twice());
+        responseContent.Should().Contain("from=starred", Exactly.Once());
     }
 
     public Task DisposeAsync()

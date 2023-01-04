@@ -1,10 +1,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SmallPhotos.Service.Services
+namespace SmallPhotos.Service.Services;
+
+public interface IAlbumSyncService
 {
-    public interface IAlbumSyncService
-    {
-        Task SyncAllAsync(CancellationToken stoppingToken);
-    }
+    Task SyncAllAsync(CancellationToken stoppingToken);
 }

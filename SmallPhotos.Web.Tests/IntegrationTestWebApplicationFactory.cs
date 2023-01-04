@@ -11,43 +11,42 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using SmallPhotos.Data;
 
-namespace SmallPhotos.Web.Tests
+namespace SmallPhotos.Web.Tests;
+
+public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Startup>
 {
-    public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Startup>
+    private readonly SqliteConnection _connection;
+    private readonly DbContextOptions<SqliteDataContext> _options;
+
+    public IntegrationTestWebApplicationFactory()
     {
-        private readonly SqliteConnection _connection;
-        private readonly DbContextOptions<SqliteDataContext> _options;
+        _connection = new SqliteConnection("DataSource=:memory:");
+        _connection.Open();
+        _options = new DbContextOptionsBuilder<SqliteDataContext>().UseSqlite(_connection).Options;
+    }
 
-        public IntegrationTestWebApplicationFactory()
+    protected override IHostBuilder CreateHostBuilder() => Host
+        .CreateDefaultBuilder()
+        .ConfigureWebHostDefaults(x => x.UseStartup<Startup>().UseTestServer().ConfigureTestServices(services =>
         {
-            _connection = new SqliteConnection("DataSource=:memory:");
-            _connection.Open();
-            _options = new DbContextOptionsBuilder<SqliteDataContext>().UseSqlite(_connection).Options;
-        }
+            services.Replace(ServiceDescriptor.Scoped<SqliteDataContext>(_ => new SqliteDataContext(_options)));
+            services
+                .AddAuthentication("Test")
+                .AddScheme<AuthenticationSchemeOptions, TestStubAuthHandler>("Test", null);
+        }));
 
-        protected override IHostBuilder CreateHostBuilder() => Host
-            .CreateDefaultBuilder()
-            .ConfigureWebHostDefaults(x => x.UseStartup<Startup>().UseTestServer().ConfigureTestServices(services =>
-            {
-                services.Replace(ServiceDescriptor.Scoped<SqliteDataContext>(_ => new SqliteDataContext(_options)));
-                services
-                    .AddAuthentication("Test")
-                    .AddScheme<AuthenticationSchemeOptions, TestStubAuthHandler>("Test", null);
-            }));
+    public HttpClient CreateAuthenticatedClient(bool allowAutoRedirect = true)
+    {
+        var client = CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = allowAutoRedirect });
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test");
+        return client;
+    }
 
-        public HttpClient CreateAuthenticatedClient(bool allowAutoRedirect = true)
-        {
-            var client = CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = allowAutoRedirect });
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test");
-            return client;
-        }
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            if (disposing)
-                _connection.Dispose();
-        }
+        if (disposing)
+            _connection.Dispose();
     }
 }

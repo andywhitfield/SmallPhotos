@@ -1,10 +1,9 @@
-namespace SmallPhotos.Service.Models
+namespace SmallPhotos.Service.Models;
+
+public class CreateOrUpdatePhotoRequest
 {
-    public class CreateOrUpdatePhotoRequest
-    {
-        public long UserAccountId { get; set; }
-        public long AlbumSourceId { get; set; }
-        public string? FilePath { get; set; }
-        public string? Filename { get; set; }
-    }
+    public long UserAccountId { get; set; }
+    public long AlbumSourceId { get; set; }
+    public string? FilePath { get; set; }
+    public string? Filename { get; set; }
 }

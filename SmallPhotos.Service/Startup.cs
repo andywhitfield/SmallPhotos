@@ -13,75 +13,74 @@ using SmallPhotos.Data;
 using SmallPhotos.Service.BackgroundServices;
 using SmallPhotos.Service.Services;
 
-namespace SmallPhotos.Service
+namespace SmallPhotos.Service;
+
+public class Startup
 {
-    public class Startup
+    public const string BackgroundServiceHttpClient = "BackgroundServiceHttpClient";
+
+    private IWebHostEnvironment _hostingEnvironment;
+    private IFeatureCollection? _featureCollection;
+
+    public Startup(IWebHostEnvironment env)
     {
-        public const string BackgroundServiceHttpClient = "BackgroundServiceHttpClient";
+        var builder = new ConfigurationBuilder()
+            .SetBasePath(env.ContentRootPath)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+            .AddEnvironmentVariables();
+        Configuration = builder.Build();
 
-        private IWebHostEnvironment _hostingEnvironment;
-        private IFeatureCollection? _featureCollection;
+        _hostingEnvironment = env;
+    }
 
-        public Startup(IWebHostEnvironment env)
+    public IConfigurationRoot Configuration { get; }
+
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddSingleton<IConfiguration>(Configuration);
+
+        services.AddLogging(logging =>
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-                .AddEnvironmentVariables();
-            Configuration = builder.Build();
+            logging.AddConsole();
+            logging.AddDebug();
+        });
 
-            _hostingEnvironment = env;
-        }
-
-        public IConfigurationRoot Configuration { get; }
-
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddSingleton<IConfiguration>(Configuration);
-
-            services.AddLogging(logging =>
+        services
+            .AddDataServices()
+            .AddTransient<IThumbnailCreator, ThumbnailCreator>()
+            .AddHttpClient(BackgroundServiceHttpClient, (provider, cfg) =>
             {
-                logging.AddConsole();
-                logging.AddDebug();
-            });
-
-            services
-                .AddDataServices()
-                .AddTransient<IThumbnailCreator, ThumbnailCreator>()
-                .AddHttpClient(BackgroundServiceHttpClient, (provider, cfg) =>
+                var logger = provider.GetRequiredService<ILogger<Startup>>();
+                var serviceAddress = _featureCollection?.Get<IServerAddressesFeature>()?.Addresses?.FirstOrDefault();
+                if (serviceAddress == null)
                 {
-                    var logger = provider.GetRequiredService<ILogger<Startup>>();
-                    var serviceAddress = _featureCollection?.Get<IServerAddressesFeature>()?.Addresses?.FirstOrDefault();
-                    if (serviceAddress == null)
-                    {
-                        logger.LogCritical("Cannot get service address - background service will not be able to run successfully!");
-                        provider.GetService<IHostApplicationLifetime>()?.StopApplication();
-                        return;
-                    }
-                    logger.LogDebug($"Creating HttpClient[{BackgroundServiceHttpClient}] with address [{serviceAddress}]");
-                    cfg.BaseAddress = new Uri(serviceAddress);
-                });
-            services.AddMvc();
-            services.AddCors();
+                    logger.LogCritical("Cannot get service address - background service will not be able to run successfully!");
+                    provider.GetService<IHostApplicationLifetime>()?.StopApplication();
+                    return;
+                }
+                logger.LogDebug($"Creating HttpClient[{BackgroundServiceHttpClient}] with address [{serviceAddress}]");
+                cfg.BaseAddress = new Uri(serviceAddress);
+            });
+        services.AddMvc();
+        services.AddCors();
 
-            services.Configure<AlbumChangeServiceOptions>(Configuration.GetSection("AlbumChangeService"));
-            services.AddScoped<IAlbumSyncService, AlbumSyncService>();
-            services.AddHostedService<AlbumChangeService>();
-        }
+        services.Configure<AlbumChangeServiceOptions>(Configuration.GetSection("AlbumChangeService"));
+        services.AddScoped<IAlbumSyncService, AlbumSyncService>();
+        services.AddHostedService<AlbumChangeService>();
+    }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
-        {
-            app.UseSerilogRequestLogging();
-            app.UseRouting();
-            app.UseEndpoints(options => options.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}"));
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+    {
+        app.UseSerilogRequestLogging();
+        app.UseRouting();
+        app.UseEndpoints(options => options.MapControllerRoute(
+            name: "default",
+            pattern: "{controller=Home}/{action=Index}/{id?}"));
 
-            _featureCollection = app.ServerFeatures;
+        _featureCollection = app.ServerFeatures;
 
-            using var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            scope.ServiceProvider.GetRequiredService<ISqliteDataContext>().Migrate();
-        }
+        using var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+        scope.ServiceProvider.GetRequiredService<ISqliteDataContext>().Migrate();
     }
 }

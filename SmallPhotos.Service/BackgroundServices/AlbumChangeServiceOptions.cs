@@ -1,10 +1,9 @@
 using System;
 
-namespace SmallPhotos.Service.BackgroundServices
+namespace SmallPhotos.Service.BackgroundServices;
+
+public class AlbumChangeServiceOptions
 {
-    public class AlbumChangeServiceOptions
-    {
-        public TimeSpan PollPeriod { get; set; } = TimeSpan.FromDays(1);
-        public int SyncPhotoBatchSize { get; set; } = 5;
-    }
+    public TimeSpan PollPeriod { get; set; } = TimeSpan.FromDays(1);
+    public int SyncPhotoBatchSize { get; set; } = 5;
 }
