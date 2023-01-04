@@ -1,0 +1,18 @@
+﻿@model SmallPhotos.Web.Model.Tagged.IndexViewModel
+
+@await Component.InvokeAsync("Navigation")
+
+<article>
+    @if (Model.PhotoTags.Any()) {
+    <div>Photo Tags (@Model.PhotoTags.Count())</div>
+    <div>&nbsp;</div>
+
+    <div>
+    @foreach (var tag in Model.PhotoTags) {
+    <a title="Tag: @tag.Tag" href="/tagged/@tag.Tag" class="photo-tag">@tag.Tag (@tag.PhotoCount)</a>
+    }
+    </div>
+    } else {
+    <div>You have no photos with tags. <a href="/">Add a tag to any photo</a>, and the tag will be listed here.</div>
+    }
+</article>

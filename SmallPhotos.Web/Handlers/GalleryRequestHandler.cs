@@ -37,7 +37,10 @@ public class GalleryRequestHandler : IRequestHandler<GalleryRequest, GalleryResp
         }
 
         // TODO: loading all photos just to get previous & next is bad
-        var allPhotos = await (request.OnlyStarred ? _photoRepository.GetAllStarredAsync(user) : _photoRepository.GetAllAsync(user));
+        var allPhotos = await (request.OnlyStarred
+            ? _photoRepository.GetAllStarredAsync(user)
+            : !string.IsNullOrWhiteSpace(request.WithTag) ? _photoRepository.GetAllWithTagAsync(user, request.WithTag)
+            : _photoRepository.GetAllAsync(user));
         var photoIndex = allPhotos.FindIndex(p => p.PhotoId == photo.PhotoId);
         var previous = photoIndex > 0 ? allPhotos[photoIndex - 1] : null;
         var next = photoIndex + 1 < allPhotos.Count ? allPhotos[photoIndex + 1] : null;

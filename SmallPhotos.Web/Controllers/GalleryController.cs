@@ -20,7 +20,7 @@ public class GalleryController : Controller
         if (!long.TryParse(photoId, out var photoIdValue))
             return NotFound();
 
-        var response = await _mediator.Send(new GalleryRequest(User, photoIdValue, photoFilename, from == "starred"));
+        var response = await _mediator.Send(new GalleryRequest(User, photoIdValue, photoFilename, from == "starred", (from ?? "").StartsWith("tagged_") ? from!.Substring("tagged_".Length) : ""));
         if (response.Photo == null)
             return NotFound();
 

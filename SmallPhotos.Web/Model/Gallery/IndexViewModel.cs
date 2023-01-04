@@ -22,4 +22,12 @@ public class IndexViewModel : BaseViewModel
     public int NextPhotoNumber { get; }
     public int PhotoCount { get; }
     public string? FromPage { get; }
+
+    public string FromPagePath => FromPage switch {
+        "starred" => "/starred",
+        {} when FromPage.StartsWith("tagged_") => $"/tagged/{FromPage.Substring("tagged_".Length)}",
+        _ => "/"
+    };
+
+    public string FromPageQueryString => FromPage == "starred" || (FromPage?.StartsWith("tagged_") ?? false) ? "?from=" + FromPage : "";
 }

@@ -156,7 +156,32 @@ public class PhotoRepository : IPhotoRepository
     }
 
     public Task<List<PhotoTag>> GetTagsAsync(UserAccount user, Photo photo) =>
-        _context.PhotoTags!.Where(t => t.UserAccountId == user.UserAccountId && t.PhotoId == photo.PhotoId).OrderBy(t => t.Tag.ToLower()).ToListAsync();
+        _context.PhotoTags!
+            .Where(t => t.UserAccountId == user.UserAccountId && t.PhotoId == photo.PhotoId)
+            .OrderBy(t => t.Tag.ToLower())
+            .ToListAsync();
+
+    public async Task<IEnumerable<(string, int)>> GetTagsAndCountAsync(UserAccount user) =>
+        (await _context.PhotoTags!
+            .Where(t => t.UserAccountId == user.UserAccountId)
+            .GroupBy(t => t.Tag)
+            .Select(t => new { Tag = t.Key, PhotoCount = t.Count() })
+            .OrderByDescending (t => t.PhotoCount)
+            .ThenBy(t => t.Tag.ToLower())
+            .ToListAsync()
+        ).Select(t => (t.Tag, t.PhotoCount));
+
+    public Task<List<Photo>> GetAllWithTagAsync(UserAccount user, string tag) =>
+        _context.PhotoTags!
+            .Include(t => t.Photo).ThenInclude(p => p!.AlbumSource)
+            .Where(t =>
+                t.UserAccountId == user.UserAccountId &&
+                t.Tag == tag &&
+                t.Photo!.DeletedDateTime == null &&
+                t.Photo.AlbumSource!.DeletedDateTime == null)
+            .Select(t => t.Photo!)
+            .OrderByDescending(p => p.DateTaken ?? p.FileCreationDateTime)
+            .ToListAsync();
 
     public Task AddTagAsync(UserAccount user, Photo photo, string tag)
     {

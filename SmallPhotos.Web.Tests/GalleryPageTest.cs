@@ -6,7 +6,6 @@ using FluentAssertions;
 using ImageMagick;
 using Microsoft.Extensions.DependencyInjection;
 using SmallPhotos.Data;
-using SmallPhotos.Model;
 using Xunit;
 
 namespace SmallPhotos.Web.Tests

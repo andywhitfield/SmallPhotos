@@ -7,12 +7,13 @@ namespace SmallPhotos.Web.Model.Home;
 
 public class IndexViewModel : BaseViewModel
 {
-    public IndexViewModel(HttpContext context, ThumbnailSize thumbnailSize, IEnumerable<PhotoModel> photos, Pagination pagination, SelectedView selectedView)
+    public IndexViewModel(HttpContext context, ThumbnailSize thumbnailSize, IEnumerable<PhotoModel> photos, Pagination pagination, SelectedView selectedView, string? withTag = null)
         : base(context, selectedView)
     {
         ThumbnailSize = thumbnailSize;
         Photos = photos;
         Pagination = pagination;
+        WithTag = withTag;
 
         if (Photos.Any())
         {
@@ -35,4 +36,5 @@ public class IndexViewModel : BaseViewModel
     public IEnumerable<PhotoModel> Photos { get; }
     public Pagination Pagination { get; }
     public string ImageDateRange { get; }
+    public string? WithTag { get; }
 }

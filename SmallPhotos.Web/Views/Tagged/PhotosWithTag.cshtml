@@ -4,25 +4,25 @@
 
 <article>
     @if (Model.Photos.Any()) {
-        <div>Starred: @Model.ImageDateRange</div>
+        <div>Tagged @Model.WithTag: @Model.ImageDateRange</div>
 
         @if (Model.Pagination.PageCount > 1) {
             <div class="pagination">
                 @if (Model.Pagination.PageNumber > 1) {
-                <a title="Go to previous page of photos" href="/starred?pageNumber=@(Model.Pagination.PageNumber - 1)">&laquo;</a>
+                <a title="Go to previous page of photos" href="/tagged/@(Model.WithTag)?pageNumber=@(Model.Pagination.PageNumber - 1)">&laquo;</a>
                 }
                 @foreach (var pg in Model.Pagination.Pages) {
                 @if (pg.IsSelected) {
                 <a class="active">@pg.PageNumber</a>
                 } else {
-                <a title="Go to photo page @pg.PageNumber" href="/starred?pageNumber=@pg.PageNumber">@pg.PageNumber</a>
+                <a title="Go to photo page @pg.PageNumber" href="/tagged/@(Model.WithTag)?pageNumber=@pg.PageNumber">@pg.PageNumber</a>
                 }
                 @if (pg.IsNextPageSkipped) {
                 <a class="skip">&bull;&bull;</a>
                 }
                 }
                 @if (Model.Pagination.PageNumber < Model.Pagination.PageCount) {
-                <a title="Go to the next page of photos" href="/starred?pageNumber=@(Model.Pagination.PageNumber + 1)">&raquo;</a>
+                <a title="Go to the next page of photos" href="/tagged/@(Model.WithTag)?pageNumber=@(Model.Pagination.PageNumber + 1)">&raquo;</a>
                 }
             </div>
         }
@@ -30,7 +30,7 @@
         <div class="thumbnails">
         @foreach(var photo in Model.Photos) {
             <div>
-                <a title="Taken: @photo.DateTaken" href="/gallery/@(photo.PhotoId)/@(photo.Filename)?from=starred" name="@(photo.PhotoId).@(photo.Filename)"><img src="/photo/thumbnail/@(Model.ThumbnailSize)/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" loading="lazy" /></a>
+                <a title="Taken: @photo.DateTaken" href="/gallery/@(photo.PhotoId)/@(photo.Filename)?from=tagged_@(Model.WithTag)" name="@(photo.PhotoId).@(photo.Filename)"><img src="/photo/thumbnail/@(Model.ThumbnailSize)/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" loading="lazy" /></a>
             </div>
         }
         </div>
@@ -47,26 +47,26 @@
         @if (Model.Pagination.PageCount > 1) {
             <div class="pagination">
                 @if (Model.Pagination.PageNumber > 1) {
-                <a title="Go to previous page of photos" href="/starred?pageNumber=@(Model.Pagination.PageNumber - 1)">&laquo;</a>
+                <a title="Go to previous page of photos" href="/tagged/@(Model.WithTag)?pageNumber=@(Model.Pagination.PageNumber - 1)">&laquo;</a>
                 }
                 @foreach (var pg in Model.Pagination.Pages) {
                 @if (pg.IsSelected) {
                 <a class="active">@pg.PageNumber</a>
                 } else {
-                <a title="Go to photo page @pg.PageNumber" href="/starred?pageNumber=@pg.PageNumber">@pg.PageNumber</a>
+                <a title="Go to photo page @pg.PageNumber" href="/tagged/@(Model.WithTag)?pageNumber=@pg.PageNumber">@pg.PageNumber</a>
                 }
                 @if (pg.IsNextPageSkipped) {
                 <a class="skip">&bull;&bull;</a>
                 }
                 }
                 @if (Model.Pagination.PageNumber < Model.Pagination.PageCount) {
-                <a title="Go to the next page of photos" href="/starred?pageNumber=@(Model.Pagination.PageNumber + 1)">&raquo;</a>
+                <a title="Go to the next page of photos" href="/tagged/@(Model.WithTag)?pageNumber=@(Model.Pagination.PageNumber + 1)">&raquo;</a>
                 }
             </div>
         }
     } else {
         <p>
-        <text>You have no starred photos. View <a href="/">all your photos</a> and hit the star icon.</text>
+        <text>You have no photos with this tag. View <a href="/">all your photos</a> and add this tag.</text>
         </p>
     }
 </article>

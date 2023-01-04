@@ -23,6 +23,8 @@ public interface IPhotoRepository
     Task StarAsync(UserAccount user, Photo photo);
     Task UnstarAsync(UserAccount user, Photo photo);
     Task<List<PhotoTag>> GetTagsAsync(UserAccount user, Photo photo);
+    Task<IEnumerable<(string, int)>> GetTagsAndCountAsync(UserAccount user);
+    Task<List<Photo>> GetAllWithTagAsync(UserAccount user, string tag);
     Task AddTagAsync(UserAccount user, Photo photo, string tag);
     Task DeleteTagsAsync(UserAccount user, Photo photo);
 }

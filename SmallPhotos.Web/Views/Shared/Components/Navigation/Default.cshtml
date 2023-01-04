@@ -4,7 +4,7 @@
         <ul>
             <li@(Html.Raw(Model.ViewAll ? " class=\"smp-selected\"" : ""))><a href="/">All photos</a></li>
             <li@(Html.Raw(Model.ViewStarred ? " class=\"smp-selected\"" : ""))><a href="/starred">Starred</a></li>
-            <li@(Html.Raw(Model.ViewTagged ? " class=\"smp-selected\"" : ""))><a href="#TODO">Tagged</a></li>
+            <li@(Html.Raw(Model.ViewTagged ? " class=\"smp-selected\"" : ""))><a href="/tagged">Tagged</a></li>
         </ul>
     </nav>
 </aside>
