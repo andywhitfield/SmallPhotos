@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmallPhotos.Model;
 
@@ -14,4 +15,8 @@ public class AlbumSource
     public DateTime CreatedDateTime { get; set; } = DateTime.UtcNow;
     public DateTime? LastUpdateDateTime { get; set; }
     public DateTime? DeletedDateTime { get; set; }
+    public string? DropboxAccessToken { get; set; }
+    public string? DropboxRefreshToken { get; set; }
+    [NotMapped]
+    public bool IsDropboxSource => !string.IsNullOrEmpty(DropboxAccessToken) && !string.IsNullOrEmpty(DropboxRefreshToken);
 }

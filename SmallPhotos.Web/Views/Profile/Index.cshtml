@@ -40,6 +40,34 @@
             </div>
         </fieldset>            
     </form>
+
+    <form method="post" action="/profile/dropbox/add">
+        @Html.AntiForgeryToken()
+        <fieldset>
+            <legend>Add Dropbox folder</legend>
+            @if (!string.IsNullOrEmpty(Model.DropboxAccessToken) && !string.IsNullOrEmpty(Model.DropboxRefreshToken)) {
+            <div>
+                <label for="smp-add-dropbox-folder">Dropbox folder path:</label>
+                <input type="text" id="smp-add-dropbox-folder" name="folder" />
+            </div>
+            <div>
+                <label for="smp-add-dropbox-folder-recursive">Include sub-folders:</label>
+                <input type="checkbox" id="smp-add-dropbox-folder-recursive" name="folderrecursive" value="true" />
+            </div>
+            <div>
+                <label></label>
+                <button type="submit" data-depends="input.smp-add-dropbox-folder">Add</button>
+            </div>
+            <input type="hidden" name="accesstoken" value="@Model.DropboxAccessToken" />
+            <input type="hidden" name="refreshtoken" value="@Model.DropboxRefreshToken" />
+            } else {
+            <div>
+                <label></label>
+                <button type="submit" data-depends="input.smp-add-dropbox-folder">Connect...</button>
+            </div>
+            }
+        </fieldset>            
+    </form>
     </p>
     <h3>View options</h3>
     <p>

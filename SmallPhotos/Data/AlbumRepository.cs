@@ -33,13 +33,15 @@ public class AlbumRepository : IAlbumRepository
             .Where(a => a.UserAccountId == user.UserAccountId && a.DeletedDateTime == null)
             .ToListAsync();
 
-    public Task AddAsync(UserAccount userAccount, string folder, bool recursive)
+    public Task AddAsync(UserAccount userAccount, string folder, bool recursive, string? dropboxAccessToken = null, string? dropboxRefreshToken = null)
     {
         _context.AlbumSources!.Add(new AlbumSource
         {
             UserAccount = userAccount,
             Folder = folder,
-            RecurseSubFolders = recursive
+            RecurseSubFolders = recursive,
+            DropboxAccessToken = dropboxAccessToken,
+            DropboxRefreshToken = dropboxRefreshToken
         });
         return _context.SaveChangesAsync();
     }
