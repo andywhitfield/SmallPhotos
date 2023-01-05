@@ -41,6 +41,8 @@
             }
         });
         $('#photo-tag-clearall').click(function() {
+            if (!confirm('Are you sure you want to delete all the tags for this photo?'))
+                return;
             let inputTag = $('input[name="tag"]');
             let photoId = inputTag.attr('data-photoid');
             let uri = '/api/photoapi/tag/' + photoId;
