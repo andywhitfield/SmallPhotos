@@ -42,7 +42,7 @@ public class PhotoController : ControllerBase
         if (albumSource == null)
             return BadRequest($"Album [{request.AlbumSourceId}] not found");
 
-        var file = new FileInfo(albumSource.PhotoPath(request.FilePath, request.Filename ?? ""));
+        FileInfo file = new(albumSource.IsDropboxSource ? (request.Filename ?? "") : albumSource.PhotoPath(request.FilePath, request.Filename ?? ""));
         if (!file.Exists)
             return BadRequest($"File [{request.Filename}] does not exist");
 
@@ -60,9 +60,9 @@ public class PhotoController : ControllerBase
         using var image = new MagickImage(file.FullName, format);
         var originalSize = new Size(image.Width, image.Height);
 
-        var photo = await _photoRepository.GetAsync(userAccount, albumSource, request.Filename, request.FilePath);
+        var photo = await _photoRepository.GetAsync(userAccount, albumSource, file.Name, request.FilePath);
         if (photo == null)
-            photo = await _photoRepository.AddAsync(albumSource, file, originalSize, ExtractDateTaken(image));
+            photo = await _photoRepository.AddAsync(albumSource, file, originalSize, ExtractDateTaken(image), albumSource.IsDropboxSource ? request.FilePath : null);
         else
             await _photoRepository.UpdateAsync(photo, file, originalSize, ExtractDateTaken(image));
 
@@ -78,7 +78,7 @@ public class PhotoController : ControllerBase
     private DateTime? ExtractDateTaken(MagickImage image)
     {
         var exifData = image.GetExifProfile();
-        
+
         return ExtractDateTaken(ExifTag.DateTimeOriginal)
             ?? ExtractDateTaken(ExifTag.DateTimeDigitized)
             ?? ExtractDateTaken(ExifTag.DateTime);

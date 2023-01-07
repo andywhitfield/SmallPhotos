@@ -11,6 +11,14 @@ public static class ModelExtensions
     
     public static string GetRelativePath(this string? root, FileInfo file) =>
         (string.IsNullOrEmpty(root) ? (file.DirectoryName ?? "") : Path.GetRelativePath(root, file.DirectoryName ?? "")).GetRelativePath();
+    public static string GetRelativePath(this string? fullPath, string? basePath, string filename)
+    {
+        var relative = (fullPath != null && basePath != null && fullPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase)) ? fullPath.Substring(basePath.Length) : (fullPath ?? "");
+        if (relative.EndsWith(filename))
+            relative = relative.Substring(0, relative.Length - filename.Length - 1);
+        return relative;
+    }
+
     private static string GetRelativePath(this string? relativePath) =>
         string.IsNullOrEmpty(relativePath) ? "" : relativePath == "." ? "" : relativePath;
 }

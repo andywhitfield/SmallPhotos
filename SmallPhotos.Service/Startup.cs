@@ -66,7 +66,11 @@ public class Startup
         services.AddCors();
 
         services.Configure<AlbumChangeServiceOptions>(Configuration.GetSection("AlbumChangeService"));
+        services.Configure<DropboxOptions>(Configuration.GetSection("Dropbox"));
         services.AddScoped<IAlbumSyncService, AlbumSyncService>();
+        services.AddScoped<IFilesystemSync, FilesystemSync>();
+        services.AddScoped<IDropboxSync, DropboxSync>();
+        services.AddScoped<IDropboxClientProxy, DropboxClientProxy>();
         services.AddHostedService<AlbumChangeService>();
     }
 

@@ -68,13 +68,13 @@ public class PhotoRepository : IPhotoRepository
             .Thumbnails!
             .FirstOrDefaultAsync(t => t.PhotoId == photo.PhotoId && t.ThumbnailSize == size);
 
-    public async Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize, DateTime? dateTaken)
+    public async Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize, DateTime? dateTaken, string? relativePath = null)
     {
         var photo = _context.Photos!.Add(new()
         {
             AlbumSource = album,
             Filename = file.Name,
-            RelativePath = album.Folder.GetRelativePath(file),
+            RelativePath = relativePath ?? album.Folder.GetRelativePath(file),
             FileCreationDateTime = file.CreationTimeUtc,
             FileModificationDateTime = file.LastWriteTimeUtc,
             DateTaken = dateTaken,

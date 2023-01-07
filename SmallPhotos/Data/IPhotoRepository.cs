@@ -14,7 +14,7 @@ public interface IPhotoRepository
     Task<List<Photo>> GetAllAsync(UserAccount user);
     Task<List<Photo>> GetAllAsync(AlbumSource album);
     Task<Thumbnail?> GetThumbnailAsync(Photo photo, ThumbnailSize size);
-    Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize, DateTime? dateTaken);
+    Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize, DateTime? dateTaken, string? relativePath = null);
     Task UpdateAsync(Photo photo, FileInfo file, Size imageSize, DateTime? dateTaken);
     Task<Thumbnail> SaveThumbnailAsync(Photo photo, ThumbnailSize size, byte[] image);
     Task DeleteAsync(Photo photo);
