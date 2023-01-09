@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SmallPhotos.Data;
 using SmallPhotos.Dropbox;
 using SmallPhotos.Model;
-using SmallPhotos.Service.Models;
 
 namespace SmallPhotos.Service.Services;
 
@@ -75,16 +72,7 @@ public class DropboxSync : IDropboxSync
             try
             {
                 _logger.LogTrace($"Adding / updating photo {localFile} in folder {newOrChanged.RelativeFolder}");
-
-                using var response = await httpClient.PostAsync("/api/photo", new StringContent(JsonSerializer.Serialize(
-                    new CreateOrUpdatePhotoRequest { UserAccountId = user.UserAccountId, AlbumSourceId = albumSource.AlbumSourceId, Filename = localFile, FilePath = newOrChanged.RelativeFolder }),
-                    Encoding.UTF8,
-                    "application/json"));
-
-                var responseString = await response.Content.ReadAsStringAsync();
-                if (!response.IsSuccessStatusCode)
-                    throw new InvalidOperationException($"Could not add/update photo [{newOrChanged.Filename}] in album [{albumSource.AlbumSourceId}]: {responseString}");
-
+                var responseString = await httpClient.PostCreateOrUpdatePhotoAsync(user, albumSource, localFile, newOrChanged.RelativeFolder);
                 _logger.LogInformation($"Successfully updated / added new photo: {responseString}");
             }
             finally
@@ -110,8 +98,7 @@ public class DropboxSync : IDropboxSync
         ).ToList();
 
         _logger.LogInformation($"Deleting photos in album: [{string.Join(',', deletedPhotos.Select(p => p.Filename))}]");
-        foreach (var photo in deletedPhotos)
-            await _photoRepository.DeleteAsync(photo);
+        await deletedPhotos.DeletePhotosAsync(_photoRepository);
     }
 
     private async IAsyncEnumerable<(string Filename, string RelativeFolder, DateTime LastWriteTime)> GetDropboxFilesForAlbumSourceAsync(AlbumSource albumSource)
@@ -137,7 +124,9 @@ public class DropboxSync : IDropboxSync
                 files = await _dropboxClientProxy.ListFolderContinueAsync(files.Cursor);
             }
             else
+            {
                 break;
+            }
         }
     }
 

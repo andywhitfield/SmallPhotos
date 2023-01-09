@@ -1,17 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SmallPhotos.Data;
 using SmallPhotos.Model;
 using SmallPhotos.Service.BackgroundServices;
-using SmallPhotos.Service.Models;
 
 namespace SmallPhotos.Service.Services;
 
@@ -37,7 +33,6 @@ public class FilesystemSync : IFilesystemSync
         _logger.LogDebug($"Checking album changes for user [{user.UserAccountId}] / album [{albumSource.AlbumSourceId}:{albumSource.Folder}]");
 
         var filesInAlbum = GetFilesForAlbumSource(albumSource);
-
         var photosInAlbum = await _photoRepository.GetAllAsync(albumSource);
 
         _logger.LogDebug($"Files in folder: [{string.Join(',', filesInAlbum.Select(fi => fi.Name))}]");
@@ -57,15 +52,7 @@ public class FilesystemSync : IFilesystemSync
         {
             await Task.WhenAll(requestBatch.Select(async newOrChanged =>
             {
-                using var response = await httpClient.PostAsync("/api/photo", new StringContent(JsonSerializer.Serialize(
-                    new CreateOrUpdatePhotoRequest { UserAccountId = user.UserAccountId, AlbumSourceId = albumSource.AlbumSourceId, Filename = newOrChanged.Name, FilePath = albumSource.Folder.GetRelativePath(newOrChanged) }),
-                    Encoding.UTF8,
-                    "application/json"));
-
-                var responseString = await response.Content.ReadAsStringAsync();
-                if (!response.IsSuccessStatusCode)
-                    throw new InvalidOperationException($"Could not add/update photo [{newOrChanged.Name}] in album [{albumSource.AlbumSourceId}]: {responseString}");
-
+                var responseString = await httpClient.PostCreateOrUpdatePhotoAsync(user, albumSource, newOrChanged.Name, albumSource.Folder.GetRelativePath(newOrChanged));
                 _logger.LogInformation($"Successfully updated / added new photo: {responseString}");
             }));
         }
@@ -79,8 +66,7 @@ public class FilesystemSync : IFilesystemSync
         ).ToList();
 
         _logger.LogInformation($"Deleting photos in album: [{string.Join(',', deletedPhotos.Select(p => p.Filename))}]");
-        foreach (var photo in deletedPhotos)
-            await _photoRepository.DeleteAsync(photo);
+        await deletedPhotos.DeletePhotosAsync(_photoRepository);
     }
 
     private IEnumerable<FileInfo> GetFilesForAlbumSource(AlbumSource albumSource) =>
