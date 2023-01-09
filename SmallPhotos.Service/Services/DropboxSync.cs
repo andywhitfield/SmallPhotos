@@ -11,7 +11,6 @@ using Microsoft.Extensions.Options;
 using SmallPhotos.Data;
 using SmallPhotos.Dropbox;
 using SmallPhotos.Model;
-using SmallPhotos.Service.BackgroundServices;
 using SmallPhotos.Service.Models;
 
 namespace SmallPhotos.Service.Services;
@@ -20,21 +19,18 @@ public class DropboxSync : IDropboxSync
 {
     private readonly ILogger<DropboxSync> _logger;
     private readonly IDropboxClientProxy _dropboxClientProxy;
-    private readonly IOptionsSnapshot<AlbumChangeServiceOptions> _options;
     private readonly IOptionsSnapshot<DropboxOptions> _dropboxOptions;
     private readonly IPhotoRepository _photoRepository;
 
     public DropboxSync(
         ILogger<DropboxSync> logger,
         IDropboxClientProxy dropboxClientProxy,
-        IOptionsSnapshot<AlbumChangeServiceOptions> options,
         IOptionsSnapshot<DropboxOptions> dropboxOptions,
         IPhotoRepository photoRepository
     )
     {
         _logger = logger;
         _dropboxClientProxy = dropboxClientProxy;
-        _options = options;
         _dropboxOptions = dropboxOptions;
         _photoRepository = photoRepository;
     }
@@ -70,41 +66,39 @@ public class DropboxSync : IDropboxSync
 
         _logger.LogInformation($"New or changed photos in album: [{string.Join(',', newOrChangedPhotos.Select(f => f.Filename))}]");
 
-        _logger.LogTrace($"Using temporary download directory: {_dropboxClientProxy.TemporaryDownloadDirectory.FullName}");
+        if (newOrChangedPhotos.Any())
+            _logger.LogTrace($"Using temporary download directory: {_dropboxClientProxy.TemporaryDownloadDirectory.FullName}");
 
-        foreach (var requestBatch in newOrChangedPhotos.Chunk(_options.Value.SyncPhotoBatchSize))
+        foreach (var newOrChanged in newOrChangedPhotos)
         {
-            await Task.WhenAll(requestBatch.Select(async newOrChanged =>
+            var localFile = await DownloadFileFromDropboxAsync(_dropboxClientProxy.TemporaryDownloadDirectory, albumSource.Folder ?? "/", newOrChanged.RelativeFolder, newOrChanged.Filename);
+            try
             {
-                var localFile = await DownloadFileFromDropboxAsync(_dropboxClientProxy.TemporaryDownloadDirectory, albumSource.Folder ?? "/", newOrChanged.RelativeFolder, newOrChanged.Filename);
+                _logger.LogTrace($"Adding / updating photo {localFile} in folder {newOrChanged.RelativeFolder}");
+
+                using var response = await httpClient.PostAsync("/api/photo", new StringContent(JsonSerializer.Serialize(
+                    new CreateOrUpdatePhotoRequest { UserAccountId = user.UserAccountId, AlbumSourceId = albumSource.AlbumSourceId, Filename = localFile, FilePath = newOrChanged.RelativeFolder }),
+                    Encoding.UTF8,
+                    "application/json"));
+
+                var responseString = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                    throw new InvalidOperationException($"Could not add/update photo [{newOrChanged.Filename}] in album [{albumSource.AlbumSourceId}]: {responseString}");
+
+                _logger.LogInformation($"Successfully updated / added new photo: {responseString}");
+            }
+            finally
+            {
                 try
                 {
-                    _logger.LogTrace($"Adding / updating photo {localFile} in folder {newOrChanged.RelativeFolder}");
-
-                    using var response = await httpClient.PostAsync("/api/photo", new StringContent(JsonSerializer.Serialize(
-                        new CreateOrUpdatePhotoRequest { UserAccountId = user.UserAccountId, AlbumSourceId = albumSource.AlbumSourceId, Filename = localFile, FilePath = newOrChanged.RelativeFolder }),
-                        Encoding.UTF8,
-                        "application/json"));
-
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    if (!response.IsSuccessStatusCode)
-                        throw new InvalidOperationException($"Could not add/update photo [{newOrChanged.Filename}] in album [{albumSource.AlbumSourceId}]: {responseString}");
-
-                    _logger.LogInformation($"Successfully updated / added new photo: {responseString}");
+                    _logger.LogTrace($"Deleting temporary file: {localFile}");
+                    File.Delete(localFile);
                 }
-                finally
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        _logger.LogTrace($"Deleting temporary file: {localFile}");
-                        File.Delete(localFile);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, $"Cannot delete temporary file downloaded from dropbox [{localFile}]");
-                    }
+                    _logger.LogWarning(ex, $"Cannot delete temporary file downloaded from dropbox [{localFile}]");
                 }
-            }));
+            }
         }
 
         var deletedPhotos = (
