@@ -4,7 +4,7 @@ namespace SmallPhotos.Web.Handlers.Models;
 
 public class GetPhotoResponse
 {
-    public static readonly GetPhotoResponse Empty = new GetPhotoResponse(null, null);
+    public static readonly GetPhotoResponse Empty = new(null, null);
     
     public GetPhotoResponse(Stream? imageStream, string? imageContentType)
     {

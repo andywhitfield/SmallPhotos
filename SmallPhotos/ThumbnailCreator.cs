@@ -13,7 +13,7 @@ public class ThumbnailCreator : IThumbnailCreator
         var resizeTo = thumbnailSize.ToSize();
         thumbnailImage.Thumbnail(resizeTo.Width, resizeTo.Height);
         thumbnailImage.Extent(resizeTo.Width, resizeTo.Height, Gravity.Center, MagickColors.Transparent);
-        using var thumbnailStream = new MemoryStream();
+        using MemoryStream thumbnailStream = new();
         await thumbnailImage.WriteAsync(thumbnailStream, MagickFormat.Jpeg);
         return thumbnailStream.ToArray();
     }

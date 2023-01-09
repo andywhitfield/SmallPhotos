@@ -57,8 +57,8 @@ public class PhotoController : ControllerBase
         if (format == MagickFormat.Unknown)
             return BadRequest($"Unknown image format: [{file.Extension}]");
 
-        using var image = new MagickImage(file.FullName, format);
-        var originalSize = new Size(image.Width, image.Height);
+        using MagickImage image = new(file.FullName, format);
+        Size originalSize = new(image.Width, image.Height);
 
         var photo = await _photoRepository.GetAsync(userAccount, albumSource, file.Name, request.FilePath);
         if (photo == null)

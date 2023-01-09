@@ -8,8 +8,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Polly;
 using SmallPhotos.Data;
+using SmallPhotos.Dropbox;
 using SmallPhotos.Model;
 using SmallPhotos.Service.BackgroundServices;
 using SmallPhotos.Service.Models;
@@ -70,14 +70,13 @@ public class DropboxSync : IDropboxSync
 
         _logger.LogInformation($"New or changed photos in album: [{string.Join(',', newOrChangedPhotos.Select(f => f.Filename))}]");
 
-        var downloadTmpDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N")));
-        _logger.LogTrace($"Created temporary download directory: {downloadTmpDir.FullName}");
+        _logger.LogTrace($"Using temporary download directory: {_dropboxClientProxy.TemporaryDownloadDirectory.FullName}");
 
         foreach (var requestBatch in newOrChangedPhotos.Chunk(_options.Value.SyncPhotoBatchSize))
         {
             await Task.WhenAll(requestBatch.Select(async newOrChanged =>
             {
-                var localFile = await DownloadFileFromDropboxAsync(downloadTmpDir, albumSource.Folder ?? "/", newOrChanged.RelativeFolder, newOrChanged.Filename);
+                var localFile = await DownloadFileFromDropboxAsync(_dropboxClientProxy.TemporaryDownloadDirectory, albumSource.Folder ?? "/", newOrChanged.RelativeFolder, newOrChanged.Filename);
                 try
                 {
                     _logger.LogTrace($"Adding / updating photo {localFile} in folder {newOrChanged.RelativeFolder}");
@@ -119,12 +118,6 @@ public class DropboxSync : IDropboxSync
         _logger.LogInformation($"Deleting photos in album: [{string.Join(',', deletedPhotos.Select(p => p.Filename))}]");
         foreach (var photo in deletedPhotos)
             await _photoRepository.DeleteAsync(photo);
-
-        _logger.LogTrace($"Deleting temporary Dropbox download directory: {downloadTmpDir.FullName}");
-        Policy
-            .Handle<Exception>()
-            .WaitAndRetry(3, retry => TimeSpan.FromSeconds(retry), (ex, ts) => _logger.LogWarning(ex, $"Error deleting temporary download directory [{downloadTmpDir.FullName}], trying again in {ts}"))
-            .Execute(() => downloadTmpDir.Delete(true));
     }
 
     private async IAsyncEnumerable<(string Filename, string RelativeFolder, DateTime LastWriteTime)> GetDropboxFilesForAlbumSourceAsync(AlbumSource albumSource)

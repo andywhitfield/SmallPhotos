@@ -8,8 +8,8 @@ public class SqliteDataContextFactory : IDesignTimeDbContextFactory<SqliteDataCo
 {
     public SqliteDataContext CreateDbContext(string[] args)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<SqliteDataContext>();
+        DbContextOptionsBuilder<SqliteDataContext> optionsBuilder = new();
         optionsBuilder.UseSqlite(":memory:");
-        return new SqliteDataContext(optionsBuilder.Options);
+        return new(optionsBuilder.Options);
     }
 }

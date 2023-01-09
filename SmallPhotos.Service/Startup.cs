@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -10,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using SmallPhotos.Data;
+using SmallPhotos.Dropbox;
 using SmallPhotos.Service.BackgroundServices;
 using SmallPhotos.Service.Services;
 
@@ -60,7 +60,7 @@ public class Startup
                     return;
                 }
                 logger.LogDebug($"Creating HttpClient[{BackgroundServiceHttpClient}] with address [{serviceAddress}]");
-                cfg.BaseAddress = new Uri(serviceAddress);
+                cfg.BaseAddress = new(serviceAddress);
             });
         services.AddMvc();
         services.AddCors();

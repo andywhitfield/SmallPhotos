@@ -12,14 +12,14 @@ namespace SmallPhotos.Web.Tests;
 
 public class GalleryPageTest : IAsyncLifetime
 {
-    private readonly IntegrationTestWebApplicationFactory _factory = new IntegrationTestWebApplicationFactory();
+    private readonly IntegrationTestWebApplicationFactory _factory = new();
     private string? _albumSourceFolder;
 
     public async Task InitializeAsync()
     {
         using var serviceScope = _factory.Services.CreateScope();
 
-        _albumSourceFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        _albumSourceFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Console.WriteLine($"Using photo source dir: [{_albumSourceFolder}]");
         Directory.CreateDirectory(_albumSourceFolder);
 
@@ -28,7 +28,7 @@ public class GalleryPageTest : IAsyncLifetime
         var userAccount = context.UserAccounts!.Add(new() { AuthenticationUri = "http://test/user/1" });
         var album = context.AlbumSources!.Add(new() { CreatedDateTime = DateTime.UtcNow, Folder = _albumSourceFolder, UserAccount = userAccount.Entity });
 
-        using var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
+        using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
         await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "photo1.jpg"), MagickFormat.Jpeg);
 
         var photo = context.Photos!.Add(new() { AlbumSource = album.Entity, CreatedDateTime = DateTime.UtcNow, FileCreationDateTime = DateTime.UtcNow, Filename = "photo1.jpg", Height = 10, Width = 15 });
@@ -71,7 +71,7 @@ public class GalleryPageTest : IAsyncLifetime
         {
             using var response = await client.GetAsync("/photo/1/photo1.jpg");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            using var img = new MagickImage(await response.Content.ReadAsStreamAsync());
+            using MagickImage img = new(await response.Content.ReadAsStreamAsync());
             img.Width.Should().Be(15);
             img.Height.Should().Be(10);
         }

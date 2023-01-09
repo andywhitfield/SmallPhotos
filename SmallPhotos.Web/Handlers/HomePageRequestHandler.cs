@@ -28,7 +28,7 @@ public class HomePageRequestHandler : IRequestHandler<HomePageRequest, HomePageR
     {
         var user = await _userAccountRepository.GetUserAccountOrNullAsync(request.User);
         if (user == null)
-            return new HomePageResponse(false, ThumbnailSize.Small, Enumerable.Empty<PhotoModel>(), Pagination.Empty);
+            return new(false, ThumbnailSize.Small, Enumerable.Empty<PhotoModel>(), Pagination.Empty);
 
         var photos =
             request.OnlyStarred ? _photoRepository.GetAllStarredAsync(user)
@@ -38,6 +38,6 @@ public class HomePageRequestHandler : IRequestHandler<HomePageRequest, HomePageR
         var pagedPhotos = Pagination.Paginate(await photos, request.PageNumber, user.GalleryImagePageSize, request.PhotoId == null ? null : photo => photo.PhotoId == request.PhotoId);
         var starredPhotoIds = (await _photoRepository.GetStarredAsync(user, pagedPhotos.Items.Select(p => p.PhotoId).ToHashSet())).Select(p => p.PhotoId).ToHashSet();
 
-        return new HomePageResponse(true, user.ThumbnailSize, pagedPhotos.Items.Select(p => new PhotoModel(p.PhotoId, p.AlbumSource?.Folder ?? "", p.Filename ?? "", p.RelativePath ?? "", user.ThumbnailSize.ToSize(), p.DateTaken ?? p.FileCreationDateTime, p.FileCreationDateTime, starredPhotoIds.Contains(p.PhotoId), Enumerable.Empty<string>())), new Pagination(pagedPhotos.Page, pagedPhotos.PageCount));
+        return new(true, user.ThumbnailSize, pagedPhotos.Items.Select(p => new PhotoModel(p.PhotoId, p.AlbumSource?.Folder ?? "", p.Filename ?? "", p.RelativePath ?? "", user.ThumbnailSize.ToSize(), p.DateTaken ?? p.FileCreationDateTime, p.FileCreationDateTime, starredPhotoIds.Contains(p.PhotoId), Enumerable.Empty<string>())), new Pagination(pagedPhotos.Page, pagedPhotos.PageCount));
     }
 }

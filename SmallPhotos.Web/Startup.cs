@@ -15,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using SmallPhotos.Data;
+using SmallPhotos.Dropbox;
 
 namespace SmallPhotos.Web;
 
@@ -83,12 +84,18 @@ public class Startup
 
         services.AddLogging(logging =>
         {
-            logging.AddConsole();
+            logging.AddSimpleConsole(opt =>
+            {
+                opt.UseUtcTimestamp = true;
+                opt.TimestampFormat = "[HH:mm:ss.fff] ";
+                opt.SingleLine = true;
+            });
             logging.AddDebug();
             logging.SetMinimumLevel(LogLevel.Trace);
         });
 
-        services.Configure<DropboxConfig>(Configuration.GetSection("Dropbox"));
+        services.AddScoped<IDropboxClientProxy, DropboxClientProxy>();
+        services.Configure<DropboxOptions>(Configuration.GetSection("Dropbox"));
 
         services.Configure<CookiePolicyOptions>(o =>
         {

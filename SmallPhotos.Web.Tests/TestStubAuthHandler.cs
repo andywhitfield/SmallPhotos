@@ -17,10 +17,10 @@ public class TestStubAuthHandler : AuthenticationHandler<AuthenticationSchemeOpt
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var claims = new[] { new Claim(ClaimTypes.Name, "Test user"), new Claim("sub", "http://test/user/1") };
-        var identity = new ClaimsIdentity(claims, "Test");
-        var principal = new ClaimsPrincipal(identity);
-        var ticket = new AuthenticationTicket(principal, "Test");
+        Claim[] claims = new Claim[] { new(ClaimTypes.Name, "Test user"), new("sub", "http://test/user/1") };
+        ClaimsIdentity identity = new(claims, "Test");
+        ClaimsPrincipal principal = new(identity);
+        AuthenticationTicket ticket = new(principal, "Test");
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }

@@ -21,7 +21,7 @@ public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Startu
 
     public IntegrationTestWebApplicationFactory(Func<IServiceCollection, IServiceCollection>? testServiceConfiguration = null)
     {
-        _tempDbDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        _tempDbDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(_tempDbDir);
         Console.WriteLine($"Using directory {_tempDbDir} for the test db");
         _testServiceConfiguration = testServiceConfiguration ?? (s => s);

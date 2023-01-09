@@ -12,14 +12,14 @@ namespace SmallPhotos.Web.Tests;
 
 public class StarredPhotoPageTest : IAsyncLifetime
 {
-    private readonly IntegrationTestWebApplicationFactory _factory = new IntegrationTestWebApplicationFactory();
+    private readonly IntegrationTestWebApplicationFactory _factory = new();
     private string? _albumSourceFolder;
 
     public async Task InitializeAsync()
     {
         using var serviceScope = _factory.Services.CreateScope();
 
-        _albumSourceFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        _albumSourceFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Console.WriteLine($"Using photo source dir: [{_albumSourceFolder}]");
         Directory.CreateDirectory(_albumSourceFolder);
 
@@ -29,11 +29,11 @@ public class StarredPhotoPageTest : IAsyncLifetime
         var album = context.AlbumSources!.Add(new() { CreatedDateTime = DateTime.UtcNow, Folder = _albumSourceFolder, UserAccount = userAccount.Entity });
 
         {
-            using var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
+            using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
             await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "photo1.jpg"), MagickFormat.Jpeg);
         }
         {
-            using var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 25, 20);
+            using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 25, 20);
             await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "photo2.jpg"), MagickFormat.Jpeg);
         }
 

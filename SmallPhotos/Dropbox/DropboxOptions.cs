@@ -1,6 +1,6 @@
-namespace SmallPhotos.Web;
+namespace SmallPhotos.Dropbox;
 
-public class DropboxConfig
+public class DropboxOptions
 {
     public string? SmallPhotosAppKey { get; set; }
     public string? SmallPhotosAppSecret { get; set; }

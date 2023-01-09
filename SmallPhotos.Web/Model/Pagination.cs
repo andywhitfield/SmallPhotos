@@ -9,7 +9,7 @@ public class Pagination
     public const int DefaultPageSize = 20;
     public const int MaxPageSize = 500;
 
-    public static readonly Pagination Empty = new Pagination(0, 0);
+    public static readonly Pagination Empty = new(0, 0);
 
     public static (IEnumerable<T> Items, int Page, int PageCount) Paginate<T>(IEnumerable<T> items, int page, int? pageSize = null, Func<T, bool>? selectedItem = null)
     {
@@ -42,7 +42,7 @@ public class Pagination
         }
         else
         {
-            var pages = new List<int>();
+            List<int> pages = new();
             pages.AddRange(Enumerable.Range(pageNumber - 2, 6));
             Normalise(pages);
 

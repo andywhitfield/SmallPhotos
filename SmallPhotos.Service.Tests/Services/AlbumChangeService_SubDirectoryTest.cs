@@ -31,7 +31,7 @@ public class AlbumChangeService_SubDirectoryTest : IAsyncLifetime
         var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
 
-        _albumSourceFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        _albumSourceFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Console.WriteLine($"Using photo source dir: [{_albumSourceFolder}]");
         Directory.CreateDirectory(_albumSourceFolder);
 

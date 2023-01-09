@@ -6,21 +6,20 @@ using FluentAssertions;
 using ImageMagick;
 using Microsoft.Extensions.DependencyInjection;
 using SmallPhotos.Data;
-using SmallPhotos.Model;
 using Xunit;
 
 namespace SmallPhotos.Web.Tests;
 
 public class PhotosInSubDirectoryTest : IAsyncLifetime
 {
-    private readonly IntegrationTestWebApplicationFactory _factory = new IntegrationTestWebApplicationFactory();
+    private readonly IntegrationTestWebApplicationFactory _factory = new();
     private string? _albumSourceFolder;
 
     public async Task InitializeAsync()
     {
         using var serviceScope = _factory.Services.CreateScope();
 
-        _albumSourceFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        _albumSourceFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Console.WriteLine($"Using photo source dir: [{_albumSourceFolder}]");
         Directory.CreateDirectory(_albumSourceFolder);
 
@@ -31,21 +30,21 @@ public class PhotosInSubDirectoryTest : IAsyncLifetime
 
         var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
-        var userAccount = context.UserAccounts!.Add(new UserAccount { AuthenticationUri = "http://test/user/1" });
-        var album = context.AlbumSources!.Add(new AlbumSource { CreatedDateTime = DateTime.UtcNow, Folder = _albumSourceFolder, UserAccount = userAccount.Entity });
+        var userAccount = context.UserAccounts!.Add(new() { AuthenticationUri = "http://test/user/1" });
+        var album = context.AlbumSources!.Add(new() { CreatedDateTime = DateTime.UtcNow, Folder = _albumSourceFolder, UserAccount = userAccount.Entity });
 
         {
-            using var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
+            using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
             await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", subdir1, "photo1.jpg"), MagickFormat.Jpeg);
         }
 
         {
-            using var img = new MagickImage(new MagickColor(ushort.MaxValue, 0, 0), 25, 20);
+            using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 25, 20);
             await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", subdir2, "photo1.jpg"), MagickFormat.Jpeg);
         }
 
-        context.Photos!.Add(new Photo { AlbumSource = album.Entity, CreatedDateTime = DateTime.UtcNow, FileCreationDateTime = DateTime.UtcNow, Filename = "photo1.jpg", RelativePath = subdir1, Height = 10, Width = 15 });
-        context.Photos!.Add(new Photo { AlbumSource = album.Entity, CreatedDateTime = DateTime.UtcNow, FileCreationDateTime = DateTime.UtcNow, Filename = "photo1.jpg", RelativePath = subdir2, Height = 20, Width = 25 });
+        context.Photos!.Add(new() { AlbumSource = album.Entity, CreatedDateTime = DateTime.UtcNow, FileCreationDateTime = DateTime.UtcNow, Filename = "photo1.jpg", RelativePath = subdir1, Height = 10, Width = 15 });
+        context.Photos!.Add(new() { AlbumSource = album.Entity, CreatedDateTime = DateTime.UtcNow, FileCreationDateTime = DateTime.UtcNow, Filename = "photo1.jpg", RelativePath = subdir2, Height = 20, Width = 25 });
         await context.SaveChangesAsync();
     }
 
@@ -87,14 +86,14 @@ public class PhotosInSubDirectoryTest : IAsyncLifetime
         {
             using var response = await client.GetAsync("/photo/1/photo1.jpg");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            using var img = new MagickImage(await response.Content.ReadAsStreamAsync());
+            using MagickImage img = new(await response.Content.ReadAsStreamAsync());
             img.Width.Should().Be(15);
             img.Height.Should().Be(10);
         }
         {
             using var response = await client.GetAsync("/photo/2/photo1.jpg");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            using var img = new MagickImage(await response.Content.ReadAsStreamAsync());
+            using MagickImage img = new(await response.Content.ReadAsStreamAsync());
             img.Width.Should().Be(25);
             img.Height.Should().Be(20);
         }

@@ -27,7 +27,7 @@ public class AlbumChangeService : BackgroundService
         _logger.LogInformation("Running album change background service");
         try
         {
-            var waitForStart = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource<object> waitForStart = new(TaskCreationOptions.RunContinuationsAsynchronously);
             _applicationLifetime.ApplicationStarted.Register(obj =>
             {
                 var tcs = obj as TaskCompletionSource<object>;

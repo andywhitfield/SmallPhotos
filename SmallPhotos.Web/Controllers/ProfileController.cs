@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SmallPhotos.Dropbox;
 using SmallPhotos.Model;
 using SmallPhotos.Web.Handlers.Models;
 using SmallPhotos.Web.Model;
@@ -23,7 +24,7 @@ public class ProfileController : Controller
     private readonly string _dropboxAppKey;
     private readonly string _dropboxAppSecret;
 
-    public ProfileController(ILogger<ProfileController> logger, IMediator mediator, IOptions<DropboxConfig> dropboxConfig)
+    public ProfileController(ILogger<ProfileController> logger, IMediator mediator, IOptions<DropboxOptions> dropboxConfig)
     {
         _logger = logger;
         _mediator = mediator;

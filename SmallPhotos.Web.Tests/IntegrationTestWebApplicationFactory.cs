@@ -20,7 +20,7 @@ public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Startu
 
     public IntegrationTestWebApplicationFactory()
     {
-        _connection = new SqliteConnection("DataSource=:memory:");
+        _connection = new("DataSource=:memory:");
         _connection.Open();
         _options = new DbContextOptionsBuilder<SqliteDataContext>().UseSqlite(_connection).Options;
     }
@@ -38,7 +38,7 @@ public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Startu
     public HttpClient CreateAuthenticatedClient(bool allowAutoRedirect = true)
     {
         var client = CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = allowAutoRedirect });
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test");
+        client.DefaultRequestHeaders.Authorization = new("Test");
         return client;
     }
 

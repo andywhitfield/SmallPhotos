@@ -84,7 +84,7 @@ public class FilesystemSync : IFilesystemSync
     }
 
     private IEnumerable<FileInfo> GetFilesForAlbumSource(AlbumSource albumSource) =>
-        GetPhotoFilesInDirectory(new DirectoryInfo(albumSource.Folder ?? ""), albumSource.RecurseSubFolders ?? false);
+        GetPhotoFilesInDirectory(new(albumSource.Folder ?? ""), albumSource.RecurseSubFolders ?? false);
 
     private IEnumerable<FileInfo> GetPhotoFilesInDirectory(DirectoryInfo dir, bool recurse)
     {

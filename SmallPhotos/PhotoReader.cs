@@ -26,8 +26,8 @@ public class PhotoReader : IPhotoReader
 
     private async Task<Stream> ConvertToJpegAsync(FileInfo file)
     {
-        var jpegStream = new MemoryStream();
-        using (var image = new MagickImage(file))
+        MemoryStream jpegStream = new();
+        using (MagickImage image = new(file))
             await image.WriteAsync(jpegStream, MagickFormat.Jpeg);
             
         jpegStream.Position = 0;

@@ -35,7 +35,7 @@ public class AlbumRepository : IAlbumRepository
 
     public Task AddAsync(UserAccount userAccount, string folder, bool recursive, string? dropboxAccessToken = null, string? dropboxRefreshToken = null)
     {
-        _context.AlbumSources!.Add(new AlbumSource
+        _context.AlbumSources!.Add(new()
         {
             UserAccount = userAccount,
             Folder = folder,

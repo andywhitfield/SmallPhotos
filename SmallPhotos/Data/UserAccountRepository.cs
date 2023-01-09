@@ -20,9 +20,7 @@ public class UserAccountRepository : IUserAccountRepository
     public Task CreateNewUserAsync(ClaimsPrincipal user)
     {
         var authenticationUri = GetIdentifierFromPrincipal(user);
-        var newUser = new UserAccount { AuthenticationUri = authenticationUri };
-
-        _context.UserAccounts!.Add(newUser);
+        _context.UserAccounts!.Add(new() { AuthenticationUri = authenticationUri });
         return _context.SaveChangesAsync();
     }
 

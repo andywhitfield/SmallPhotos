@@ -10,14 +10,14 @@ namespace SmallPhotos.Web.Tests;
 
 public class EmptyHomePageTest : IAsyncLifetime
 {
-    private readonly IntegrationTestWebApplicationFactory _factory = new IntegrationTestWebApplicationFactory();
+    private readonly IntegrationTestWebApplicationFactory _factory = new();
 
     public async Task InitializeAsync()
     {
         using var serviceScope = _factory.Services.CreateScope();
         var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
-        var userAccount = context.UserAccounts!.Add(new UserAccount { AuthenticationUri = "http://test/user/1" });
+        var userAccount = context.UserAccounts!.Add(new() { AuthenticationUri = "http://test/user/1" });
         await context.SaveChangesAsync();
     }
 
