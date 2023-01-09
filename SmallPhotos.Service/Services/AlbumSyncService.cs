@@ -53,8 +53,7 @@ public class AlbumSyncService : IAlbumSyncService
                 if (albumSource.IsDropboxSource)
                     await _dropboxSync.SyncAsync(albumSource, user, httpClient);
                 else
-                    //await _filesystemSync.SyncAsync(albumSource, user, httpClient);
-                    _logger.LogError("TODO: Temporarily disabled!");
+                    await _filesystemSync.SyncAsync(albumSource, user, httpClient);
             }
         }
     }
