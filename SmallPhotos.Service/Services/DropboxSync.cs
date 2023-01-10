@@ -104,7 +104,7 @@ public class DropboxSync : IDropboxSync
     private async IAsyncEnumerable<(string Filename, string RelativeFolder, DateTime LastWriteTime)> GetDropboxFilesForAlbumSourceAsync(AlbumSource albumSource)
     {
         var files = await _dropboxClientProxy.ListFolderAsync(albumSource.Folder, albumSource.RecurseSubFolders ?? false);
-        while (true)
+        while (files != null)
         {
             foreach (var file in files.Entries)
             {
@@ -135,7 +135,11 @@ public class DropboxSync : IDropboxSync
         _logger.LogDebug($"Downloading file [{filename}] from Dropbox to [{downloadTmpDir.FullName}] sub-folder [{relativeFolder}]");
 
         var localFilename = Path.Combine(downloadTmpDir.FullName, relativeFolder, filename);
-        var downloadedFile = await _dropboxClientProxy.DownloadAsync($"{baseDir}/{(string.IsNullOrEmpty(relativeFolder) ? "" : $"{relativeFolder}/")}{filename}");
+        var remoteFilename = $"{baseDir}/{(string.IsNullOrEmpty(relativeFolder) ? "" : $"{relativeFolder}/")}{filename}";
+        var downloadedFile = await _dropboxClientProxy.DownloadAsync(remoteFilename);
+        if (downloadedFile == null)
+            throw new ArgumentException($"Cannot download file {remoteFilename}");
+
         await using FileStream imgFile = new(localFilename, FileMode.CreateNew, FileAccess.Write, FileShare.None);
         await (await downloadedFile.GetContentAsStreamAsync()).CopyToAsync(imgFile);
 

@@ -109,6 +109,8 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
                 var localFilename = Path.Combine(_dropboxClientProxy.TemporaryDownloadDirectory.FullName, Path.GetRandomFileName() + Path.GetExtension(photo.Filename));
                 _logger.LogTrace($"Downloading from Dropbox: {dropboxFilename}");
                 var downloadResponse = await _dropboxClientProxy.DownloadAsync(dropboxFilename.ToString());
+                if (downloadResponse == null)
+                    throw new InvalidOperationException($"Cannot download file from Dropbox {dropboxFilename}");
 
                 _logger.LogTrace("Downloaded from Dropbox, returning to client");
                 await using FileStream imgFile = new(localFilename, FileMode.CreateNew, FileAccess.Write, FileShare.None);

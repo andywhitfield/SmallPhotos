@@ -41,13 +41,13 @@ public class DropboxClientProxy : IDropboxClientProxy, IDisposable
     public Task<bool> RefreshAccessTokenAsync(string[] scopeList) =>
         Client.RefreshAccessToken(scopeList);
 
-    public Task<ListFolderResult> ListFolderAsync(string? path, bool recursive) =>
+    public Task<ListFolderResult?> ListFolderAsync(string? path, bool recursive) =>
         Client.Files.ListFolderAsync(path, recursive: recursive);
 
-    public Task<ListFolderResult> ListFolderContinueAsync(string cursor) =>
+    public Task<ListFolderResult?> ListFolderContinueAsync(string cursor) =>
         Client.Files.ListFolderContinueAsync(cursor);
 
-    public Task<IDownloadResponse<FileMetadata>> DownloadAsync(string path) =>
+    public Task<IDownloadResponse<FileMetadata>?> DownloadAsync(string path) =>
         Client.Files.DownloadAsync(path);
 
     public DirectoryInfo TemporaryDownloadDirectory => _dropboxTempDir.Value;
