@@ -54,6 +54,8 @@ public class AlbumSyncService : IAlbumSyncService
                     await _dropboxSync.SyncAsync(albumSource, user, httpClient);
                 else
                     await _filesystemSync.SyncAsync(albumSource, user, httpClient);
+
+                _logger.LogInformation($"Completed album sync [{albumSource.AlbumSourceId}|{albumSource.Folder}] for user [{user.UserAccountId}]");
             }
         }
     }

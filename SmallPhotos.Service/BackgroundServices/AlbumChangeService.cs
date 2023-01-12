@@ -42,6 +42,8 @@ public class AlbumChangeService : BackgroundService
 
             do
             {
+                _logger.LogInformation("Album change service sync starting");
+
                 TimeSpan pollPeriod;
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
@@ -49,7 +51,7 @@ public class AlbumChangeService : BackgroundService
                     await scope.ServiceProvider.GetRequiredService<IAlbumSyncService>().SyncAllAsync(stoppingToken);
                 }
 
-                _logger.LogInformation($"Album change service - waiting [{pollPeriod}] before running again");
+                _logger.LogInformation($"Album change service sync complete - waiting [{pollPeriod}] before running again");
                 await Task.Delay(pollPeriod, stoppingToken);
             } while (!stoppingToken.IsCancellationRequested);
         }
