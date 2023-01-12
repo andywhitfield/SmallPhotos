@@ -91,14 +91,7 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
     {
         if (photo.AlbumSource!.IsDropboxSource)
         {
-            StringBuilder dropboxFilename = new(photo.AlbumSource.Folder ?? "");
-            AppendDirectorySeparator(dropboxFilename);
-
-            if (!string.IsNullOrEmpty(photo.RelativePath))
-                dropboxFilename.Append(photo.RelativePath);
-
-            AppendDirectorySeparator(dropboxFilename)
-                .Append(photo.Filename);
+            var dropboxFilename = ModelExtensions.GetDropboxPhotoPath(photo.AlbumSource.Folder, photo.RelativePath, photo.Filename);
 
             _logger.LogTrace($"Loading photo file (photo={photo.PhotoId} folder=[{photo.AlbumSource.Folder}] photo path=[{photo.RelativePath}] name=[{photo.Filename}]) from Dropbox: {dropboxFilename}");
 
@@ -108,7 +101,7 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
 
                 var localFilename = Path.Combine(_dropboxClientProxy.TemporaryDownloadDirectory.FullName, Path.GetRandomFileName() + Path.GetExtension(photo.Filename));
                 _logger.LogTrace($"Downloading from Dropbox: {dropboxFilename}");
-                var downloadResponse = await _dropboxClientProxy.DownloadAsync(dropboxFilename.ToString());
+                var downloadResponse = await _dropboxClientProxy.DownloadAsync(dropboxFilename);
                 if (downloadResponse == null)
                     throw new InvalidOperationException($"Cannot download file from Dropbox {dropboxFilename}");
 
@@ -126,12 +119,5 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
         }
 
         return new(photo.AlbumSource!.PhotoPath(photo.RelativePath, photo.Filename ?? ""));
-
-        static StringBuilder AppendDirectorySeparator(StringBuilder path)
-        {
-            if (path.Length == 0 || path[path.Length - 1] != '/')
-                path.Append('/');
-            return path;
-        }
     }
 }

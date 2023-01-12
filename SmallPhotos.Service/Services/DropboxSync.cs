@@ -68,6 +68,7 @@ public class DropboxSync : IDropboxSync
 
         foreach (var newOrChanged in newOrChangedPhotos)
         {
+            _logger.LogDebug($"Adding / updating photo {newOrChanged.Filename}|{newOrChanged.RelativeFolder}");
             var localFile = await DownloadFileFromDropboxAsync(_dropboxClientProxy.TemporaryDownloadDirectory, albumSource.Folder ?? "/", newOrChanged.RelativeFolder, newOrChanged.Filename);
             try
             {
@@ -134,8 +135,14 @@ public class DropboxSync : IDropboxSync
     {
         _logger.LogDebug($"Downloading file [{filename}] from Dropbox to [{downloadTmpDir.FullName}] sub-folder [{relativeFolder}]");
 
-        var localFilename = Path.Combine(downloadTmpDir.FullName, relativeFolder, filename);
-        var remoteFilename = $"{baseDir}/{(string.IsNullOrEmpty(relativeFolder) ? "" : $"{relativeFolder}/")}{filename}";
+        var localFilename = ModelExtensions.CombinePath(downloadTmpDir.FullName, relativeFolder, filename);
+        _logger.LogTrace($"Downloading to temporary file: {localFilename}");
+        var localFileDir = Directory.GetParent(localFilename)?.FullName ?? "";
+        if (!Directory.Exists(localFileDir))
+            Directory.CreateDirectory(localFileDir);
+
+        var remoteFilename = ModelExtensions.GetDropboxPhotoPath(baseDir, relativeFolder, filename);
+        _logger.LogTrace($"Downlading from Dropbox: {remoteFilename}");
         var downloadedFile = await _dropboxClientProxy.DownloadAsync(remoteFilename);
         if (downloadedFile == null)
             throw new ArgumentException($"Cannot download file {remoteFilename}");

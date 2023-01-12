@@ -91,6 +91,49 @@ public class AlbumChangeService_DropboxTest : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Should_sync_photo_from_sub_directory()
+    {
+        {
+            using var serviceScope = _factory!.Services.CreateScope();
+            var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
+            var album = await context.AlbumSources!.SingleAsync(x => x.Folder == "/photos");
+            album.RecurseSubFolders = true;
+            await context.SaveChangesAsync();
+        }
+
+        using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
+        await using MemoryStream memoryStream = new();
+        await img.WriteAsync(memoryStream, MagickFormat.Jpeg);
+        memoryStream.Position = 0;
+        FileMetadata testFile = new("test HDR.jpg", "photo-1", DateTime.UtcNow, DateTime.UtcNow, "000000001", 100, pathLower: "/photos/sub-dir/test hdr.jpg");
+        _dropboxClientProxy.Setup(x => x.ListFolderAsync("/photos", true)).ReturnsAsync(new ListFolderResult(new[] { testFile }, "test-cursor-page-1", false));
+        Mock<IDownloadResponse<FileMetadata>> downloadResponse = new();
+        downloadResponse.Setup(x => x.GetContentAsStreamAsync()).ReturnsAsync(memoryStream);
+        downloadResponse.Setup(x => x.Response).Returns(testFile);
+        _dropboxClientProxy.Setup(x => x.DownloadAsync("/photos/sub-dir/test HDR.jpg")).ReturnsAsync(downloadResponse.Object);
+
+        {
+            using var serviceScope = _factory!.Services.CreateScope();
+            var albumSyncService = serviceScope.ServiceProvider.GetRequiredService<IAlbumSyncService>();
+            await albumSyncService.SyncAllAsync(CancellationToken.None);
+        }
+
+        {
+            using var serviceScope = _factory.Services.CreateScope();
+            var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
+            (await context.Photos!.CountAsync()).Should().Be(1);
+            var newPhoto = await context.Photos!.FirstAsync();
+            newPhoto.AlbumSourceId.Should().Be(_albumSource!.AlbumSourceId);
+            newPhoto.Filename.Should().Be("test HDR.jpg");
+            newPhoto.RelativePath.Should().Be("/sub-dir");
+            newPhoto.Width.Should().Be(15);
+            newPhoto.Height.Should().Be(10);
+            newPhoto.DateTaken.Should().BeNull();
+            newPhoto.DeletedDateTime.Should().BeNull();
+        }
+    }
+
+    [Fact]
     public async Task Should_remove_old_photo_and_add_new()
     {
         {
