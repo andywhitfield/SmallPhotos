@@ -29,7 +29,7 @@ public class PhotoController : Controller
 
         _logger.LogInformation($"Getting image {photoId}, size {size}");
 
-        var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, size ?? ""));
+        var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, size ?? "", false));
         if (response?.ImageStream == null || response.ImageContentType == null)
             return NotFound();
 
@@ -37,14 +37,19 @@ public class PhotoController : Controller
     }
 
     [HttpGet("~/photo/{photoId}/{filename}")]
-    public async Task<IActionResult> Photo(string photoId, string filename)
+    public Task<IActionResult> Photo(string photoId, string filename) => Photo(photoId, filename, false);
+
+    [HttpGet("~/photo/original/{photoId}/{filename}")]
+    public Task<IActionResult> Original(string photoId, string filename) => Photo(photoId, filename, true);
+
+    private async Task<IActionResult> Photo(string photoId, string filename, bool original)
     {
         if (!long.TryParse(photoId, out var photoIdValue))
             return NotFound();
 
         _logger.LogInformation($"Getting image {photoId}");
 
-        var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, null));
+        var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, null, original));
         if (response?.ImageStream == null || response.ImageContentType == null)
             return NotFound();
 

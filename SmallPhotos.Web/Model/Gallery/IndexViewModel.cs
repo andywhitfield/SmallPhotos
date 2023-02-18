@@ -4,7 +4,7 @@ namespace SmallPhotos.Web.Model.Gallery;
 
 public class IndexViewModel : BaseViewModel
 {
-    public IndexViewModel(HttpContext context, PhotoModel photo, PhotoModel? previousPhoto, PhotoModel? nextPhoto, int photoNumber, int photoCount, string? fromPage) : base(context, fromPage == "starred" ? SelectedView.Starred : SelectedView.All)
+    public IndexViewModel(HttpContext context, PhotoModel photo, PhotoModel? previousPhoto, PhotoModel? nextPhoto, int photoNumber, int photoCount, string? fromPage) : base(context, fromPage == "starred" ? SelectedView.Starred : (fromPage?.StartsWith("tagged_") ?? false) ? SelectedView.Tagged : SelectedView.All)
     {
         Photo = photo;
         PreviousPhoto = previousPhoto;

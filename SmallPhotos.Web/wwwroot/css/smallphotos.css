@@ -204,7 +204,8 @@ footer {
     background-color: #f86bff;
 }
 
-.photo-tag {
+.photo-tag,
+.photo-load-dropbox {
     display: inline-block;
     cursor: pointer;
     padding: 4px 16px;
@@ -212,8 +213,13 @@ footer {
     transition: background-color .3s;
 }
 
-a.photo-tag:hover {
+a.photo-tag:hover,
+a.photo-load-dropbox:hover {
     background-color: #f86bff;
+}
+
+.photo-load-dropbox {
+    margin-top: 8px;
 }
 
 @media (max-width: 600px) {

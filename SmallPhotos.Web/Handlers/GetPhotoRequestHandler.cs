@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -52,7 +51,7 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
 
         if (request.ThumbnailSize == null)
         {
-            var original = await LoadPhotoFileAsync(photo);
+            var original = await LoadPhotoFileAsync(photo, request.Original);
             if (!(original?.Exists ?? false))
             {
                 _logger.LogInformation($"Photo with id {request.PhotoId} does not exist: [{original?.FullName}]");
@@ -87,37 +86,61 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
         return new(new MemoryStream(thumbnail.ThumbnailImage), "image/jpeg");
     }
 
-    private async Task<FileInfo?> LoadPhotoFileAsync(Photo photo)
+    private async Task<FileInfo?> LoadPhotoFileAsync(Photo photo, bool original)
     {
         if (photo.AlbumSource!.IsDropboxSource)
         {
-            var dropboxFilename = ModelExtensions.GetDropboxPhotoPath(photo.AlbumSource.Folder, photo.RelativePath, photo.Filename);
-
-            _logger.LogTrace($"Loading photo file (photo={photo.PhotoId} folder=[{photo.AlbumSource.Folder}] photo path=[{photo.RelativePath}] name=[{photo.Filename}]) from Dropbox: {dropboxFilename}");
-
-            try
-            {
-                _dropboxClientProxy.Initialise(photo.AlbumSource.DropboxAccessToken, photo.AlbumSource.DropboxRefreshToken);
-
-                var localFilename = Path.Combine(_dropboxClientProxy.TemporaryDownloadDirectory.FullName, Path.GetRandomFileName() + Path.GetExtension(photo.Filename));
-                _logger.LogTrace($"Downloading from Dropbox: {dropboxFilename}");
-                var downloadResponse = await _dropboxClientProxy.DownloadAsync(dropboxFilename);
-                if (downloadResponse == null)
-                    throw new InvalidOperationException($"Cannot download file from Dropbox {dropboxFilename}");
-
-                _logger.LogTrace("Downloaded from Dropbox, returning to client");
-                await using FileStream imgFile = new(localFilename, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-                await (await downloadResponse.GetContentAsStreamAsync()).CopyToAsync(imgFile);
-
-                return new(localFilename);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, $"Could not download photo [{photo.PhotoId}] file [{dropboxFilename}] from Dropbox");
-                return null;
-            }
+            if (original)
+                return await LoadPhotoFileFromDropboxAsync(photo);
+            else
+                return await LoadLargeThumbnailAsync(photo);
         }
 
         return new(photo.AlbumSource!.PhotoPath(photo.RelativePath, photo.Filename ?? ""));
+    }
+
+    private async Task<FileInfo?> LoadPhotoFileFromDropboxAsync(Photo photo)
+    {
+        var dropboxFilename = ModelExtensions.GetDropboxPhotoPath(photo.AlbumSource!.Folder, photo.RelativePath, photo.Filename);
+
+        _logger.LogTrace($"Loading photo file (photo={photo.PhotoId} folder=[{photo.AlbumSource.Folder}] photo path=[{photo.RelativePath}] name=[{photo.Filename}]) from Dropbox: {dropboxFilename}");
+
+        try
+        {
+            _dropboxClientProxy.Initialise(photo.AlbumSource.DropboxAccessToken, photo.AlbumSource.DropboxRefreshToken);
+
+            var localFilename = Path.Combine(_dropboxClientProxy.TemporaryDownloadDirectory.FullName, Path.GetRandomFileName() + Path.GetExtension(photo.Filename));
+            _logger.LogTrace($"Downloading from Dropbox: {dropboxFilename}");
+            var downloadResponse = await _dropboxClientProxy.DownloadAsync(dropboxFilename);
+            if (downloadResponse == null)
+                throw new InvalidOperationException($"Cannot download file from Dropbox {dropboxFilename}");
+
+            _logger.LogTrace("Downloaded from Dropbox, returning to client");
+            await using FileStream imgFile = new(localFilename, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            await (await downloadResponse.GetContentAsStreamAsync()).CopyToAsync(imgFile);
+
+            return new(localFilename);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Could not download photo [{photo.PhotoId}] file [{dropboxFilename}] from Dropbox");
+            return null;
+        }
+    }
+
+    private async Task<FileInfo?> LoadLargeThumbnailAsync(Photo photo)
+    {
+        _logger.LogTrace($"Photo {photo.PhotoId} [{photo.Filename}] is on Dropbox...showing large thumbnail");
+        var largeThumbnail = await _photoRepository.GetThumbnailAsync(photo, ThumbnailSize.Large);
+        if (largeThumbnail?.ThumbnailImage == null)
+        {
+            _logger.LogWarning($"Could not find large thumbnail for photo {photo.PhotoId} [{photo.Filename}]");
+            return null;
+        }
+
+        var localFilename = Path.Combine(_dropboxClientProxy.TemporaryDownloadDirectory.FullName, Path.GetRandomFileName() + Path.GetExtension(photo.Filename));
+        await File.WriteAllBytesAsync(localFilename, largeThumbnail.ThumbnailImage);
+
+        return new(localFilename);
     }
 }

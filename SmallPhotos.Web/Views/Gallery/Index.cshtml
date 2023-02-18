@@ -51,6 +51,8 @@
                 window.location.reload();
             });
         });
+        $('#load-from-dropbox').click(loadFromDropbox);
+        $('#fullimg').dblclick(loadFromDropbox);
     });
 
     function addTag() {
@@ -73,6 +75,11 @@
         $('input[name="tag"]').val('');
         $('#photo-tag-cancel').hide();
         $('#photo-tag-clearall').show();
+    }
+
+    function loadFromDropbox() {
+        $('#load-from-dropbox').hide();
+        $('#fullimg').attr('src', '/photo/original/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)');
     }
 </script>
 }
@@ -101,6 +108,10 @@
 
     <p>
         <img id="fullimg" src="/photo/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)" />
+        @if (Model.Photo.IsDropboxSource) {
+        <br/>
+        <a name="load-from-dropbox" id="load-from-dropbox" title="Load full-size image from Dropbox" class="photo-load-dropbox">&darr; Dropbox</a>
+        }
     </p>
 
     <div>
