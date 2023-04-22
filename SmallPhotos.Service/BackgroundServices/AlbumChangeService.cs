@@ -40,6 +40,7 @@ public class AlbumChangeService : BackgroundService
             _logger.LogDebug("Application started, waiting 1s before inital sync");
             await Task.Delay(1000, stoppingToken);
 
+            var consecutiveFailures = 0;
             do
             {
                 _logger.LogInformation("Album change service sync starting");
@@ -48,7 +49,25 @@ public class AlbumChangeService : BackgroundService
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
                     pollPeriod = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<AlbumChangeServiceOptions>>().Value.PollPeriod;
-                    await scope.ServiceProvider.GetRequiredService<IAlbumSyncService>().SyncAllAsync(stoppingToken);
+
+                    try
+                    {
+                        await scope.ServiceProvider.GetRequiredService<IAlbumSyncService>().SyncAllAsync(stoppingToken);
+                        consecutiveFailures = 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        consecutiveFailures++;
+                        if (consecutiveFailures > 4)
+                        {
+                            _logger.LogError(ex, $"An error occurred syncing photos. There have been {consecutiveFailures} consecutive failures - giving up!");
+                            throw;
+                        }
+                        else
+                        {
+                            _logger.LogError(ex, "An error occurred syncing photos");
+                        }
+                    }
                 }
 
                 _logger.LogInformation($"Album change service sync complete - waiting [{pollPeriod}] before running again");
