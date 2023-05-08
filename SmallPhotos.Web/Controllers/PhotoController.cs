@@ -1,10 +1,11 @@
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Net.Http.Headers;
 using SmallPhotos.Web.Handlers.Models;
 
 namespace SmallPhotos.Web.Controllers;
@@ -21,25 +22,20 @@ public class PhotoController : Controller
         _mediator = mediator;
     }
 
-    [HttpGet("~/photo/thumbnail/{size}/{photoId}/{filename}")]
+    [HttpGet("~/photo/thumbnail/{size}/{photoId}/{filename}"), HttpHead("~/photo/thumbnail/{size}/{photoId}/{filename}")]
     public async Task<IActionResult> Thumbnail(string size, string photoId, string filename)
     {
         if (!long.TryParse(photoId, out var photoIdValue))
             return NotFound();
 
         _logger.LogInformation($"Getting image {photoId}, size {size}");
-
-        var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, size ?? "", false));
-        if (response?.ImageStream == null || response.ImageContentType == null)
-            return NotFound();
-
-        return File(response.ImageStream, response.ImageContentType, filename, new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
+        return await GetPhotoResultAsync(await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, size ?? "", false)));
     }
 
-    [HttpGet("~/photo/{photoId}/{filename}")]
+    [HttpGet("~/photo/{photoId}/{filename}"), HttpHead("~/photo/{photoId}/{filename}")]
     public Task<IActionResult> Photo(string photoId, string filename) => Photo(photoId, filename, false);
 
-    [HttpGet("~/photo/original/{photoId}/{filename}")]
+    [HttpGet("~/photo/original/{photoId}/{filename}"), HttpHead("~/photo/original/{photoId}/{filename}")]
     public Task<IActionResult> Original(string photoId, string filename) => Photo(photoId, filename, true);
 
     private async Task<IActionResult> Photo(string photoId, string filename, bool original)
@@ -48,11 +44,29 @@ public class PhotoController : Controller
             return NotFound();
 
         _logger.LogInformation($"Getting image {photoId}");
+        return await GetPhotoResultAsync(await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, null, original)));
+    }
 
-        var response = await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, null, original));
-        if (response?.ImageStream == null || response.ImageContentType == null)
+    private async Task<IActionResult> GetPhotoResultAsync(GetPhotoResponse? response)
+    {
+        if (response?.ImageStream == null || response.ImageContentType == null || response.ImageLastModified == null)
             return NotFound();
 
-        return File(response.ImageStream, response.ImageContentType, filename, new DateTimeOffset(DateTime.UtcNow), EntityTagHeaderValue.Any, false);
+        if (Request.Headers.IfNoneMatch.ToString() == response.ImageETag)
+            return StatusCode(StatusCodes.Status304NotModified);
+        
+        if (DateTime.TryParseExact(Request.Headers.IfModifiedSince.ToString(), "r", null, DateTimeStyles.RoundtripKind, out var ifModifiedSince) &&
+            response.ImageLastModified <= ifModifiedSince)
+            return StatusCode(StatusCodes.Status304NotModified);
+
+        Response.StatusCode = StatusCodes.Status200OK;
+        Response.Headers.ContentLength = response.ImageStream.Length;
+        Response.Headers.ContentType = response.ImageContentType;
+        Response.Headers.LastModified = response.ImageLastModified.Value.ToString("r");
+        Response.Headers.ETag = response.ImageETag;
+        if (Request.Method == HttpMethods.Get)
+            await response.ImageStream.CopyToAsync(Response.Body);
+
+        return Empty;
     }
 }

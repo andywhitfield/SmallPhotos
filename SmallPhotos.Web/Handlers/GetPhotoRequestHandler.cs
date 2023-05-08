@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -66,7 +67,7 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
                 return GetPhotoResponse.Empty;
             }
 
-            return new(stream, contentType);
+            return new(stream, contentType, ImageUpdatedDate(photo), GenerateETag(stream));
         }
 
         ThumbnailSize thumbnailSize;
@@ -83,7 +84,20 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
             return GetPhotoResponse.Empty;
         }
 
-        return new(new MemoryStream(thumbnail.ThumbnailImage), "image/jpeg");
+        var imgStream = new MemoryStream(thumbnail.ThumbnailImage);
+        return new(imgStream, "image/jpeg", ImageUpdatedDate(photo), GenerateETag(imgStream));
+    }
+
+    private DateTime ImageUpdatedDate(Photo photo) => photo.LastUpdateDateTime ?? photo.FileModificationDateTime;
+
+    private string? GenerateETag(Stream? stream)
+    {
+        if (stream == null)
+            return null;
+        
+        var checksum = MD5.Create().ComputeHash(stream);
+        stream.Position = 0;
+        return Convert.ToBase64String(checksum, 0, checksum.Length);
     }
 
     private async Task<FileInfo?> LoadPhotoFileAsync(Photo photo, bool original)
