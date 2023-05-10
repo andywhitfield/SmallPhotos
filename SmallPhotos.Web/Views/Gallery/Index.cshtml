@@ -89,9 +89,9 @@
 <article>
     <div>
         @if (Model.Photo.IsStarred) {
-        <span data-photoid="@Model.Photo.PhotoId" title="Click to unstar this photo" class="star-on"><img src="/images/star.png" width="15" height="15" alt="star" loading="lazy" /></span>
+        <span data-photoid="@Model.Photo.PhotoId" title="Click to unstar this photo" class="star-on"><img src="/images/star.png" width="15" height="15" alt="star" /></span>
         } else {
-        <span data-photoid="@Model.Photo.PhotoId" title="Click to star this photo" class="star-off"><img src="/images/star.png" width="15" height="15" alt="star" loading="lazy" /></span>
+        <span data-photoid="@Model.Photo.PhotoId" title="Click to star this photo" class="star-off"><img src="/images/star.png" width="15" height="15" alt="star" /></span>
         }
         Taken: @Model.Photo.DateTaken
     </div>
