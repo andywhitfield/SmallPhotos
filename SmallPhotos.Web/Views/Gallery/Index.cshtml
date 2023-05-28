@@ -6,6 +6,8 @@
         $(window).on('resize', fullSizeImage);
         fullSizeImage();
 
+        $(document).on('keypress', handleKeyPress);
+
         $('span[data-photoid]').each(function() {
             let star = $(this);
 
@@ -80,6 +82,31 @@
     function loadFromDropbox() {
         $('#load-from-dropbox').hide();
         $('#fullimg').attr('src', '/photo/original/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)');
+    }
+
+    function handleKeyPress(event) {
+        switch (event.which) {
+            case 104: // H - previous photo
+                @if (Model.PreviousPhoto != null) {
+                <text>
+                window.location.href = '/gallery/@(Model.PreviousPhoto.PhotoId)/@(Model.PreviousPhoto.Filename)@(Model.FromPageQueryString)';
+                </text>
+                }
+                break;
+            case 108: // L - next photo
+                @if (Model.NextPhoto != null) {
+                <text>
+                window.location.href = '/gallery/@(Model.NextPhoto.PhotoId)/@(Model.NextPhoto.Filename)@(Model.FromPageQueryString)';
+                </text>
+                }
+                break;
+            case 106: // J - back to thumbnails
+                window.location.href = '@(Model.FromPagePath)?photoId=@(Model.Photo.PhotoId)#@(Model.Photo.PhotoId).@(Model.Photo.Filename)';
+                break;
+            case 107: // K - download from dropbox
+                loadFromDropbox();
+                break;
+        }
     }
 </script>
 }
