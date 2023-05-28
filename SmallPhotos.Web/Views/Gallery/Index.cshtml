@@ -134,7 +134,7 @@
     </div>
 
     <p>
-        <img id="fullimg" src="/photo/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)" />
+        <img id="fullimg" src="/photo/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)" class="photo" />
         @if (Model.Photo.IsDropboxSource) {
         <br/>
         <a name="load-from-dropbox" id="load-from-dropbox" title="Load full-size image from Dropbox" class="photo-load-dropbox">&darr; Dropbox</a>

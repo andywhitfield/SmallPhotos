@@ -30,7 +30,7 @@
         <div class="thumbnails">
         @foreach(var photo in Model.Photos) {
             <div>
-                <a title="Taken: @photo.DateTaken" href="/gallery/@(photo.PhotoId)/@(photo.Filename)" name="@(photo.PhotoId).@(photo.Filename)"><img src="/photo/thumbnail/@(Model.ThumbnailSize)/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" loading="lazy" /></a>
+                <a title="Taken: @photo.DateTaken" href="/gallery/@(photo.PhotoId)/@(photo.Filename)" name="@(photo.PhotoId).@(photo.Filename)"><img src="/photo/thumbnail/@(Model.ThumbnailSize)/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" loading="lazy" class="photo" /></a>
                 <div class="star-off star" data-photoid="@photo.PhotoId" data-starred="@photo.IsStarred" title="Click to star this photo"><img src="/images/star.png" width="24" height="24" alt="star" loading="lazy" /></div>
             </div>
         }
