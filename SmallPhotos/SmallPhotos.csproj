@@ -1,20 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <NoWarn>CA2254</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Dropbox.Api" Version="6.37.*" />
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.1.*" />
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.5.*" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.*"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.*"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.*" PrivateAssets="All"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.*"/>
-    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="7.0.*"/>
-    <PackageReference Include="Polly" Version="7.2.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.*"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.*" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.*"/>
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.*"/>
+    <PackageReference Include="Polly" Version="8.2.*" />
   </ItemGroup>
 
 </Project>
