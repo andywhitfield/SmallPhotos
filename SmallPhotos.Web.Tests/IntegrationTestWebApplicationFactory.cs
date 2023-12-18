@@ -1,5 +1,4 @@
 using System.Net.Http;
-using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -29,7 +28,7 @@ public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Startu
         .CreateDefaultBuilder()
         .ConfigureWebHostDefaults(x => x.UseStartup<Startup>().UseTestServer().ConfigureTestServices(services =>
         {
-            services.Replace(ServiceDescriptor.Scoped<SqliteDataContext>(_ => new SqliteDataContext(_options)));
+            services.Replace(ServiceDescriptor.Scoped(_ => new SqliteDataContext(_options)));
             services
                 .AddAuthentication("Test")
                 .AddScheme<AuthenticationSchemeOptions, TestStubAuthHandler>("Test", null);

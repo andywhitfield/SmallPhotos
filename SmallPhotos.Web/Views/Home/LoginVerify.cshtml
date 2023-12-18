@@ -1,0 +1,67 @@
+﻿@model SmallPhotos.Web.Model.Home.LoginVerifyViewModel
+
+<article>
+<h1>Login</h1>
+
+<form action="/signin/verify" method="post" id="signinVerifyForm">
+    <p>
+        Welcome, please register to create a new account
+    </p>
+    <p>
+        <label for="email">Email address:</label>
+        <input type="email" id="email" name="email" value="@Model.Email" readonly />
+        @if (Model.IsReturningUser) {
+        <button type="button">Login</button>
+        } else {
+        <button type="button" onclick="webauthnRegister()">Register</button>
+        }
+    </p>
+    <input type="hidden" name="returnurl" value="@Model.ReturnUrl" />
+    <input type="hidden" name="verifyOptions" value="@Model.VerifyOptions" />
+    <input type="hidden" name="verifyResponse" value="" />
+    @Html.AntiForgeryToken()
+</form>
+</article>
+
+@section Scripts {
+<script type="text/javascript">
+    async function webauthnRegister() {
+        console.log('registering');
+        let options = JSON.parse('@Html.Raw(Model.VerifyOptions)');
+        options.challenge = coerceToArrayBuffer(options.challenge);
+        options.user.id = coerceToArrayBuffer(options.user.id);
+        options.excludeCredentials = options.excludeCredentials.map((c) => {
+            c.id = coerceToArrayBuffer(c.id);
+            return c;
+        });
+
+        if (options.authenticatorSelection.authenticatorAttachment === null)
+            options.authenticatorSelection.authenticatorAttachment = undefined;
+
+        let newCredential = await navigator.credentials.create({ publicKey: options });
+
+        console.log("PublicKeyCredential Created", newCredential);
+
+        let attestationObject = new Uint8Array(newCredential.response.attestationObject);
+        let clientDataJSON = new Uint8Array(newCredential.response.clientDataJSON);
+        let rawId = new Uint8Array(newCredential.rawId);
+
+        const data = JSON.stringify({
+            id: newCredential.id,
+            rawId: coerceToBase64Url(rawId),
+            type: newCredential.type,
+            extensions: newCredential.getClientExtensionResults(),
+            response: {
+                attestationObject: coerceToBase64Url(attestationObject),
+                clientDataJSON: coerceToBase64Url(clientDataJSON)
+            }
+        });
+
+        console.log('posting data to server', data);
+
+        let makeCredentialForm = document.getElementById("signinVerifyForm");
+        makeCredentialForm.elements["verifyResponse"].value = data;
+        makeCredentialForm.submit();
+    }
+</script>
+}

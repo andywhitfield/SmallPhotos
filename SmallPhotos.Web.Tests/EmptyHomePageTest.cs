@@ -17,7 +17,7 @@ public class EmptyHomePageTest : IAsyncLifetime
         using var serviceScope = _factory.Services.CreateScope();
         var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
-        var userAccount = context.UserAccounts!.Add(new() { AuthenticationUri = "http://test/user/1" });
+        var userAccount = context.UserAccounts!.Add(new() { Email = "test-user-1" });
         await context.SaveChangesAsync();
     }
 

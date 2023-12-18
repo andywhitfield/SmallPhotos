@@ -35,7 +35,7 @@ public class AlbumChangeServiceTest : IAsyncLifetime
         Console.WriteLine($"Using photo source dir: [{_albumSourceFolder}]");
         Directory.CreateDirectory(_albumSourceFolder);
 
-        _userAccount = context.UserAccounts!.Add(new() { AuthenticationUri = "http://test/user/1" }).Entity;
+        _userAccount = context.UserAccounts!.Add(new() { Email = "test-user-1" }).Entity;
         _albumSource = context.AlbumSources!.Add(new() { UserAccount = _userAccount, Folder = _albumSourceFolder }).Entity;
         await context.SaveChangesAsync();
     }

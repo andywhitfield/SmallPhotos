@@ -38,7 +38,7 @@ public class AlbumChangeService_DropboxTest : IAsyncLifetime
         var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
 
-        _userAccount = context.UserAccounts!.Add(new() { AuthenticationUri = "http://test/user/1" }).Entity;
+        _userAccount = context.UserAccounts!.Add(new() { Email = "test-user-1" }).Entity;
         _albumSource = context.AlbumSources!.Add(new() { UserAccount = _userAccount, Folder = "/photos", DropboxAccessToken = "test-dropbox-access-token", DropboxRefreshToken = "test-dropbox-refresh-token" }).Entity;
         await context.SaveChangesAsync();
     }

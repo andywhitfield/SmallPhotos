@@ -25,7 +25,7 @@ public class StarredPhotoPageTest : IAsyncLifetime
 
         var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
-        var userAccount = context.UserAccounts!.Add(new() { AuthenticationUri = "http://test/user/1" });
+        var userAccount = context.UserAccounts!.Add(new() { Email = "test-user-1" });
         var album = context.AlbumSources!.Add(new() { CreatedDateTime = DateTime.UtcNow, Folder = _albumSourceFolder, UserAccount = userAccount.Entity });
 
         {

@@ -14,25 +14,41 @@ public class UserAccountRepository(ILogger<UserAccountRepository> logger, Sqlite
     public Task<UserAccount?> GetAsync(long userAccountId) =>
         context.UserAccounts!.SingleOrDefaultAsync(a => a.UserAccountId == userAccountId && a.DeletedDateTime == null);
 
-    public Task CreateNewUserAsync(ClaimsPrincipal user)
+    public Task CreateNewUserAsync(string email, byte[] credentialId, byte[] publicKey, byte[] userHandle)
     {
-        var authenticationUri = GetIdentifierFromPrincipal(user) ?? throw new InvalidOperationException($"Could not get auth id from user: [{string.Join(',', user.Claims.Select(c => $"{c.Type}={c.Value}"))}]");
-        logger.LogInformation($"Creating new user with uri [{authenticationUri}]");
-        context.UserAccounts!.Add(new() { AuthenticationUri = authenticationUri });
+        logger.LogInformation($"Creating new user with email [{email}]");
+        var newUserAccount = context.UserAccounts!.Add(new() { Email = email });
+        context.UserAccountCredentials!.Add(new() { UserAccount = newUserAccount.Entity,
+            CredentialId = credentialId, PublicKey = publicKey, UserHandle = userHandle });
         return context.SaveChangesAsync();
     }
 
-    private string? GetIdentifierFromPrincipal(ClaimsPrincipal user) => user?.FindFirstValue("name");
+    private string? GetEmailFromPrincipal(ClaimsPrincipal user)
+    {
+        logger.LogTrace($"Getting email from user: {user?.Identity?.Name}: [{string.Join(',', user?.Claims.Select(c => $"{c.Type}={c.Value}") ?? Enumerable.Empty<string>())}]");
+        return user?.FindFirstValue(ClaimTypes.Name);
+    }
 
-    public async Task<UserAccount> GetUserAccountAsync(ClaimsPrincipal user) => (await GetUserAccountOrNullAsync(user)) ?? throw new ArgumentException($"No UserAccount for the user: {GetIdentifierFromPrincipal(user)}");
+    public async Task<UserAccount> GetUserAccountAsync(ClaimsPrincipal user) => (await GetUserAccountOrNullAsync(user)) ?? throw new ArgumentException($"No UserAccount for the user: {GetEmailFromPrincipal(user)}");
 
     public Task<UserAccount?> GetUserAccountOrNullAsync(ClaimsPrincipal user)
     {
-        var authenticationUri = GetIdentifierFromPrincipal(user);
-        if (string.IsNullOrWhiteSpace(authenticationUri))
+        var email = GetEmailFromPrincipal(user);
+        if (string.IsNullOrWhiteSpace(email))
             return Task.FromResult((UserAccount?)null);
 
-        return context.UserAccounts!.FirstOrDefaultAsync(ua => ua.AuthenticationUri == authenticationUri && ua.DeletedDateTime == null);
+        return context.UserAccounts!.FirstOrDefaultAsync(ua => ua.Email == email && ua.DeletedDateTime == null);
+    }
+
+    public async Task<UserAccount?> GetUserAccountByCredentialIdAsync(byte[] credentialId)
+    {
+        if (credentialId == null || credentialId.Length == 0)
+            return null;
+
+        return (await context.UserAccountCredentials!
+                .Include(uac => uac.UserAccount)
+                .FirstOrDefaultAsync(uac => uac.CredentialId.SequenceEqual(credentialId))
+            )?.UserAccount;
     }
 
     public Task<List<UserAccount>> GetAllAsync() => context.UserAccounts!.Where(ua => ua.DeletedDateTime == null).ToListAsync();

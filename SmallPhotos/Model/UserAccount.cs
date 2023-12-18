@@ -7,7 +7,7 @@ public class UserAccount
 {
     public long UserAccountId { get; set; }
     [Required]
-    public string? AuthenticationUri { get; set; }
+    public string? Email { get; set; }
     public ThumbnailSize ThumbnailSize { get; set; }
     public int? GalleryImagePageSize { get; set; }
     public DateTime CreatedDateTime { get; set; } = DateTime.UtcNow;
