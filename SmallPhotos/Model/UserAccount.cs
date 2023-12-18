@@ -1,8 +1,10 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace SmallPhotos.Model;
 
+[Index(nameof(Email), IsUnique = true)]
 public class UserAccount
 {
     public long UserAccountId { get; set; }

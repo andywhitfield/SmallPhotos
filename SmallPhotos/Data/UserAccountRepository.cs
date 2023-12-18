@@ -14,13 +14,18 @@ public class UserAccountRepository(ILogger<UserAccountRepository> logger, Sqlite
     public Task<UserAccount?> GetAsync(long userAccountId) =>
         context.UserAccounts!.SingleOrDefaultAsync(a => a.UserAccountId == userAccountId && a.DeletedDateTime == null);
 
-    public Task CreateNewUserAsync(string email, byte[] credentialId, byte[] publicKey, byte[] userHandle)
+    public async Task<UserAccount> CreateNewUserAsync(string email, byte[] credentialId, byte[] publicKey, byte[] userHandle)
     {
         logger.LogInformation($"Creating new user with email [{email}]");
+        if (await context.UserAccounts!.AnyAsync(ua => ua.Email == email))
+            throw new InvalidOperationException($"UserAccount already exists with email [{email}]");
+
         var newUserAccount = context.UserAccounts!.Add(new() { Email = email });
         context.UserAccountCredentials!.Add(new() { UserAccount = newUserAccount.Entity,
             CredentialId = credentialId, PublicKey = publicKey, UserHandle = userHandle });
-        return context.SaveChangesAsync();
+        await context.SaveChangesAsync();
+
+        return newUserAccount.Entity;
     }
 
     private string? GetEmailFromPrincipal(ClaimsPrincipal user)
@@ -40,16 +45,7 @@ public class UserAccountRepository(ILogger<UserAccountRepository> logger, Sqlite
         return context.UserAccounts!.FirstOrDefaultAsync(ua => ua.Email == email && ua.DeletedDateTime == null);
     }
 
-    public async Task<UserAccount?> GetUserAccountByCredentialIdAsync(byte[] credentialId)
-    {
-        if (credentialId == null || credentialId.Length == 0)
-            return null;
-
-        return (await context.UserAccountCredentials!
-                .Include(uac => uac.UserAccount)
-                .FirstOrDefaultAsync(uac => uac.CredentialId.SequenceEqual(credentialId))
-            )?.UserAccount;
-    }
+    public Task<UserAccount?> GetUserAccountByEmailAsync(string email) => context.UserAccounts!.FirstOrDefaultAsync(a => a.Email == email);
 
     public Task<List<UserAccount>> GetAllAsync() => context.UserAccounts!.Where(ua => ua.DeletedDateTime == null).ToListAsync();
 
@@ -58,4 +54,13 @@ public class UserAccountRepository(ILogger<UserAccountRepository> logger, Sqlite
         user.LastUpdateDateTime = DateTime.UtcNow;
         return context.SaveChangesAsync();
     }
+
+    public Task UpdateAsync(UserAccountCredential userAccountCredential)
+    {
+        userAccountCredential.LastUpdateDateTime = DateTime.UtcNow;
+        return context.SaveChangesAsync();
+    }
+
+    public IAsyncEnumerable<UserAccountCredential> GetUserAccountCredentialsAsync(UserAccount user)
+        => context.UserAccountCredentials!.Where(uac => uac.UserAccountId == user.UserAccountId).AsAsyncEnumerable();
 }

@@ -7,11 +7,13 @@ namespace SmallPhotos.Data;
 
 public interface IUserAccountRepository
 {
-    Task CreateNewUserAsync(string email, byte[] credentialId, byte[] publicKey, byte[] userHandle);
+    Task<UserAccount> CreateNewUserAsync(string email, byte[] credentialId, byte[] publicKey, byte[] userHandle);
     Task<UserAccount?> GetAsync(long userAccountId);
-    Task<UserAccount?> GetUserAccountByCredentialIdAsync(byte[] credentialId);
+    Task<UserAccount?> GetUserAccountByEmailAsync(string email);
     Task<UserAccount> GetUserAccountAsync(ClaimsPrincipal user);
     Task<UserAccount?> GetUserAccountOrNullAsync(ClaimsPrincipal user);
     Task<List<UserAccount>> GetAllAsync();
     Task UpdateAsync(UserAccount user);
+    Task UpdateAsync(UserAccountCredential userAccountCredential);
+    IAsyncEnumerable<UserAccountCredential> GetUserAccountCredentialsAsync(UserAccount user);
 }
