@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
@@ -28,12 +29,15 @@ public class HomeController(ILogger<HomeController> logger, IMediator mediator) 
     public IActionResult Error() => View(new ErrorViewModel(HttpContext));
 
     [HttpGet("~/signin")]
-    public IActionResult Signin([FromQuery] string returnUrl) => View("Login", new LoginViewModel(HttpContext, returnUrl));
+    public IActionResult Signin([FromQuery] string? returnUrl) => View("Login", new LoginViewModel(HttpContext, returnUrl));
 
     [HttpPost("~/signin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Signin([FromForm] string returnUrl, [FromForm] string email)
+    public async Task<IActionResult> Signin([FromForm] string? returnUrl, [FromForm, Required] string email)
     {
+        if (!ModelState.IsValid)
+            return View("Login", new LoginViewModel(HttpContext, returnUrl));
+
         var response = await mediator.Send(new SigninRequest(email));
         return View("LoginVerify", new LoginVerifyViewModel(HttpContext, returnUrl, email,
             response.IsReturningUser, response.VerifyOptions));
@@ -41,8 +45,15 @@ public class HomeController(ILogger<HomeController> logger, IMediator mediator) 
 
     [HttpPost("~/signin/verify")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SigninVerify([FromForm] string returnUrl, [FromForm] string email, [FromForm] string verifyOptions, [FromForm] string verifyResponse)
+    public async Task<IActionResult> SigninVerify(
+        [FromForm] string? returnUrl,
+        [FromForm, Required] string email,
+        [FromForm, Required] string verifyOptions,
+        [FromForm, Required] string verifyResponse)
     {
+        if (!ModelState.IsValid)
+            return Redirect("~/signin");
+
         var isValid = await mediator.Send(new SigninVerifyRequest(HttpContext, email, verifyOptions, verifyResponse));
         if (isValid)
         {

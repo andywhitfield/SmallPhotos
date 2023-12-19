@@ -16,4 +16,5 @@ public interface IUserAccountRepository
     Task UpdateAsync(UserAccount user);
     Task UpdateAsync(UserAccountCredential userAccountCredential);
     IAsyncEnumerable<UserAccountCredential> GetUserAccountCredentialsAsync(UserAccount user);
+    Task<UserAccountCredential?> GetUserAccountCredentialsByUserHandleAsync(byte[] userHandle);
 }

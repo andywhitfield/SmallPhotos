@@ -2,8 +2,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace SmallPhotos.Web.Model.Home;
 
-public class LoginViewModel : BaseViewModel
+public class LoginViewModel(HttpContext context, string? returnUrl) : BaseViewModel(context, SelectedView.None)
 {
-    public string ReturnUrl { get; }
-    public LoginViewModel(HttpContext context, string returnUrl) : base(context, SelectedView.None) => ReturnUrl = returnUrl;
+    public string? ReturnUrl { get; } = returnUrl;
 }

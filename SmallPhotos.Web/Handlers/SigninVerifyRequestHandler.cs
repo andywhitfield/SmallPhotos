@@ -60,7 +60,7 @@ public class SigninVerifyRequestHandler(ILogger<SigninVerifyRequestHandler> logg
 
         logger.LogTrace($"Successfully parsed response: {request.VerifyResponse}");
 
-        var success = await fido2.MakeNewCredentialAsync(authenticatorAttestationRawResponse, options, VerifyNewUserCredentialAsync, cancellationToken: cancellationToken);
+        var success = await fido2.MakeNewCredentialAsync(authenticatorAttestationRawResponse, options, (_, _) => Task.FromResult(true), cancellationToken: cancellationToken);
         logger.LogInformation($"got success status: {success.Status} error: {success.ErrorMessage}");
         if (success.Result == null)
         {
@@ -72,13 +72,6 @@ public class SigninVerifyRequestHandler(ILogger<SigninVerifyRequestHandler> logg
 
         return await userAccountRepository.CreateNewUserAsync(request.Email, success.Result.CredentialId,
             success.Result.PublicKey, success.Result.User.Id);
-    }
-
-    private Task<bool> VerifyNewUserCredentialAsync(IsCredentialIdUniqueToUserParams credentialIdUserParams, CancellationToken cancellationToken)
-    {
-        logger.LogInformation($"Checking credential is unique: {Convert.ToBase64String(credentialIdUserParams.CredentialId)}");
-        // TODO: check no account already exists with this CredentialId
-        return Task.FromResult(true);
     }
 
     private async Task<bool> SigninUserAsync(UserAccount user, SigninVerifyRequest request, CancellationToken cancellationToken)
@@ -113,10 +106,10 @@ public class SigninVerifyRequestHandler(ILogger<SigninVerifyRequestHandler> logg
         return true;
     }
 
-    private Task<bool> VerifyExistingUserCredentialAsync(IsUserHandleOwnerOfCredentialIdParams credentialIdUserHandleParams, CancellationToken cancellationToken)
+    private async Task<bool> VerifyExistingUserCredentialAsync(IsUserHandleOwnerOfCredentialIdParams credentialIdUserHandleParams, CancellationToken cancellationToken)
     {
         logger.LogInformation($"Checking credential {credentialIdUserHandleParams.CredentialId} - {credentialIdUserHandleParams.UserHandle}");
-        // TODO: check UserHandle has given CredentialId
-        return Task.FromResult(true);
+        var userAccountCredentials = await userAccountRepository.GetUserAccountCredentialsByUserHandleAsync(credentialIdUserHandleParams.UserHandle);
+        return userAccountCredentials?.CredentialId.SequenceEqual(credentialIdUserHandleParams.CredentialId) ?? false;
     }
 }
