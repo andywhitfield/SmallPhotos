@@ -66,8 +66,8 @@ public class UserAccountRepository(ILogger<UserAccountRepository> logger, Sqlite
     }
 
     public IAsyncEnumerable<UserAccountCredential> GetUserAccountCredentialsAsync(UserAccount user)
-        => context.UserAccountCredentials!.Where(uac => uac.UserAccountId == user.UserAccountId).AsAsyncEnumerable();
+        => context.UserAccountCredentials!.Where(uac => uac.DeletedDateTime == null && uac.UserAccountId == user.UserAccountId).AsAsyncEnumerable();
     
     public Task<UserAccountCredential?> GetUserAccountCredentialsByUserHandleAsync(byte[] userHandle)
-        => context.UserAccountCredentials!.FirstOrDefaultAsync(uac => uac.UserHandle.SequenceEqual(userHandle));
+        => context.UserAccountCredentials!.FirstOrDefaultAsync(uac => uac.DeletedDateTime == null && uac.UserHandle.SequenceEqual(userHandle));
 }
