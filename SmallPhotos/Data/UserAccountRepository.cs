@@ -49,7 +49,7 @@ public class UserAccountRepository(ILogger<UserAccountRepository> logger, Sqlite
         return context.UserAccounts!.FirstOrDefaultAsync(ua => ua.Email == email && ua.DeletedDateTime == null);
     }
 
-    public Task<UserAccount?> GetUserAccountByEmailAsync(string email) => context.UserAccounts!.FirstOrDefaultAsync(a => a.Email == email);
+    public Task<UserAccount?> GetUserAccountByEmailAsync(string email) => context.UserAccounts!.FirstOrDefaultAsync(a => a.DeletedDateTime == null && a.Email == email);
 
     public Task<List<UserAccount>> GetAllAsync() => context.UserAccounts!.Where(ua => ua.DeletedDateTime == null).ToListAsync();
 
