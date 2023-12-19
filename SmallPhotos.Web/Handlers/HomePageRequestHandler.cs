@@ -28,7 +28,10 @@ public class HomePageRequestHandler : IRequestHandler<HomePageRequest, HomePageR
     {
         var user = await _userAccountRepository.GetUserAccountOrNullAsync(request.User);
         if (user == null)
+        {
+            _logger.LogInformation($"No active user account, user [{request.User.Identity?.Name}] is not valid");
             return new(false, ThumbnailSize.Small, Enumerable.Empty<PhotoModel>(), Pagination.Empty);
+        }
 
         var photos =
             request.OnlyStarred ? _photoRepository.GetAllStarredAsync(user)

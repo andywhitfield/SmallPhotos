@@ -40,8 +40,12 @@ public class UserAccountRepository(ILogger<UserAccountRepository> logger, Sqlite
     {
         var email = GetEmailFromPrincipal(user);
         if (string.IsNullOrWhiteSpace(email))
+        {
+            logger.LogInformation($"No user account found with email [{email}]");
             return Task.FromResult((UserAccount?)null);
+        }
 
+        logger.LogTrace($"Looking up user account with email [{email}]");
         return context.UserAccounts!.FirstOrDefaultAsync(ua => ua.Email == email && ua.DeletedDateTime == null);
     }
 

@@ -36,10 +36,7 @@ public class Startup
         services.AddSingleton(Configuration);
 
         services
-            .AddAuthentication(o =>
-            {
-                o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            })
+            .AddAuthentication(o => o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(o =>
             {
                 o.LoginPath = "/signin";
