@@ -42,10 +42,10 @@ public class Startup
                 o.LoginPath = "/signin";
                 o.LogoutPath = "/signout";
                 o.Cookie.HttpOnly = true;
-                o.Cookie.MaxAge = TimeSpan.FromDays(1);
+                o.Cookie.MaxAge = TimeSpan.FromDays(7);
                 o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 o.Cookie.IsEssential = true;
-                o.ExpireTimeSpan = TimeSpan.FromDays(1);
+                o.ExpireTimeSpan = TimeSpan.FromDays(7);
                 o.SlidingExpiration = true;
             });
 
