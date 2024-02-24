@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SmallPhotos.Model;
 
-[Index(nameof(Email), IsUnique = true)]
+[Index(nameof(Email))]
 public class UserAccount
 {
     public long UserAccountId { get; set; }
