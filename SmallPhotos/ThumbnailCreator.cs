@@ -11,8 +11,8 @@ public class ThumbnailCreator : IThumbnailCreator
     {
         using var thumbnailImage = (MagickImage)image.Clone();
         var resizeTo = thumbnailSize.ToSize();
-        thumbnailImage.Thumbnail(resizeTo.Width, resizeTo.Height);
-        thumbnailImage.Extent(resizeTo.Width, resizeTo.Height, Gravity.Center, MagickColors.Transparent);
+        thumbnailImage.Thumbnail((uint)resizeTo.Width, (uint)resizeTo.Height);
+        thumbnailImage.Extent((uint)resizeTo.Width, (uint)resizeTo.Height, Gravity.Center, MagickColors.Transparent);
         using MemoryStream thumbnailStream = new();
         await thumbnailImage.WriteAsync(thumbnailStream, MagickFormat.Jpeg);
         return thumbnailStream.ToArray();
