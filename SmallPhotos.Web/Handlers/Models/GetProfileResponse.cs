@@ -4,16 +4,10 @@ using SmallPhotos.Web.Model;
 
 namespace SmallPhotos.Web.Handlers.Models;
 
-public class GetProfileResponse
+public class GetProfileResponse(IEnumerable<AlbumSourceFolderModel> folders,
+    ThumbnailSize thumbnailSize, int galleryImagePageSize)
 {
-    public GetProfileResponse(IEnumerable<AlbumSourceFolderModel> folders, ThumbnailSize thumbnailSize, int galleryImagePageSize)
-    {
-        Folders = folders;
-        ThumbnailSize = thumbnailSize;
-        GalleryImagePageSize = galleryImagePageSize;
-    }
-
-    public IEnumerable<AlbumSourceFolderModel> Folders { get; }
-    public ThumbnailSize ThumbnailSize { get; }
-    public int GalleryImagePageSize { get; }
+    public IEnumerable<AlbumSourceFolderModel> Folders { get; } = folders;
+    public ThumbnailSize ThumbnailSize { get; } = thumbnailSize;
+    public int GalleryImagePageSize { get; } = galleryImagePageSize;
 }

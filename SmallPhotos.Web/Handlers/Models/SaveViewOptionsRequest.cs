@@ -4,16 +4,11 @@ using SmallPhotos.Model;
 
 namespace SmallPhotos.Web.Handlers.Models;
 
-public class SaveViewOptionsRequest : IRequest<bool>
+public class SaveViewOptionsRequest(ClaimsPrincipal user, ThumbnailSize newThumbnailSize,
+    int newPageSize)
+    : IRequest<bool>
 {
-    public ClaimsPrincipal User { get; }
-    public ThumbnailSize NewThumbnailSize { get; }
-    public int NewPageSize { get; }
-
-    public SaveViewOptionsRequest(ClaimsPrincipal user, ThumbnailSize newThumbnailSize, int newPageSize)
-    {
-        User = user;
-        NewThumbnailSize = newThumbnailSize;
-        NewPageSize = newPageSize;
-    }
+    public ClaimsPrincipal User { get; } = user;
+    public ThumbnailSize NewThumbnailSize { get; } = newThumbnailSize;
+    public int NewPageSize { get; } = newPageSize;
 }

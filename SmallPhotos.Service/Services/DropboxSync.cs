@@ -5,41 +5,26 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using SmallPhotos.Data;
 using SmallPhotos.Dropbox;
 using SmallPhotos.Model;
 
 namespace SmallPhotos.Service.Services;
 
-public class DropboxSync : IDropboxSync
+public class DropboxSync(
+    ILogger<DropboxSync> logger,
+    IDropboxClientProxy dropboxClientProxy,
+    IPhotoRepository photoRepository
+    ) : IDropboxSync
 {
-    private readonly ILogger<DropboxSync> _logger;
-    private readonly IDropboxClientProxy _dropboxClientProxy;
-    private readonly IOptionsSnapshot<DropboxOptions> _dropboxOptions;
-    private readonly IPhotoRepository _photoRepository;
-
-    public DropboxSync(
-        ILogger<DropboxSync> logger,
-        IDropboxClientProxy dropboxClientProxy,
-        IOptionsSnapshot<DropboxOptions> dropboxOptions,
-        IPhotoRepository photoRepository
-    )
-    {
-        _logger = logger;
-        _dropboxClientProxy = dropboxClientProxy;
-        _dropboxOptions = dropboxOptions;
-        _photoRepository = photoRepository;
-    }
-
     public async Task SyncAsync(AlbumSource albumSource, UserAccount user, HttpClient httpClient)
     {
-        _logger.LogDebug($"Checking Dropbox album changes for user [{user.UserAccountId}] / album [{albumSource.AlbumSourceId}:{albumSource.Folder}]");
+        logger.LogDebug("Checking Dropbox album changes for user [{UserAccountId}] / album [{AlbumSourceId}:{albumSourceFolder}]", user.UserAccountId, albumSource.AlbumSourceId, albumSource.Folder);
 
-        _dropboxClientProxy.Initialise(albumSource.DropboxAccessToken, albumSource.DropboxRefreshToken);
-        if (!await _dropboxClientProxy.RefreshAccessTokenAsync(new[] { "files.content.read" }))
+        dropboxClientProxy.Initialise(albumSource.DropboxAccessToken, albumSource.DropboxRefreshToken);
+        if (!await dropboxClientProxy.RefreshAccessTokenAsync(["files.content.read"]))
         {
-            _logger.LogWarning($"Could not refresh Dropbox access token");
+            logger.LogWarning("Could not refresh Dropbox access token");
             return;
         }
 
@@ -48,10 +33,10 @@ public class DropboxSync : IDropboxSync
         await foreach (var dropboxFile in dropboxFilesInAlbum)
             filesInAlbum.Add(dropboxFile);
 
-        var photosInAlbum = await _photoRepository.GetAllAsync(albumSource);
+        var photosInAlbum = await photoRepository.GetAllAsync(albumSource);
 
-        _logger.LogDebug($"Files in folder: [{string.Join(',', filesInAlbum.Select(fi => fi.Filename))}]");
-        _logger.LogDebug($"Photos in album: [{string.Join(',', photosInAlbum.Select(p => p.Filename))}]");
+        logger.LogDebug("Files in folder: [{FilesInAlbum}]", string.Join(',', filesInAlbum.Select(fi => fi.Filename)));
+        logger.LogDebug("Photos in album: [{PhotosInAlbum}]", string.Join(',', photosInAlbum.Select(p => p.Filename)));
 
         var newOrChangedPhotos = (
             from f in filesInAlbum
@@ -61,31 +46,31 @@ public class DropboxSync : IDropboxSync
             orderby f.LastWriteTime descending
             select f).ToList();
 
-        _logger.LogInformation($"New or changed photos in album: [{string.Join(',', newOrChangedPhotos.Select(f => f.Filename))}]");
+        logger.LogInformation("New or changed photos in album: [{NewOrChangedPhotos}]", string.Join(',', newOrChangedPhotos.Select(f => f.Filename)));
 
-        if (newOrChangedPhotos.Any())
-            _logger.LogTrace($"Using temporary download directory: {_dropboxClientProxy.TemporaryDownloadDirectory.FullName}");
+        if (newOrChangedPhotos.Count != 0)
+            logger.LogTrace("Using temporary download directory: {TemporaryDownloadDirectory}", dropboxClientProxy.TemporaryDownloadDirectory.FullName);
 
-        foreach (var newOrChanged in newOrChangedPhotos)
+        foreach (var (filename, relativeFolder, lastWriteTime) in newOrChangedPhotos)
         {
-            _logger.LogDebug($"Adding / updating photo {newOrChanged.Filename}|{newOrChanged.RelativeFolder}");
-            var localFile = await DownloadFileFromDropboxAsync(_dropboxClientProxy.TemporaryDownloadDirectory, albumSource.Folder ?? "/", newOrChanged.RelativeFolder, newOrChanged.Filename);
+            logger.LogDebug("Adding / updating photo {Filename}|{RelativeFolder}", filename, relativeFolder);
+            var localFile = await DownloadFileFromDropboxAsync(dropboxClientProxy.TemporaryDownloadDirectory, albumSource.Folder ?? "/", relativeFolder, filename);
             try
             {
-                _logger.LogTrace($"Adding / updating photo {localFile} in folder {newOrChanged.RelativeFolder}");
-                var responseString = await httpClient.PostCreateOrUpdatePhotoAsync(user, albumSource, localFile, newOrChanged.RelativeFolder);
-                _logger.LogInformation($"Successfully updated / added new photo: {responseString}");
+                logger.LogTrace("Adding / updating photo {LocalFile} in folder {RelativeFolder}", localFile, relativeFolder);
+                var responseString = await httpClient.PostCreateOrUpdatePhotoAsync(user, albumSource, localFile, relativeFolder);
+                logger.LogInformation("Successfully updated / added new photo: {ResponseString}", responseString);
             }
             finally
             {
                 try
                 {
-                    _logger.LogTrace($"Deleting temporary file: {localFile}");
+                    logger.LogTrace("Deleting temporary file: {LocalFile}", localFile);
                     File.Delete(localFile);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, $"Cannot delete temporary file downloaded from dropbox [{localFile}]");
+                    logger.LogWarning(ex, "Cannot delete temporary file downloaded from dropbox [{LocalFile}]", localFile);
                 }
             }
         }
@@ -98,21 +83,21 @@ public class DropboxSync : IDropboxSync
             select p
         ).ToList();
 
-        _logger.LogInformation($"Deleting photos in album: [{string.Join(',', deletedPhotos.Select(p => p.Filename))}]");
-        await deletedPhotos.DeletePhotosAsync(_photoRepository);
+        logger.LogInformation("Deleting photos in album: [{DeletedPhotos}]", string.Join(',', deletedPhotos.Select(p => p.Filename)));
+        await deletedPhotos.DeletePhotosAsync(photoRepository);
     }
 
     private async IAsyncEnumerable<(string Filename, string RelativeFolder, DateTime LastWriteTime)> GetDropboxFilesForAlbumSourceAsync(AlbumSource albumSource)
     {
-        var files = await _dropboxClientProxy.ListFolderAsync(albumSource.Folder, albumSource.RecurseSubFolders ?? false);
+        var files = await dropboxClientProxy.ListFolderAsync(albumSource.Folder, albumSource.RecurseSubFolders ?? false);
         while (files != null)
         {
             foreach (var file in files.Entries)
             {
-                _logger.LogTrace($"Got Dropbox entry: {file.IsFile} | {file.PathLower} | {file.Name}");
+                logger.LogTrace("Got Dropbox entry: {IsFile} | {PathLower} | {FileName}", file.IsFile, file.PathLower, file.Name);
                 if (file.IsDeleted || !file.IsFile || !SyncExtensions.SupportedPhotoExtensions.Contains(Path.GetExtension(file.Name.ToLowerInvariant())))
                 {
-                    _logger.LogTrace($"Entry {file.PathLower} is deleted [{file.IsDeleted}], not a file [{!file.IsFile}], or is not an image [ext={Path.GetExtension(file.Name.ToLowerInvariant())}], skipping");
+                    logger.LogTrace("Entry {FilePathLower} is deleted [{FileIsDeleted}], not a file [{NotFileIsFile}], or is not an image [ext={FileExt}], skipping", file.PathLower, file.IsDeleted, !file.IsFile, Path.GetExtension(file.Name.ToLowerInvariant()));
                     continue;
                 }
 
@@ -121,8 +106,8 @@ public class DropboxSync : IDropboxSync
 
             if (files.HasMore)
             {
-                _logger.LogTrace($"More entries, calling list folder for cursor: {files.Cursor}");
-                files = await _dropboxClientProxy.ListFolderContinueAsync(files.Cursor);
+                logger.LogTrace("More entries, calling list folder for cursor: {FilesCursor}", files.Cursor);
+                files = await dropboxClientProxy.ListFolderContinueAsync(files.Cursor);
             }
             else
             {
@@ -133,24 +118,24 @@ public class DropboxSync : IDropboxSync
 
     private async Task<string> DownloadFileFromDropboxAsync(DirectoryInfo downloadTmpDir, string baseDir, string relativeFolder, string filename)
     {
-        _logger.LogDebug($"Downloading file [{filename}] from Dropbox to [{downloadTmpDir.FullName}] sub-folder [{relativeFolder}]");
+        logger.LogDebug("Downloading file [{Filename}] from Dropbox to [{DownloadTmpDirFullName}] sub-folder [{RelativeFolder}]", filename, downloadTmpDir.FullName, relativeFolder);
 
         var localFilename = ModelExtensions.CombinePath(downloadTmpDir.FullName, relativeFolder, filename);
-        _logger.LogTrace($"Downloading to temporary file: {localFilename}");
+        logger.LogTrace("Downloading to temporary file: {LocalFilename}", localFilename);
         var localFileDir = Directory.GetParent(localFilename)?.FullName ?? "";
         if (!Directory.Exists(localFileDir))
             Directory.CreateDirectory(localFileDir);
 
         var remoteFilename = ModelExtensions.GetDropboxPhotoPath(baseDir, relativeFolder, filename);
-        _logger.LogTrace($"Downlading from Dropbox: {remoteFilename}");
-        var downloadedFile = await _dropboxClientProxy.DownloadAsync(remoteFilename);
+        logger.LogTrace("Downlading from Dropbox: {RemoteFilename}", remoteFilename);
+        var downloadedFile = await dropboxClientProxy.DownloadAsync(remoteFilename);
         if (downloadedFile == null)
             throw new ArgumentException($"Cannot download file {remoteFilename}");
 
         await using FileStream imgFile = new(localFilename, FileMode.CreateNew, FileAccess.Write, FileShare.None);
         await (await downloadedFile.GetContentAsStreamAsync()).CopyToAsync(imgFile);
 
-        _logger.LogDebug($"Setting file [{localFilename}] time to {downloadedFile.Response.ServerModified}");
+        logger.LogDebug("Setting file [{LocalFilename}] time to {DownloadedFileResponseServerModified}", localFilename, downloadedFile.Response.ServerModified);
 
         File.SetCreationTimeUtc(localFilename, downloadedFile.Response.ServerModified);
         File.SetLastWriteTimeUtc(localFilename, downloadedFile.Response.ServerModified);

@@ -3,10 +3,9 @@ using SmallPhotos.Model;
 
 namespace SmallPhotos.Data;
 
-public class SqliteDataContext : DbContext, ISqliteDataContext
+public class SqliteDataContext(DbContextOptions<SqliteDataContext> options)
+    : DbContext(options), ISqliteDataContext
 {
-    public SqliteDataContext(DbContextOptions<SqliteDataContext> options) : base(options) { }
-
     public DbSet<UserAccount>? UserAccounts { get; set; }
     public DbSet<UserAccountCredential>? UserAccountCredentials { get; set; }
     public DbSet<AlbumSource>? AlbumSources { get; set; }

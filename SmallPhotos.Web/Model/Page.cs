@@ -1,17 +1,10 @@
 namespace SmallPhotos.Web.Model;
 
-public class Page
+public class Page(int pageNumber, bool isSelected = false, bool isNextPageSkipped = false)
 {
-    public Page(int pageNumber, bool isSelected = false, bool isNextPageSkipped = false)
-    {
-        PageNumber = pageNumber;
-        IsSelected = isSelected;
-        IsNextPageSkipped = isNextPageSkipped;
-    }
-
-    public int PageNumber { get; }
-    public bool IsSelected { get; }
-    public bool IsNextPageSkipped { get; }
+    public int PageNumber { get; } = pageNumber;
+    public bool IsSelected { get; } = isSelected;
+    public bool IsNextPageSkipped { get; } = isNextPageSkipped;
 
     public override string ToString() => $"{PageNumber}{(IsSelected ? " (selected)" : "")}";
     public override int GetHashCode() => PageNumber;

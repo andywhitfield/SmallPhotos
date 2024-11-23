@@ -17,25 +17,17 @@ using SmallPhotos.Web.Model.Profile;
 namespace SmallPhotos.Web.Controllers;
 
 [Authorize]
-public class ProfileController : Controller
+public class ProfileController(ILogger<ProfileController> logger, IMediator mediator,
+    IOptions<DropboxOptions> dropboxConfig)
+    : Controller
 {
-    private readonly ILogger<ProfileController> _logger;
-    private readonly IMediator _mediator;
-    private readonly string _dropboxAppKey;
-    private readonly string _dropboxAppSecret;
-
-    public ProfileController(ILogger<ProfileController> logger, IMediator mediator, IOptions<DropboxOptions> dropboxConfig)
-    {
-        _logger = logger;
-        _mediator = mediator;
-        _dropboxAppKey = dropboxConfig.Value.SmallPhotosAppKey ?? "";
-        _dropboxAppSecret = dropboxConfig.Value.SmallPhotosAppSecret ?? "";
-    }
+    private readonly string _dropboxAppKey = dropboxConfig.Value.SmallPhotosAppKey ?? "";
+    private readonly string _dropboxAppSecret = dropboxConfig.Value.SmallPhotosAppSecret ?? "";
 
     [HttpGet("~/profile")]
     public async Task<IActionResult> Index()
     {
-        var response = await _mediator.Send(new GetProfileRequest(User));
+        var response = await mediator.Send(new GetProfileRequest(User));
         return View(new IndexViewModel(HttpContext, response.Folders, response.ThumbnailSize, response.GalleryImagePageSize));
     }
 
@@ -45,11 +37,11 @@ public class ProfileController : Controller
     {
         if (!ModelState.IsValid)
         {
-            _logger.LogInformation("Model state is invalid, returning bad request");
+            logger.LogInformation("Model state is invalid, returning bad request");
             return BadRequest();
         }
 
-        var added = await _mediator.Send(new AddSourceFolderRequest(User, folder, folderRecursive ?? false));
+        var added = await mediator.Send(new AddSourceFolderRequest(User, folder, folderRecursive ?? false));
         if (!added)
             return BadRequest();
 
@@ -62,11 +54,11 @@ public class ProfileController : Controller
     {
         if (!ModelState.IsValid)
         {
-            _logger.LogInformation("Model state is invalid, returning bad request");
+            logger.LogInformation("Model state is invalid, returning bad request");
             return BadRequest();
         }
 
-        var deleted = await _mediator.Send(new DeleteSourceFolderRequest(User, albumSourceId));
+        var deleted = await mediator.Send(new DeleteSourceFolderRequest(User, albumSourceId));
         if (!deleted)
             return BadRequest();
 
@@ -83,10 +75,10 @@ public class ProfileController : Controller
         var headers = Request.GetTypedHeaders();
         var uriReferer = headers.Referer ?? new("~/");
         var updateThumbnailSize = (ThumbnailSize)thumbnailSize;
-        if (!await _mediator.Send(new UpdateUserThumbnailSizeRequest(User, updateThumbnailSize)))
+        if (!await mediator.Send(new UpdateUserThumbnailSizeRequest(User, updateThumbnailSize)))
             return BadRequest();
 
-        _logger.LogDebug($"Updated user thumbnail size to {updateThumbnailSize} - redirect to [{uriReferer}]");
+        logger.LogDebug("Updated user thumbnail size to {UpdateThumbnailSize} - redirect to [{UriReferer}]", updateThumbnailSize, uriReferer);
         return Redirect(uriReferer.ToString());
     }
 
@@ -98,10 +90,10 @@ public class ProfileController : Controller
             return BadRequest();
 
         var updateThumbnailSize = (ThumbnailSize)thumbnailSize;
-        if (!await _mediator.Send(new SaveViewOptionsRequest(User, updateThumbnailSize, pageSize)))
+        if (!await mediator.Send(new SaveViewOptionsRequest(User, updateThumbnailSize, pageSize)))
             return BadRequest();
 
-        _logger.LogDebug($"Updated user thumbnail size to {updateThumbnailSize} and page size to {pageSize}");
+        logger.LogDebug("Updated user thumbnail size to {UpdateThumbnailSize} and page size to {PageSize}", updateThumbnailSize, pageSize);
         return Redirect("~/profile");
     }
 
@@ -111,7 +103,7 @@ public class ProfileController : Controller
     {
         if (!string.IsNullOrEmpty(folder) && !string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken))
         {
-            var added = await _mediator.Send(new AddSourceFolderRequest(User, folder, folderRecursive ?? false, accessToken, refreshToken));
+            var added = await mediator.Send(new AddSourceFolderRequest(User, folder, folderRecursive ?? false, accessToken, refreshToken));
             if (!added)
                 return BadRequest();
 
@@ -119,7 +111,7 @@ public class ProfileController : Controller
         }
 
         var dropboxRedirect = DropboxOAuth2Helper.GetAuthorizeUri(OAuthResponseType.Code, _dropboxAppKey, RedirectUri, tokenAccessType: TokenAccessType.Offline, scopeList: new[] { "files.content.read" });
-        _logger.LogInformation($"Getting user token from Dropbox: {dropboxRedirect} (redirect={RedirectUri})");
+        logger.LogInformation("Getting user token from Dropbox: {DropboxRedirect} (redirect={RedirectUri})", dropboxRedirect, RedirectUri);
         return Redirect(dropboxRedirect.ToString());
     }
 
@@ -128,9 +120,9 @@ public class ProfileController : Controller
     public async Task<ActionResult> DropboxAuthentication(string code, string state)
     {
         var response = await DropboxOAuth2Helper.ProcessCodeFlowAsync(code, _dropboxAppKey, _dropboxAppSecret, RedirectUri.ToString());
-        _logger.LogInformation($"Got user tokens from Dropbox: {response.AccessToken} / {response.RefreshToken}");
+        logger.LogInformation("Got user tokens from Dropbox: {AccessToken} / {RefreshToken}", response.AccessToken, response.RefreshToken);
 
-        var profileResponse = await _mediator.Send(new GetProfileRequest(User));
+        var profileResponse = await mediator.Send(new GetProfileRequest(User));
         return View("Index", new IndexViewModel(HttpContext, profileResponse.Folders, profileResponse.ThumbnailSize, profileResponse.GalleryImagePageSize, response.AccessToken, response.RefreshToken));
     }
 

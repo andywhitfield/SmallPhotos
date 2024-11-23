@@ -2,20 +2,12 @@ using SmallPhotos.Web.Model;
 
 namespace SmallPhotos.Web.Handlers.Models;
 
-public class GalleryResponse
+public class GalleryResponse(PhotoModel? photo, PhotoModel? previousPhoto, PhotoModel? nextPhoto,
+    int photoNumber, int photoCount)
 {
-    public GalleryResponse(PhotoModel? photo, PhotoModel? previousPhoto, PhotoModel? nextPhoto, int photoNumber, int photoCount)
-    {
-        Photo = photo;
-        PreviousPhoto = previousPhoto;
-        NextPhoto = nextPhoto;
-        PhotoNumber = photoNumber;
-        PhotoCount = photoCount;
-    }
-
-    public PhotoModel? Photo { get; }
-    public PhotoModel? PreviousPhoto { get; }
-    public PhotoModel? NextPhoto { get; }
-    public int PhotoNumber { get; }
-    public int PhotoCount { get; }
+    public PhotoModel? Photo { get; } = photo;
+    public PhotoModel? PreviousPhoto { get; } = previousPhoto;
+    public PhotoModel? NextPhoto { get; } = nextPhoto;
+    public int PhotoNumber { get; } = photoNumber;
+    public int PhotoCount { get; } = photoCount;
 }

@@ -12,33 +12,21 @@ using SmallPhotos.Service.Models;
 namespace SmallPhotos.Service.Controllers;
 
 [ApiController, Route("api/[controller]")]
-public class PhotoController : ControllerBase
+public class PhotoController(
+    IUserAccountRepository userAccountRepository,
+    IAlbumRepository albumRepository,
+    IPhotoRepository photoRepository,
+    IThumbnailCreator thumbnailCreator)
+    : ControllerBase
 {
-    private readonly IUserAccountRepository _userAccountRepository;
-    private readonly IAlbumRepository _albumRepository;
-    private readonly IPhotoRepository _photoRepository;
-    private readonly IThumbnailCreator _thumbnailCreator;
-
-    public PhotoController(
-        IUserAccountRepository userAccountRepository,
-        IAlbumRepository albumRepository,
-        IPhotoRepository photoRepository,
-        IThumbnailCreator thumbnailCreator)
-    {
-        _userAccountRepository = userAccountRepository;
-        _albumRepository = albumRepository;
-        _photoRepository = photoRepository;
-        _thumbnailCreator = thumbnailCreator;
-    }
-
     [HttpPost]
     public async Task<ActionResult<Photo>> Post(CreateOrUpdatePhotoRequest request)
     {
-        var userAccount = await _userAccountRepository.GetAsync(request.UserAccountId);
+        var userAccount = await userAccountRepository.GetAsync(request.UserAccountId);
         if (userAccount == null)
             return BadRequest($"User [{request.UserAccountId}] not found");
 
-        var albumSource = await _albumRepository.GetAsync(userAccount, request.AlbumSourceId);
+        var albumSource = await albumRepository.GetAsync(userAccount, request.AlbumSourceId);
         if (albumSource == null)
             return BadRequest($"Album [{request.AlbumSourceId}] not found");
 
@@ -60,22 +48,22 @@ public class PhotoController : ControllerBase
         using MagickImage image = new(file.FullName, format);
         Size originalSize = new((int)image.Width, (int)image.Height);
 
-        var photo = await _photoRepository.GetAsync(userAccount, albumSource, file.Name, request.FilePath);
+        var photo = await photoRepository.GetAsync(userAccount, albumSource, file.Name, request.FilePath);
         if (photo == null)
-            photo = await _photoRepository.AddAsync(albumSource, file, originalSize, ExtractDateTaken(image), albumSource.IsDropboxSource ? request.FilePath : null);
+            photo = await photoRepository.AddAsync(albumSource, file, originalSize, ExtractDateTaken(image), albumSource.IsDropboxSource ? request.FilePath : null);
         else
-            await _photoRepository.UpdateAsync(photo, file, originalSize, ExtractDateTaken(image));
+            await photoRepository.UpdateAsync(photo, file, originalSize, ExtractDateTaken(image));
 
         foreach (var thumbnailSize in Enum.GetValues<ThumbnailSize>())
         {
-            var thumbnail = await _thumbnailCreator.CreateThumbnail(photo, image, thumbnailSize);
-            await _photoRepository.SaveThumbnailAsync(photo, thumbnailSize, thumbnail);
+            var thumbnail = await thumbnailCreator.CreateThumbnail(photo, image, thumbnailSize);
+            await photoRepository.SaveThumbnailAsync(photo, thumbnailSize, thumbnail);
         }
 
         return photo;
     }
 
-    private DateTime? ExtractDateTaken(MagickImage image)
+    private static DateTime? ExtractDateTaken(MagickImage image)
     {
         var exifData = image.GetExifProfile();
 

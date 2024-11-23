@@ -8,19 +8,16 @@ using SmallPhotos.Web.Model.Gallery;
 namespace SmallPhotos.Web.Controllers;
 
 [Authorize]
-public class GalleryController : Controller
+public class GalleryController(IMediator mediator)
+    : Controller
 {
-    private readonly IMediator _mediator;
-
-    public GalleryController(IMediator mediator) => _mediator = mediator;
-
     [HttpGet("~/gallery/{photoId}/{photoFilename}")]
     public async Task<IActionResult> Index(string photoId, string photoFilename, [FromQuery] string? from)
     {
         if (!long.TryParse(photoId, out var photoIdValue))
             return NotFound();
 
-        var response = await _mediator.Send(new GalleryRequest(User, photoIdValue, photoFilename, from == "starred", (from ?? "").StartsWith("tagged_") ? from!.Substring("tagged_".Length) : ""));
+        var response = await mediator.Send(new GalleryRequest(User, photoIdValue, photoFilename, from == "starred", (from ?? "").StartsWith("tagged_") ? from!.Substring("tagged_".Length) : ""));
         if (response.Photo == null)
             return NotFound();
 

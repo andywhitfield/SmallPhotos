@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace SmallPhotos.Web.Handlers.Models;
 
-public class SigninVerifyRequest(HttpContext httpContext, string email, string verifyOptions, string verifyResponse) : IRequest<bool>
+public class SigninVerifyRequest(HttpContext httpContext, string email, string verifyOptions, string verifyResponse)
+    : IRequest<bool>
 {
     public HttpContext HttpContext { get; } = httpContext;
     public string Email { get; } = email;

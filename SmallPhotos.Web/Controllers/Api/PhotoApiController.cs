@@ -8,19 +8,10 @@ using SmallPhotos.Web.Model.Gallery;
 namespace SmallPhotos.Web.Controllers.Api;
 
 [ApiController, Authorize, Route("api/[controller]")]
-public class PhotoApiController : ControllerBase
+public class PhotoApiController(ILogger<PhotoApiController> logger, IUserAccountRepository userAccountRepository,
+    IPhotoRepository photoRepository)
+    : ControllerBase
 {
-    private readonly ILogger<PhotoApiController> _logger;
-    private readonly IUserAccountRepository _userAccountRepository;
-    private readonly IPhotoRepository _photoRepository;
-
-    public PhotoApiController(ILogger<PhotoApiController> logger, IUserAccountRepository userAccountRepository, IPhotoRepository photoRepository)
-    {
-        _logger = logger;
-        _userAccountRepository = userAccountRepository;
-        _photoRepository = photoRepository;
-    }
-
     [HttpPost("star/{photoId}")]
     public Task<ActionResult> Star(long photoId) => StarUnstar(photoId, true);
 
@@ -30,51 +21,51 @@ public class PhotoApiController : ControllerBase
     [HttpPost("tag/{photoId}")]
     public async Task<ActionResult> Tag(long photoId, AddTagRequest addTagRequest)
     {
-        _logger.LogInformation($"Adding tag to photo {photoId}: {addTagRequest.Tag}");
+        logger.LogInformation("Adding tag to photo {PhotoId}: {AddTagRequest.Tag}", photoId, addTagRequest.Tag);
         if (string.IsNullOrWhiteSpace(addTagRequest.Tag))
             return BadRequest();
 
-        var user = await _userAccountRepository.GetUserAccountOrNullAsync(User);
+        var user = await userAccountRepository.GetUserAccountOrNullAsync(User);
         if (user == null)
             return BadRequest();
 
-        var photo = await _photoRepository.GetAsync(user, photoId);
+        var photo = await photoRepository.GetAsync(user, photoId);
         if (photo == null)
             return BadRequest();
 
-        await _photoRepository.AddTagAsync(user, photo, addTagRequest.Tag);
+        await photoRepository.AddTagAsync(user, photo, addTagRequest.Tag);
         return Ok();
     }
 
     [HttpDelete("tag/{photoId}")]
     public async Task<ActionResult> ClearAllTags(long photoId)
     {
-        _logger.LogInformation($"Clearing all tags on photo {photoId}");
-        var user = await _userAccountRepository.GetUserAccountOrNullAsync(User);
+        logger.LogInformation("Clearing all tags on photo {PhotoId}", photoId);
+        var user = await userAccountRepository.GetUserAccountOrNullAsync(User);
         if (user == null)
             return BadRequest();
 
-        var photo = await _photoRepository.GetAsync(user, photoId);
+        var photo = await photoRepository.GetAsync(user, photoId);
         if (photo == null)
             return BadRequest();
 
-        await _photoRepository.DeleteTagsAsync(user, photo);
+        await photoRepository.DeleteTagsAsync(user, photo);
         return Ok();
     }
 
     private async Task<ActionResult> StarUnstar(long photoId, bool star)
     {
-        _logger.LogInformation($"Starring / Unstarring photo: {photoId} - {star}");
+        logger.LogInformation("Starring / Unstarring photo: {PhotoId} - {Star}", photoId, star);
 
-        var user = await _userAccountRepository.GetUserAccountOrNullAsync(User);
+        var user = await userAccountRepository.GetUserAccountOrNullAsync(User);
         if (user == null)
             return BadRequest();
 
-        var photo = await _photoRepository.GetAsync(user, photoId);
+        var photo = await photoRepository.GetAsync(user, photoId);
         if (photo == null)
             return BadRequest();
 
-        await (star ? _photoRepository.StarAsync(user, photo) : _photoRepository.UnstarAsync(user, photo));
+        await (star ? photoRepository.StarAsync(user, photo) : photoRepository.UnstarAsync(user, photo));
         return Ok();
     }
 }

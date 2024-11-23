@@ -13,7 +13,8 @@ using SmallPhotos.Web.Model.Home;
 
 namespace SmallPhotos.Web.Controllers;
 
-public class HomeController(ILogger<HomeController> logger, IMediator mediator) : Controller
+public class HomeController(ILogger<HomeController> logger, IMediator mediator)
+    : Controller
 {
     [Authorize]
     [HttpGet("~/")]

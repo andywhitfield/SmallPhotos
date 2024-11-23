@@ -4,8 +4,8 @@ using MediatR;
 
 namespace SmallPhotos.Web.Handlers.Models;
 
-public class TaggedPhotoHomeRequest : IRequest<IEnumerable<(string Tag, int PhotoCount)>>
+public class TaggedPhotoHomeRequest(ClaimsPrincipal user)
+    : IRequest<IEnumerable<(string Tag, int PhotoCount)>>
 {
-    public ClaimsPrincipal User { get; }
-    public TaggedPhotoHomeRequest(ClaimsPrincipal user) => User = user;
+    public ClaimsPrincipal User { get; } = user;
 }

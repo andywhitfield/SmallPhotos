@@ -6,19 +6,16 @@ using SmallPhotos.Web.Handlers.Models;
 
 namespace SmallPhotos.Web.Handlers;
 
-public class UpdateUserThumbnailSizeRequestHandler : IRequestHandler<UpdateUserThumbnailSizeRequest, bool>
+public class UpdateUserThumbnailSizeRequestHandler(IUserAccountRepository userAccountRepository)
+: IRequestHandler<UpdateUserThumbnailSizeRequest, bool>
 {
-    private readonly IUserAccountRepository _userAccountRepository;
-
-    public UpdateUserThumbnailSizeRequestHandler(IUserAccountRepository userAccountRepository) => _userAccountRepository = userAccountRepository;
-
     public async Task<bool> Handle(UpdateUserThumbnailSizeRequest request, CancellationToken cancellationToken)
     {
-        var user = await _userAccountRepository.GetUserAccountAsync(request.User);
+        var user = await userAccountRepository.GetUserAccountAsync(request.User);
         if (user.ThumbnailSize != request.NewThumbnailSize)
         {
             user.ThumbnailSize = request.NewThumbnailSize;
-            await _userAccountRepository.UpdateAsync(user);
+            await userAccountRepository.UpdateAsync(user);
         }
 
         return true;            

@@ -11,32 +11,21 @@ using SmallPhotos.Service.BackgroundServices;
 
 namespace SmallPhotos.Service.Services;
 
-public class FilesystemSync : IFilesystemSync
+public class FilesystemSync(
+    ILogger<FilesystemSync> logger,
+    IOptionsSnapshot<AlbumChangeServiceOptions> options,
+    IPhotoRepository photoRepository
+    ) : IFilesystemSync
 {
-    private readonly ILogger<FilesystemSync> _logger;
-    private readonly IOptionsSnapshot<AlbumChangeServiceOptions> _options;
-    private readonly IPhotoRepository _photoRepository;
-
-    public FilesystemSync(
-        ILogger<FilesystemSync> logger,
-        IOptionsSnapshot<AlbumChangeServiceOptions> options,
-        IPhotoRepository photoRepository
-    )
-    {
-        _logger = logger;
-        _options = options;
-        _photoRepository = photoRepository;
-    }
-
     public async Task SyncAsync(AlbumSource albumSource, UserAccount user, HttpClient httpClient)
     {
-        _logger.LogDebug($"Checking album changes for user [{user.UserAccountId}] / album [{albumSource.AlbumSourceId}:{albumSource.Folder}]");
+        logger.LogDebug("Checking album changes for user [{UserAccountId}] / album [{AlbumSourceId}:{AlbumSourceFolder}]", user.UserAccountId, albumSource.AlbumSourceId, albumSource.Folder);
 
         var filesInAlbum = GetFilesForAlbumSource(albumSource);
-        var photosInAlbum = await _photoRepository.GetAllAsync(albumSource);
+        var photosInAlbum = await photoRepository.GetAllAsync(albumSource);
 
-        _logger.LogDebug($"Files in folder: [{string.Join(',', filesInAlbum.Select(fi => fi.Name))}]");
-        _logger.LogDebug($"Photos in album: [{string.Join(',', photosInAlbum.Select(p => p.Filename))}]");
+        logger.LogDebug("Files in folder: [{FilesInAlbum}]", string.Join(',', filesInAlbum.Select(fi => fi.Name)));
+        logger.LogDebug("Photos in album: [{PhotosInAlbum}]", string.Join(',', photosInAlbum.Select(p => p.Filename)));
 
         var newOrChangedPhotos = (
             from f in filesInAlbum
@@ -46,14 +35,14 @@ public class FilesystemSync : IFilesystemSync
             orderby f.LastWriteTimeUtc descending
             select f).ToList();
 
-        _logger.LogInformation($"New or changed photos in album: [{string.Join(',', newOrChangedPhotos.Select(fi => fi.Name))}]");
+        logger.LogInformation("New or changed photos in album: [{NewOrChangedPhotos}]", string.Join(',', newOrChangedPhotos.Select(fi => fi.Name)));
 
-        foreach (var requestBatch in newOrChangedPhotos.Chunk(_options.Value.SyncPhotoBatchSize))
+        foreach (var requestBatch in newOrChangedPhotos.Chunk(options.Value.SyncPhotoBatchSize))
         {
             await Task.WhenAll(requestBatch.Select(async newOrChanged =>
             {
                 var responseString = await httpClient.PostCreateOrUpdatePhotoAsync(user, albumSource, newOrChanged.Name, albumSource.Folder.GetRelativePath(newOrChanged));
-                _logger.LogInformation($"Successfully updated / added new photo: {responseString}");
+                logger.LogInformation("Successfully updated / added new photo: {ResponseString}", responseString);
             }));
         }
 
@@ -65,14 +54,14 @@ public class FilesystemSync : IFilesystemSync
             select p
         ).ToList();
 
-        _logger.LogInformation($"Deleting photos in album: [{string.Join(',', deletedPhotos.Select(p => p.Filename))}]");
-        await deletedPhotos.DeletePhotosAsync(_photoRepository);
+        logger.LogInformation("Deleting photos in album: [{deletedPhotos}]", string.Join(',', deletedPhotos.Select(p => p.Filename)));
+        await deletedPhotos.DeletePhotosAsync(photoRepository);
     }
 
-    private IEnumerable<FileInfo> GetFilesForAlbumSource(AlbumSource albumSource) =>
+    private static IEnumerable<FileInfo> GetFilesForAlbumSource(AlbumSource albumSource) =>
         GetPhotoFilesInDirectory(new(albumSource.Folder ?? ""), albumSource.RecurseSubFolders ?? false);
 
-    private IEnumerable<FileInfo> GetPhotoFilesInDirectory(DirectoryInfo dir, bool recurse)
+    private static IEnumerable<FileInfo> GetPhotoFilesInDirectory(DirectoryInfo dir, bool recurse)
     {
         if (!dir.Exists)
             yield break;

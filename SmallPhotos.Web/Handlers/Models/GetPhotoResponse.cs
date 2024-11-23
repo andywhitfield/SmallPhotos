@@ -3,20 +3,12 @@ using System.IO;
 
 namespace SmallPhotos.Web.Handlers.Models;
 
-public class GetPhotoResponse
+public class GetPhotoResponse(Stream? imageStream, string? imageContentType, DateTime? imageLastModified, string? imageETag)
 {
     public static readonly GetPhotoResponse Empty = new(null, null, null, null);
-    
-    public GetPhotoResponse(Stream? imageStream, string? imageContentType, DateTime? imageLastModified, string? imageETag)
-    {
-        ImageStream = imageStream;
-        ImageContentType = imageContentType;
-        ImageLastModified = imageLastModified;
-        ImageETag = imageETag;
-    }
 
-    public Stream? ImageStream { get; }
-    public string? ImageContentType { get; }
-    public DateTime? ImageLastModified { get; }
-    public string? ImageETag { get; }
+    public Stream? ImageStream { get; } = imageStream;
+    public string? ImageContentType { get; } = imageContentType;
+    public DateTime? ImageLastModified { get; } = imageLastModified;
+    public string? ImageETag { get; } = imageETag;
 }

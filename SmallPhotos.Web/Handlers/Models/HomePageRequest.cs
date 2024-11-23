@@ -3,20 +3,13 @@ using MediatR;
 
 namespace SmallPhotos.Web.Handlers.Models;
 
-public class HomePageRequest : IRequest<HomePageResponse>
+public class HomePageRequest(ClaimsPrincipal user, int pageNumber, int? photoId,
+    bool onlyStarred = false, string? withTag = null)
+    : IRequest<HomePageResponse>
 {
-    public ClaimsPrincipal User { get; }
-    public int PageNumber { get; }
-    public int? PhotoId { get; }
-    public bool OnlyStarred { get; }
-    public string? WithTag { get; }
-
-    public HomePageRequest(ClaimsPrincipal user, int pageNumber, int? photoId, bool onlyStarred = false, string? withTag = null)
-    {
-        User = user;
-        PageNumber = pageNumber;
-        PhotoId = photoId;
-        OnlyStarred = onlyStarred;
-        WithTag = withTag;
-    }
+    public ClaimsPrincipal User { get; } = user;
+    public int PageNumber { get; } = pageNumber;
+    public int? PhotoId { get; } = photoId;
+    public bool OnlyStarred { get; } = onlyStarred;
+    public string? WithTag { get; } = withTag;
 }

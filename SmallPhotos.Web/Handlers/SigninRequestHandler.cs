@@ -23,7 +23,7 @@ public class SigninRequestHandler(ILogger<SigninRequestHandler> logger, IConfigu
         string options;
         if ((user = await userAccountRepository.GetUserAccountByEmailAsync(request.Email)) != null)
         {
-            logger.LogTrace($"Found existing user account with email [{request.Email}], creating assertion options");
+            logger.LogTrace("Found existing user account with email [{RequestEmail}], creating assertion options", request.Email);
             options = fido2.GetAssertionOptions(
                 await userAccountRepository
                     .GetUserAccountCredentialsAsync(user)
@@ -40,7 +40,7 @@ public class SigninRequestHandler(ILogger<SigninRequestHandler> logger, IConfigu
         }
         else
         {
-            logger.LogTrace($"Found no user account with email [{request.Email}], creating request new creds options");
+            logger.LogTrace("Found no user account with email [{RequestEmail}], creating request new creds options", request.Email);
             options = fido2.RequestNewCredential(
                 new Fido2User() { Id = Encoding.UTF8.GetBytes(request.Email), Name = request.Email, DisplayName = request.Email },
                 [],
@@ -55,7 +55,7 @@ public class SigninRequestHandler(ILogger<SigninRequestHandler> logger, IConfigu
             ).ToJson();
         }
 
-        logger.LogTrace($"Created sign in options: {options}");
+        logger.LogTrace("Created sign in options: {Options}", options);
 
         return new(user != null, options);
     }

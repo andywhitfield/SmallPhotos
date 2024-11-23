@@ -4,18 +4,11 @@ using SmallPhotos.Web.Model;
 
 namespace SmallPhotos.Web.Handlers.Models;
 
-public class HomePageResponse
+public class HomePageResponse(bool isUserValid, ThumbnailSize thumbnailSize,
+    IEnumerable<PhotoModel> photos, Pagination pagination)
 {
-    public HomePageResponse(bool isUserValid, ThumbnailSize thumbnailSize, IEnumerable<PhotoModel> photos, Pagination pagination)
-    {
-        IsUserValid = isUserValid;
-        ThumbnailSize = thumbnailSize;
-        Photos = photos;
-        Pagination = pagination;
-    }
-
-    public bool IsUserValid { get; }
-    public ThumbnailSize ThumbnailSize { get; }
-    public IEnumerable<PhotoModel> Photos { get; }
-    public Pagination Pagination { get; }
+    public bool IsUserValid { get; } = isUserValid;
+    public ThumbnailSize ThumbnailSize { get; } = thumbnailSize;
+    public IEnumerable<PhotoModel> Photos { get; } = photos;
+    public Pagination Pagination { get; } = pagination;
 }

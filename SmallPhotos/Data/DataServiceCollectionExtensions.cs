@@ -13,7 +13,7 @@ public static class DataServiceCollectionExtensions
             .AddDbContext<SqliteDataContext>((serviceProvider, options) =>
             {
                 var sqliteConnectionString = serviceProvider.GetRequiredService<IConfiguration>().GetConnectionString("SmallPhotos");
-                serviceProvider.GetRequiredService<ILogger<SqliteDataContext>>().LogInformation($"Using connection string: {sqliteConnectionString}");
+                serviceProvider.GetRequiredService<ILogger<SqliteDataContext>>().LogInformation("Using connection string: {SqliteConnectionString}", sqliteConnectionString);
                 options.UseSqlite(sqliteConnectionString);
             })
             .AddScoped(sp => (ISqliteDataContext)sp.GetRequiredService<SqliteDataContext>())

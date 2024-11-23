@@ -42,8 +42,7 @@ public class Pagination
         }
         else
         {
-            List<int> pages = new();
-            pages.AddRange(Enumerable.Range(pageNumber - 2, 6));
+            List<int> pages = [.. Enumerable.Range(pageNumber - 2, 6)];
             Normalise(pages);
 
             if (pageNumber - 4 <= 1)

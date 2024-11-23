@@ -31,7 +31,7 @@ public class DropboxClientProxy : IDropboxClientProxy, IDisposable
         DisposeDropboxClient();
         if (_dropboxTempDir.IsValueCreated && !_dropboxTempDir.Value.Exists)
         {
-            _logger.LogTrace($"Re-initialised, re-creating dropbox temp dir: {_dropboxTempDir.Value.FullName}");
+            _logger.LogTrace("Re-initialised, re-creating dropbox temp dir: {DropboxTempDir}", _dropboxTempDir.Value.FullName);
             _dropboxTempDir.Value.Create();
         }
 
@@ -57,7 +57,7 @@ public class DropboxClientProxy : IDropboxClientProxy, IDisposable
     private DirectoryInfo CreateTemporaryDirectory()
     {
         DirectoryInfo tempDir = new(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-        _logger.LogTrace($"Creating dropbox temp dir: {tempDir.FullName}");
+        _logger.LogTrace("Creating dropbox temp dir: {TempDirFullName}", tempDir.FullName);
         tempDir.Create();
         return tempDir;
     }
@@ -67,17 +67,17 @@ public class DropboxClientProxy : IDropboxClientProxy, IDisposable
         _dropboxClient?.Dispose();
         if (_dropboxTempDir.IsValueCreated && _dropboxTempDir.Value.Exists)
         {
-            _logger.LogTrace($"Deleting temporary Dropbox download directory: {_dropboxTempDir.Value.FullName}");
+            _logger.LogTrace("Deleting temporary Dropbox download directory: {DropboxTempDir}", _dropboxTempDir.Value.FullName);
             try
             {
                 Policy
                     .Handle<Exception>()
-                    .WaitAndRetry(3, retry => TimeSpan.FromSeconds(retry), (ex, ts) => _logger.LogWarning(ex, $"Error deleting temporary download directory [{_dropboxTempDir.Value.FullName}], trying again in {ts}"))
+                    .WaitAndRetry(3, retry => TimeSpan.FromSeconds(retry), (ex, ts) => _logger.LogWarning(ex, "Error deleting temporary download directory [{DropboxTempDir}], trying again in {Ts}", _dropboxTempDir.Value.FullName, ts))
                     .Execute(() => _dropboxTempDir.Value.Delete(true));
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, $"Could not delete the temporary folder used for Dropbox downloads, is there a file left open somewhere? This folder will not be automatically cleaned-up. Path: {_dropboxTempDir.Value.FullName}");
+                _logger.LogWarning(ex, "Could not delete the temporary folder used for Dropbox downloads, is there a file left open somewhere? This folder will not be automatically cleaned-up. Path: {DropboxTempDir}", _dropboxTempDir.Value.FullName);
             }
         }
     }

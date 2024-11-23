@@ -11,25 +11,17 @@ using SmallPhotos.Web.Handlers.Models;
 namespace SmallPhotos.Web.Controllers;
 
 [Authorize]
-public class PhotoController : Controller
+public class PhotoController(ILogger<PhotoController> logger, IMediator mediator)
+    : Controller
 {
-    private readonly ILogger<PhotoController> _logger;
-    private readonly IMediator _mediator;
-
-    public PhotoController(ILogger<PhotoController> logger, IMediator mediator)
-    {
-        _logger = logger;
-        _mediator = mediator;
-    }
-
     [HttpGet("~/photo/thumbnail/{size}/{photoId}/{filename}"), HttpHead("~/photo/thumbnail/{size}/{photoId}/{filename}")]
     public async Task<IActionResult> Thumbnail(string size, string photoId, string filename)
     {
         if (!long.TryParse(photoId, out var photoIdValue))
             return NotFound();
 
-        _logger.LogInformation($"Getting image {photoId}, size {size}");
-        return await GetPhotoResultAsync(await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, size ?? "", false)));
+        logger.LogInformation("Getting image {PhotoId}, size {Size}", photoId, size);
+        return await GetPhotoResultAsync(await mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, size ?? "", false)));
     }
 
     [HttpGet("~/photo/{photoId}/{filename}"), HttpHead("~/photo/{photoId}/{filename}")]
@@ -43,8 +35,8 @@ public class PhotoController : Controller
         if (!long.TryParse(photoId, out var photoIdValue))
             return NotFound();
 
-        _logger.LogInformation($"Getting image {photoId}");
-        return await GetPhotoResultAsync(await _mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, null, original)));
+        logger.LogInformation("Getting image {PhotoId}", photoId);
+        return await GetPhotoResultAsync(await mediator.Send(new GetPhotoRequest(User, photoIdValue, filename, null, original)));
     }
 
     private async Task<IActionResult> GetPhotoResultAsync(GetPhotoResponse? response)

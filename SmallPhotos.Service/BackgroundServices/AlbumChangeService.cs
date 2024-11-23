@@ -9,44 +9,35 @@ using SmallPhotos.Service.Services;
 
 namespace SmallPhotos.Service.BackgroundServices;
 
-public class AlbumChangeService : BackgroundService
+public class AlbumChangeService(ILogger<AlbumChangeService> logger, IServiceScopeFactory serviceScopeFactory,
+    IHostApplicationLifetime applicationLifetime)
+    : BackgroundService
 {
-    private readonly ILogger<AlbumChangeService> _logger;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly IHostApplicationLifetime _applicationLifetime;
-
-    public AlbumChangeService(ILogger<AlbumChangeService> logger, IServiceScopeFactory serviceScopeFactory, IHostApplicationLifetime applicationLifetime)
-    {
-        _logger = logger;
-        _serviceScopeFactory = serviceScopeFactory;
-        _applicationLifetime = applicationLifetime;
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Running album change background service");
+        logger.LogInformation("Running album change background service");
         try
         {
             TaskCompletionSource<object> waitForStart = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            _applicationLifetime.ApplicationStarted.Register(obj =>
+            applicationLifetime.ApplicationStarted.Register(obj =>
             {
                 var tcs = obj as TaskCompletionSource<object>;
                 tcs?.TrySetResult(0);
             }, waitForStart);
 
-            _logger.LogDebug("Waiting for application start");
+            logger.LogDebug("Waiting for application start");
             await waitForStart.Task;
 
-            _logger.LogDebug("Application started, waiting 1s before inital sync");
+            logger.LogDebug("Application started, waiting 1s before inital sync");
             await Task.Delay(1000, stoppingToken);
 
             var consecutiveFailures = 0;
             do
             {
-                _logger.LogInformation("Album change service sync starting");
+                logger.LogInformation("Album change service sync starting");
 
                 TimeSpan pollPeriod;
-                using (var scope = _serviceScopeFactory.CreateScope())
+                using (var scope = serviceScopeFactory.CreateScope())
                 {
                     pollPeriod = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<AlbumChangeServiceOptions>>().Value.PollPeriod;
 
@@ -60,27 +51,27 @@ public class AlbumChangeService : BackgroundService
                         consecutiveFailures++;
                         if (consecutiveFailures > 4)
                         {
-                            _logger.LogError(ex, $"An error occurred syncing photos. There have been {consecutiveFailures} consecutive failures - giving up!");
+                            logger.LogError(ex, "An error occurred syncing photos. There have been {ConsecutiveFailures} consecutive failures - giving up!", consecutiveFailures);
                             throw;
                         }
                         else
                         {
-                            _logger.LogError(ex, "An error occurred syncing photos");
+                            logger.LogError(ex, "An error occurred syncing photos");
                         }
                     }
                 }
 
-                _logger.LogInformation($"Album change service sync complete - waiting [{pollPeriod}] before running again");
+                logger.LogInformation("Album change service sync complete - waiting [{PollPeriod}] before running again", pollPeriod);
                 await Task.Delay(pollPeriod, stoppingToken);
             } while (!stoppingToken.IsCancellationRequested);
         }
         catch (TaskCanceledException)
         {
-            _logger.LogDebug("Album change background service cancellation token cancelled - service stopping");
+            logger.LogDebug("Album change background service cancellation token cancelled - service stopping");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred running the album change background service - stopping background service!");
+            logger.LogError(ex, "An error occurred running the album change background service - stopping background service!");
         }
     }
 }

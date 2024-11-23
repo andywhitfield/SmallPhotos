@@ -3,15 +3,10 @@ using MediatR;
 
 namespace SmallPhotos.Web.Handlers.Models;
 
-public class DeleteSourceFolderRequest : IRequest<bool>
+public class DeleteSourceFolderRequest(ClaimsPrincipal user, long albumSourceId)
+    : IRequest<bool>
 {
-    public DeleteSourceFolderRequest(ClaimsPrincipal user, long albumSourceId)
-    {
-        User = user;
-        AlbumSourceId = albumSourceId;
-    }
+    public ClaimsPrincipal User { get; } = user;
 
-    public ClaimsPrincipal User { get; }
-
-    public long AlbumSourceId { get; }
+    public long AlbumSourceId { get; } = albumSourceId;
 }

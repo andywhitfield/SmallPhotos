@@ -59,7 +59,7 @@ public class Startup
                     provider.GetService<IHostApplicationLifetime>()?.StopApplication();
                     return;
                 }
-                logger.LogDebug($"Creating HttpClient[{BackgroundServiceHttpClient}] with address [{serviceAddress}]");
+                logger.LogDebug("Creating HttpClient[{BackgroundServiceHttpClient}] with address [{ServiceAddress}]", BackgroundServiceHttpClient, serviceAddress);
                 cfg.BaseAddress = new(serviceAddress);
             });
         services.AddMvc();

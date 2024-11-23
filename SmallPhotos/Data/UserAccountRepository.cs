@@ -9,14 +9,15 @@ using SmallPhotos.Model;
 
 namespace SmallPhotos.Data;
 
-public class UserAccountRepository(ILogger<UserAccountRepository> logger, SqliteDataContext context) : IUserAccountRepository
+public class UserAccountRepository(ILogger<UserAccountRepository> logger, SqliteDataContext context)
+    : IUserAccountRepository
 {
     public Task<UserAccount?> GetAsync(long userAccountId) =>
         context.UserAccounts!.SingleOrDefaultAsync(a => a.UserAccountId == userAccountId && a.DeletedDateTime == null);
 
     public async Task<UserAccount> CreateNewUserAsync(string email, byte[] credentialId, byte[] publicKey, byte[] userHandle)
     {
-        logger.LogInformation($"Creating new user with email [{email}]");
+        logger.LogInformation("Creating new user with email [{Email}]", email);
         if (await context.UserAccounts!.AnyAsync(ua => ua.Email == email))
             throw new InvalidOperationException($"UserAccount already exists with email [{email}]");
 
@@ -30,7 +31,8 @@ public class UserAccountRepository(ILogger<UserAccountRepository> logger, Sqlite
 
     private string? GetEmailFromPrincipal(ClaimsPrincipal user)
     {
-        logger.LogTrace($"Getting email from user: {user?.Identity?.Name}: [{string.Join(',', user?.Claims.Select(c => $"{c.Type}={c.Value}") ?? Enumerable.Empty<string>())}]");
+        logger.LogTrace("Getting email from user: {User}: [{Claims}]",
+            user?.Identity?.Name, string.Join(',', user?.Claims.Select(c => $"{c.Type}={c.Value}") ?? Enumerable.Empty<string>()));
         return user?.FindFirstValue(ClaimTypes.Name);
     }
 
@@ -41,11 +43,11 @@ public class UserAccountRepository(ILogger<UserAccountRepository> logger, Sqlite
         var email = GetEmailFromPrincipal(user);
         if (string.IsNullOrWhiteSpace(email))
         {
-            logger.LogInformation($"No user account found with email [{email}]");
+            logger.LogInformation("No user account found with email [{Email}]", email);
             return Task.FromResult((UserAccount?)null);
         }
 
-        logger.LogTrace($"Looking up user account with email [{email}]");
+        logger.LogTrace("Looking up user account with email [{Email}]", email);
         return context.UserAccounts!.FirstOrDefaultAsync(ua => ua.Email == email && ua.DeletedDateTime == null);
     }
 

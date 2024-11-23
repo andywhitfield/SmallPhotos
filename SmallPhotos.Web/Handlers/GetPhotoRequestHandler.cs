@@ -12,41 +12,27 @@ using SmallPhotos.Web.Handlers.Models;
 
 namespace SmallPhotos.Web.Handlers;
 
-public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoResponse>
+public class GetPhotoRequestHandler(
+    ILogger<GetPhotoRequestHandler> logger,
+    IUserAccountRepository userAccountRepository,
+    IPhotoRepository photoRepository,
+    IPhotoReader photoReader,
+    IDropboxClientProxy dropboxClientProxy)
+    : IRequestHandler<GetPhotoRequest, GetPhotoResponse>
 {
-    private readonly ILogger<GetPhotoRequestHandler> _logger;
-    private readonly IUserAccountRepository _userAccountRepository;
-    private readonly IPhotoRepository _photoRepository;
-    private readonly IPhotoReader _photoReader;
-    private readonly IDropboxClientProxy _dropboxClientProxy;
-
-    public GetPhotoRequestHandler(
-        ILogger<GetPhotoRequestHandler> logger,
-        IUserAccountRepository userAccountRepository,
-        IPhotoRepository photoRepository,
-        IPhotoReader photoReader,
-        IDropboxClientProxy dropboxClientProxy)
-    {
-        _logger = logger;
-        _userAccountRepository = userAccountRepository;
-        _photoRepository = photoRepository;
-        _photoReader = photoReader;
-        _dropboxClientProxy = dropboxClientProxy;
-    }
-
     public async Task<GetPhotoResponse> Handle(GetPhotoRequest request, CancellationToken cancellationToken)
     {
-        var user = await _userAccountRepository.GetUserAccountAsync(request.User);
-        var photo = await _photoRepository.GetAsync(user, request.PhotoId);
+        var user = await userAccountRepository.GetUserAccountAsync(request.User);
+        var photo = await photoRepository.GetAsync(user, request.PhotoId);
         if (photo == null)
         {
-            _logger.LogInformation($"No photo with id {request.PhotoId}");
+            logger.LogInformation("No photo with id {RequestPhotoId}", request.PhotoId);
             return GetPhotoResponse.Empty;
         }
 
         if (!string.Equals(photo.Filename, request.Name, StringComparison.OrdinalIgnoreCase))
         {
-            _logger.LogInformation($"Found photo with id {request.PhotoId}, but names don't match [{photo.Filename}] vs [{request.Name}]");
+            logger.LogInformation("Found photo with id {RequestPhotoId}, but names don't match [{PhotoFilename}] vs [{RequestName}]", request.PhotoId, photo.Filename, request.Name);
             return GetPhotoResponse.Empty;
         }
 
@@ -55,15 +41,15 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
             var original = await LoadPhotoFileAsync(photo, request.Original);
             if (!(original?.Exists ?? false))
             {
-                _logger.LogInformation($"Photo with id {request.PhotoId} does not exist: [{original?.FullName}]");
+                logger.LogInformation("Photo with id {RequestPhotoId} does not exist: [{OriginalFullName}]", request.PhotoId, original?.FullName);
                 return GetPhotoResponse.Empty;
             }
 
-            var (contentType, stream) = await _photoReader.GetPhotoStreamForWebAsync(original);
+            var (contentType, stream) = await photoReader.GetPhotoStreamForWebAsync(original);
 
             if (contentType == null)
             {
-                _logger.LogInformation($"Photo [{request.PhotoId} / {original.Name}] cannot be mapped to a known content type");
+                logger.LogInformation("Photo [{RequestPhotoId} / {OriginalName}] cannot be mapped to a known content type", request.PhotoId, original.Name);
                 return GetPhotoResponse.Empty;
             }
 
@@ -73,14 +59,14 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
         ThumbnailSize thumbnailSize;
         if (!Enum.TryParse<ThumbnailSize>(request.ThumbnailSize, true, out thumbnailSize))
         {
-            _logger.LogInformation($"Unknown thumbnail size [{request.ThumbnailSize}]");
+            logger.LogInformation("Unknown thumbnail size [{RequestThumbnailSize}]", request.ThumbnailSize);
             return GetPhotoResponse.Empty;
         }
 
-        var thumbnail = await _photoRepository.GetThumbnailAsync(photo, thumbnailSize);
+        var thumbnail = await photoRepository.GetThumbnailAsync(photo, thumbnailSize);
         if (thumbnail?.ThumbnailImage == null)
         {
-            _logger.LogInformation($"No thumbnail for photo [{request.PhotoId}]");
+            logger.LogInformation("No thumbnail for photo [{RequestPhotoId}]", request.PhotoId);
             return GetPhotoResponse.Empty;
         }
 
@@ -88,9 +74,9 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
         return new(imgStream, "image/jpeg", ImageUpdatedDate(photo), GenerateETag(imgStream));
     }
 
-    private DateTime ImageUpdatedDate(Photo photo) => photo.LastUpdateDateTime ?? photo.FileModificationDateTime;
+    private static DateTime ImageUpdatedDate(Photo photo) => photo.LastUpdateDateTime ?? photo.FileModificationDateTime;
 
-    private string? GenerateETag(Stream? stream)
+    private static string? GenerateETag(Stream? stream)
     {
         if (stream == null)
             return null;
@@ -117,19 +103,19 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
     {
         var dropboxFilename = ModelExtensions.GetDropboxPhotoPath(photo.AlbumSource!.Folder, photo.RelativePath, photo.Filename);
 
-        _logger.LogTrace($"Loading photo file (photo={photo.PhotoId} folder=[{photo.AlbumSource.Folder}] photo path=[{photo.RelativePath}] name=[{photo.Filename}]) from Dropbox: {dropboxFilename}");
+        logger.LogTrace("Loading photo file (photo={PhotoId} folder=[{AlbumSourceFolder}] photo path=[{PhotoRelativePath}] name=[{PhotoFilename}]) from Dropbox: {DropboxFilename}", photo.PhotoId, photo.AlbumSource.Folder, photo.RelativePath, photo.Filename, dropboxFilename);
 
         try
         {
-            _dropboxClientProxy.Initialise(photo.AlbumSource.DropboxAccessToken, photo.AlbumSource.DropboxRefreshToken);
+            dropboxClientProxy.Initialise(photo.AlbumSource.DropboxAccessToken, photo.AlbumSource.DropboxRefreshToken);
 
-            var localFilename = Path.Combine(_dropboxClientProxy.TemporaryDownloadDirectory.FullName, Path.GetRandomFileName() + Path.GetExtension(photo.Filename));
-            _logger.LogTrace($"Downloading from Dropbox: {dropboxFilename}");
-            var downloadResponse = await _dropboxClientProxy.DownloadAsync(dropboxFilename);
+            var localFilename = Path.Combine(dropboxClientProxy.TemporaryDownloadDirectory.FullName, Path.GetRandomFileName() + Path.GetExtension(photo.Filename));
+            logger.LogTrace("Downloading from Dropbox: {DropboxFilename}", dropboxFilename);
+            var downloadResponse = await dropboxClientProxy.DownloadAsync(dropboxFilename);
             if (downloadResponse == null)
                 throw new InvalidOperationException($"Cannot download file from Dropbox {dropboxFilename}");
 
-            _logger.LogTrace("Downloaded from Dropbox, returning to client");
+            logger.LogTrace("Downloaded from Dropbox, returning to client");
             await using FileStream imgFile = new(localFilename, FileMode.CreateNew, FileAccess.Write, FileShare.None);
             await (await downloadResponse.GetContentAsStreamAsync()).CopyToAsync(imgFile);
 
@@ -137,22 +123,22 @@ public class GetPhotoRequestHandler : IRequestHandler<GetPhotoRequest, GetPhotoR
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Could not download photo [{photo.PhotoId}] file [{dropboxFilename}] from Dropbox");
+            logger.LogWarning(ex, "Could not download photo [{PhotoId}] file [{DropboxFilename}] from Dropbox", photo.PhotoId, dropboxFilename);
             return null;
         }
     }
 
     private async Task<FileInfo?> LoadLargeThumbnailAsync(Photo photo)
     {
-        _logger.LogTrace($"Photo {photo.PhotoId} [{photo.Filename}] is on Dropbox...showing large thumbnail");
-        var largeThumbnail = await _photoRepository.GetThumbnailAsync(photo, ThumbnailSize.Large);
+        logger.LogTrace("Photo {PhotoId} [{Filename}] is on Dropbox...showing large thumbnail", photo.PhotoId, photo.Filename);
+        var largeThumbnail = await photoRepository.GetThumbnailAsync(photo, ThumbnailSize.Large);
         if (largeThumbnail?.ThumbnailImage == null)
         {
-            _logger.LogWarning($"Could not find large thumbnail for photo {photo.PhotoId} [{photo.Filename}]");
+            logger.LogWarning("Could not find large thumbnail for photo {PhotoId} [{Filename}]", photo.PhotoId, photo.Filename);
             return null;
         }
 
-        var localFilename = Path.Combine(_dropboxClientProxy.TemporaryDownloadDirectory.FullName, Path.GetRandomFileName() + Path.GetExtension(photo.Filename));
+        var localFilename = Path.Combine(dropboxClientProxy.TemporaryDownloadDirectory.FullName, Path.GetRandomFileName() + Path.GetExtension(photo.Filename));
         await File.WriteAllBytesAsync(localFilename, largeThumbnail.ThumbnailImage);
 
         return new(localFilename);
