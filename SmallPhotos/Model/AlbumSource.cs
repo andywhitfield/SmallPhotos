@@ -17,6 +17,7 @@ public class AlbumSource
     public DateTime? DeletedDateTime { get; set; }
     public string? DropboxAccessToken { get; set; }
     public string? DropboxRefreshToken { get; set; }
+    public string? DropboxCursor { get; set; }
     [NotMapped]
     public bool IsDropboxSource => !string.IsNullOrEmpty(DropboxAccessToken) && !string.IsNullOrEmpty(DropboxRefreshToken);
 }
