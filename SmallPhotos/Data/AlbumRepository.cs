@@ -37,6 +37,12 @@ public class AlbumRepository(SqliteDataContext context)
         return context.SaveChangesAsync();
     }
 
+    public async Task UpdateAsync(AlbumSource albumSource)
+    {
+        albumSource.LastUpdateDateTime = DateTime.UtcNow;
+        await context.SaveChangesAsync();
+    }
+
     public async Task DeleteAlbumSourceAsync(AlbumSource albumSource)
     {
         albumSource.DeletedDateTime = DateTime.UtcNow;
