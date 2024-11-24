@@ -143,7 +143,7 @@ public class AlbumChangeService_DropboxTest : IAsyncLifetime
             await img.WriteAsync(memoryStream, MagickFormat.Jpeg);
             memoryStream.Position = 0;
             FileMetadata test1File = new("test1.jpg", "photo-1", DateTime.UtcNow, DateTime.UtcNow, "000000001", 100);
-            _dropboxClientProxy.Setup(x => x.ListFolderAsync("/photos", false)).ReturnsAsync(new ListFolderResult(new[] { test1File }, "test-cursor-page-1", false));
+            _dropboxClientProxy.Setup(x => x.ListFolderAsync("/photos", false)).ReturnsAsync(new ListFolderResult([test1File], "test-cursor-page-1", false));
             Mock<IDownloadResponse<FileMetadata>> downloadResponse = new();
             downloadResponse.Setup(x => x.GetContentAsStreamAsync()).ReturnsAsync(memoryStream);
             downloadResponse.Setup(x => x.Response).Returns(test1File);
@@ -172,6 +172,7 @@ public class AlbumChangeService_DropboxTest : IAsyncLifetime
 
         {
             // test1.jpg has been deleted and test2.jpg and test3.jpg has been created
+            DeletedMetadata test1File = new("test1.jpg");
             FileMetadata test2File;
             FileMetadata test3File;
             {
@@ -200,8 +201,9 @@ public class AlbumChangeService_DropboxTest : IAsyncLifetime
             }
 
             // let's check the paged / cursor folder listing works ok
-            _dropboxClientProxy.Setup(x => x.ListFolderAsync("/photos", false)).ReturnsAsync(new ListFolderResult(new[] { test2File }, "test-cursor-page-1", true));
-            _dropboxClientProxy.Setup(x => x.ListFolderContinueAsync("test-cursor-page-1")).ReturnsAsync(new ListFolderResult(new[] { test3File }, "test-cursor-page-2", false));
+            _dropboxClientProxy.Setup(x => x.ListFolderContinueAsync("test-cursor-page-1")).ReturnsAsync(new ListFolderResult([test1File], "test-cursor-page-2", true));
+            _dropboxClientProxy.Setup(x => x.ListFolderContinueAsync("test-cursor-page-2")).ReturnsAsync(new ListFolderResult([test2File], "test-cursor-page-3", true));
+            _dropboxClientProxy.Setup(x => x.ListFolderContinueAsync("test-cursor-page-3")).ReturnsAsync(new ListFolderResult([test3File], "test-cursor-page-4", false));
         }
 
         {

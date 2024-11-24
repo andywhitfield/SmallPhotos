@@ -173,16 +173,16 @@ public class DropboxSync(
                 foreach (var file in fileChanges.Entries)
                 {
                     logger.LogTrace("Got Dropbox entry: {IsFile} | {PathLower} | {FileName} | {IsDeleted}", file.IsFile, file.PathLower, file.Name, file.IsDeleted);
-                    if (!file.IsFile || !SyncExtensions.SupportedPhotoExtensions.Contains(Path.GetExtension(file.Name.ToLowerInvariant())))
+                    if (!SyncExtensions.SupportedPhotoExtensions.Contains(Path.GetExtension(file.Name.ToLowerInvariant())))
                     {
-                        logger.LogTrace("Entry {FilePathLower} is not a file [{NotFileIsFile}], or is not an image [ext={FileExt}], skipping", file.PathLower, !file.IsFile, Path.GetExtension(file.Name.ToLowerInvariant()));
+                        logger.LogTrace("Entry {FilePathLower} is not an image [ext={FileExt}], skipping", file.PathLower, Path.GetExtension(file.Name.ToLowerInvariant()));
                         continue;
                     }
 
                     Photo? photo;
                     if (file.IsDeleted && (photo = await photoRepository.GetAsync(user, albumSource, file.Name, file.PathLower.GetRelativePath(albumSource.Folder, file.Name))) != null)                        
                         await photoRepository.DeleteAsync(photo);
-                    else
+                    else if (file.IsFile)
                         await AddOrUpdatePhotoAsync(dropboxClientProxy, albumSource, user, httpClient, file.Name, file.PathLower.GetRelativePath(albumSource.Folder, file.Name));
 
                     logger.LogInformation("New Dropbox change [{FileName}] successfully processed", file.Name);
