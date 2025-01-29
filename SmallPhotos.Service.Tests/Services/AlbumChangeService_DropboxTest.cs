@@ -10,16 +10,17 @@ using ImageMagick;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SmallPhotos.Data;
 using SmallPhotos.Dropbox;
 using SmallPhotos.Model;
 using SmallPhotos.Service.Services;
-using Xunit;
 
 namespace SmallPhotos.Service.Tests.Services;
 
-public class AlbumChangeService_DropboxTest : IAsyncLifetime
+[TestClass]
+public class AlbumChangeService_DropboxTest
 {
     private IntegrationTestWebApplicationFactory? _factory;
     private UserAccount? _userAccount;
@@ -27,6 +28,7 @@ public class AlbumChangeService_DropboxTest : IAsyncLifetime
     private string? _dropboxTemporaryFolder;
     private readonly Mock<IDropboxClientProxy> _dropboxClientProxy = new();
 
+    [TestInitialize]
     public async Task InitializeAsync()
     {
         _dropboxTemporaryFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -56,7 +58,7 @@ public class AlbumChangeService_DropboxTest : IAsyncLifetime
             .Replace(ServiceDescriptor.Scoped<IDropboxClientProxy>(_ => _dropboxClientProxy.Object));
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_sync_new_photo()
     {
         using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
@@ -90,7 +92,7 @@ public class AlbumChangeService_DropboxTest : IAsyncLifetime
         }
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_sync_photo_from_sub_directory()
     {
         {
@@ -133,7 +135,7 @@ public class AlbumChangeService_DropboxTest : IAsyncLifetime
         }
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_remove_old_photo_and_add_new()
     {
         {
@@ -242,6 +244,7 @@ public class AlbumChangeService_DropboxTest : IAsyncLifetime
         }
     }
 
+    [TestCleanup]
     public Task DisposeAsync()
     {
         Console.WriteLine($"Cleaning up photo source dir: [{_dropboxTemporaryFolder}]");

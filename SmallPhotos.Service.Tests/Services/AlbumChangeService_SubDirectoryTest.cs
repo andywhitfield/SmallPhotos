@@ -8,15 +8,16 @@ using ImageMagick;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SmallPhotos.Data;
 using SmallPhotos.Model;
 using SmallPhotos.Service.Services;
-using Xunit;
 
 namespace SmallPhotos.Service.Tests.Services;
 
-public class AlbumChangeService_SubDirectoryTest : IAsyncLifetime
+[TestClass]
+public class AlbumChangeService_SubDirectoryTest
 {
     private readonly IntegrationTestWebApplicationFactory _factory;
     private UserAccount? _userAccount;
@@ -25,6 +26,7 @@ public class AlbumChangeService_SubDirectoryTest : IAsyncLifetime
 
     public AlbumChangeService_SubDirectoryTest() => _factory = new(ConfigureTestServices);
 
+    [TestInitialize]
     public async Task InitializeAsync()
     {
         using var serviceScope = _factory.Services.CreateScope();
@@ -47,7 +49,7 @@ public class AlbumChangeService_SubDirectoryTest : IAsyncLifetime
         return services.Replace(ServiceDescriptor.Transient<IHttpClientFactory>(_ => httpClientFactory.Object));
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_add_all_photos_from_subdirectories()
     {
         {
@@ -103,6 +105,7 @@ public class AlbumChangeService_SubDirectoryTest : IAsyncLifetime
         }
     }
 
+    [TestCleanup]
     public Task DisposeAsync()
     {
         Console.WriteLine($"Cleaning up photo source dir: [{_albumSourceFolder}]");

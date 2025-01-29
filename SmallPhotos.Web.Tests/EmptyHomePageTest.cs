@@ -2,16 +2,17 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SmallPhotos.Data;
-using SmallPhotos.Model;
-using Xunit;
 
 namespace SmallPhotos.Web.Tests;
 
-public class EmptyHomePageTest : IAsyncLifetime
+[TestClass]
+public class EmptyHomePageTest
 {
     private readonly IntegrationTestWebApplicationFactory _factory = new();
 
+    [TestInitialize]
     public async Task InitializeAsync()
     {
         using var serviceScope = _factory.Services.CreateScope();
@@ -21,7 +22,7 @@ public class EmptyHomePageTest : IAsyncLifetime
         await context.SaveChangesAsync();
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_be_logged_in_and_have_no_photos()
     {
         using var client = _factory.CreateAuthenticatedClient();
@@ -32,6 +33,7 @@ public class EmptyHomePageTest : IAsyncLifetime
         responseContent.Should().Contain("You have no photos");
     }
 
+    [TestCleanup]
     public Task DisposeAsync()
     {
         _factory.Dispose();

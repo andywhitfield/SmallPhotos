@@ -9,20 +9,22 @@ using FluentAssertions;
 using ImageMagick;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SmallPhotos.Data;
 using SmallPhotos.Model;
 using SmallPhotos.Service.Models;
-using Xunit;
 
 namespace SmallPhotos.Service.Tests.Controllers;
 
-public class PhotoControllerTest : IAsyncLifetime
+[TestClass]
+public class PhotoControllerTest
 {
     private readonly IntegrationTestWebApplicationFactory _factory = new();
     private UserAccount? _userAccount;
     private AlbumSource? _albumSource;
     private string? _albumSourceFolder;
 
+    [TestInitialize]
     public async Task InitializeAsync()
     {
         using var serviceScope = _factory.Services.CreateScope();
@@ -38,7 +40,7 @@ public class PhotoControllerTest : IAsyncLifetime
         await context.SaveChangesAsync();
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_save_new_photo()
     {
         using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
@@ -91,7 +93,7 @@ public class PhotoControllerTest : IAsyncLifetime
         thumbnail.ThumbnailImage.Should().BeOfSize(ThumbnailSize.Large.ToSize());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_update_existing_photo()
     {
         Photo newPhoto;
@@ -194,6 +196,7 @@ public class PhotoControllerTest : IAsyncLifetime
         }
     }
 
+    [TestCleanup]
     public Task DisposeAsync()
     {
         Console.WriteLine($"Cleaning up photo source dir: [{_albumSourceFolder}]");

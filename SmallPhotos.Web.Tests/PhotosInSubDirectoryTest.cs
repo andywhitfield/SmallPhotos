@@ -5,16 +5,18 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using ImageMagick;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SmallPhotos.Data;
-using Xunit;
 
 namespace SmallPhotos.Web.Tests;
 
-public class PhotosInSubDirectoryTest : IAsyncLifetime
+[TestClass]
+public class PhotosInSubDirectoryTest
 {
     private readonly IntegrationTestWebApplicationFactory _factory = new();
     private string? _albumSourceFolder;
 
+    [TestInitialize]
     public async Task InitializeAsync()
     {
         using var serviceScope = _factory.Services.CreateScope();
@@ -48,7 +50,7 @@ public class PhotosInSubDirectoryTest : IAsyncLifetime
         await context.SaveChangesAsync();
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_be_logged_in_and_have_two_photos()
     {
         using var client = _factory.CreateAuthenticatedClient();
@@ -61,7 +63,7 @@ public class PhotosInSubDirectoryTest : IAsyncLifetime
         responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/2/photo1.jpg" """, Exactly.Once());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_be_able_to_view_single_photo()
     {
         using var client = _factory.CreateAuthenticatedClient();
@@ -99,6 +101,7 @@ public class PhotosInSubDirectoryTest : IAsyncLifetime
         }
     }
 
+    [TestCleanup]
     public Task DisposeAsync()
     {
         _factory.Dispose();

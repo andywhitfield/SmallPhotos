@@ -8,15 +8,16 @@ using ImageMagick;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SmallPhotos.Data;
 using SmallPhotos.Model;
 using SmallPhotos.Service.Services;
-using Xunit;
 
 namespace SmallPhotos.Service.Tests.Services;
 
-public class AlbumChangeServiceTest : IAsyncLifetime
+[TestClass]
+public class AlbumChangeServiceTest
 {
     private readonly IntegrationTestWebApplicationFactory _factory;
     private UserAccount? _userAccount;
@@ -25,6 +26,7 @@ public class AlbumChangeServiceTest : IAsyncLifetime
 
     public AlbumChangeServiceTest() => _factory = new(ConfigureTestServices);
 
+    [TestInitialize]
     public async Task InitializeAsync()
     {
         using var serviceScope = _factory.Services.CreateScope();
@@ -47,7 +49,7 @@ public class AlbumChangeServiceTest : IAsyncLifetime
         return services.Replace(ServiceDescriptor.Transient<IHttpClientFactory>(_ => httpClientFactory.Object));
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_sync_new_photo()
     {
         using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
@@ -73,7 +75,7 @@ public class AlbumChangeServiceTest : IAsyncLifetime
         }
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_remove_old_photo_and_add_new()
     {
         {
@@ -151,6 +153,7 @@ public class AlbumChangeServiceTest : IAsyncLifetime
         }
     }
 
+    [TestCleanup]
     public Task DisposeAsync()
     {
         Console.WriteLine($"Cleaning up photo source dir: [{_albumSourceFolder}]");

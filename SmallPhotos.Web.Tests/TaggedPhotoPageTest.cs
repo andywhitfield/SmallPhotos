@@ -5,16 +5,18 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using ImageMagick;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SmallPhotos.Data;
-using Xunit;
 
 namespace SmallPhotos.Web.Tests;
 
-public class TaggedPhotoPageTest : IAsyncLifetime
+[TestClass]
+public class TaggedPhotoPageTest
 {
     private readonly IntegrationTestWebApplicationFactory _factory = new();
     private string? _albumSourceFolder;
 
+    [TestInitialize]
     public async Task InitializeAsync()
     {
         using var serviceScope = _factory.Services.CreateScope();
@@ -52,7 +54,7 @@ public class TaggedPhotoPageTest : IAsyncLifetime
         await context.SaveChangesAsync();
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_list_all_tags()
     {
         using var client = _factory.CreateAuthenticatedClient();
@@ -69,7 +71,7 @@ public class TaggedPhotoPageTest : IAsyncLifetime
         responseContent.Should().Contain("test-tag-3 (1)", Exactly.Once());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Should_show_all_photos_with_tag()
     {
         using var client = _factory.CreateAuthenticatedClient();
@@ -83,6 +85,7 @@ public class TaggedPhotoPageTest : IAsyncLifetime
         responseContent.Should().Contain("from=tagged_test-tag-2", Exactly.Twice());
     }
 
+    [TestCleanup]
     public Task DisposeAsync()
     {
         _factory.Dispose();
