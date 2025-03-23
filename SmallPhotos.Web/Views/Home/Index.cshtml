@@ -32,6 +32,9 @@
             <div>
                 <a title="Taken: @photo.DateTaken" href="/gallery/@(photo.PhotoId)/@(photo.Filename)" name="@(photo.PhotoId).@(photo.Filename)"><img src="/photo/thumbnail/@(Model.ThumbnailSize)/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" loading="lazy" class="photo" /></a>
                 <div class="star-off star" data-photoid="@photo.PhotoId" data-starred="@photo.IsStarred" title="Click to star this photo"><img src="/images/star.png" width="24" height="24" alt="star" loading="lazy" /></div>
+                @if (Model.ShowDetails) {
+                <div class="thumbnail-details" title="Taken: @photo.DateTaken">@photo.DateTakenShort</div>
+                }
             </div>
         }
         </div>
@@ -42,6 +45,11 @@
             <label for="thumbnail-size-selector-s"><input checked="@(Model.ThumbnailSize == SmallPhotos.Model.ThumbnailSize.Small)" type="radio" id="thumbnail-size-selector-s" name="thumbnail-size-selector" value="@((int)SmallPhotos.Model.ThumbnailSize.Small)" onchange="this.form.submit();"> small</label>
             <label for="thumbnail-size-selector-m"><input checked="@(Model.ThumbnailSize == SmallPhotos.Model.ThumbnailSize.Medium)" type="radio" id="thumbnail-size-selector-m" name="thumbnail-size-selector" value="@((int)SmallPhotos.Model.ThumbnailSize.Medium)" onchange="this.form.submit();"> medium</label>
             <label for="thumbnail-size-selector-l"><input checked="@(Model.ThumbnailSize == SmallPhotos.Model.ThumbnailSize.Large)" type="radio" id="thumbnail-size-selector-l" name="thumbnail-size-selector" value="@((int)SmallPhotos.Model.ThumbnailSize.Large)" onchange="this.form.submit();"> large</label>
+            </form>
+            |
+            <form method="post" action="/profile/thumbnaildetails">
+            @Html.AntiForgeryToken()
+            <label for="thumbnail-details"><input type="checkbox" id="thumbnail-details" name="thumbnail-details" value="true" onchange="this.form.submit();"@if (Model.ShowDetails) {<text> checked</text>}> show image details</label>
             </form>
         </div>
 

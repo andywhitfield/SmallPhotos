@@ -87,7 +87,8 @@ nav.navbar-main {
     float: right;
 }
 
-.navbar-nav form {
+.navbar-nav form,
+.thumbnail-size-toggle form {
     display: inline;
 }
 
@@ -226,20 +227,29 @@ img.photo {
     border: 2px solid #000000;
 }
 
+.thumbnail-details {
+    font-size: small;
+    text-align: center;
+}
+
 @media (max-width: 600px) {
     header {
         -webkit-flex-direction: column;
         flex-direction: column;
     }
+
     aside {
         display: none;
     }
+
     .nav-show {
         display: inline;
     }
+
     .narrow-hide {
         display: none;
     }
+
     .pagination-info {
         display: none;
     }
@@ -249,10 +259,12 @@ img.photo {
     body {
         background-color: black;
     }
+
     article {
         background-color: black;
         color: white;
     }
+
     main,
     footer,
     article a,
@@ -263,5 +275,5 @@ img.photo {
 
     img.photo {
         border-width: 0px;
-    }    
+    }
 }

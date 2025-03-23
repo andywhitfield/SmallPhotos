@@ -1,12 +1,8 @@
-using System;
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 using Dropbox.Api;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SmallPhotos.Dropbox;
 using SmallPhotos.Model;
@@ -67,7 +63,7 @@ public class ProfileController(ILogger<ProfileController> logger, IMediator medi
 
     [HttpPost("~/profile/thumbnailsize")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ThumnailSize([FromForm, Required, ModelBinder(Name = "thumbnail-size-selector")] int thumbnailSize)
+    public async Task<IActionResult> ThumbnailSize([FromForm, Required, ModelBinder(Name = "thumbnail-size-selector")] int thumbnailSize)
     {
         if (!ModelState.IsValid || !Enum.IsDefined(typeof(ThumbnailSize), thumbnailSize))
             return BadRequest();
@@ -79,6 +75,22 @@ public class ProfileController(ILogger<ProfileController> logger, IMediator medi
             return BadRequest();
 
         logger.LogDebug("Updated user thumbnail size to {UpdateThumbnailSize} - redirect to [{UriReferer}]", updateThumbnailSize, uriReferer);
+        return Redirect(uriReferer.ToString());
+    }
+
+    [HttpPost("~/profile/thumbnaildetails")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ThumbnailDetails([FromForm, ModelBinder(Name = "thumbnail-details")] string? thumbnailDetails)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest();
+
+        var headers = Request.GetTypedHeaders();
+        var uriReferer = headers.Referer ?? new("~/");
+        if (!await mediator.Send(new UpdateUserThumbnailDetailsRequest(User, !string.IsNullOrEmpty(thumbnailDetails))))
+            return BadRequest();
+
+        logger.LogDebug("Updated user thumbnail details to {ThumbnailDetails} - redirect to [{UriReferer}]", !string.IsNullOrEmpty(thumbnailDetails), uriReferer);
         return Redirect(uriReferer.ToString());
     }
 

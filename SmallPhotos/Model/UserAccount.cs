@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +11,7 @@ public class UserAccount
     public string? Email { get; set; }
     public ThumbnailSize ThumbnailSize { get; set; }
     public int? GalleryImagePageSize { get; set; }
+    public bool? GalleryShowDetails { get; set; }
     public DateTime CreatedDateTime { get; set; } = DateTime.UtcNow;
     public DateTime? LastUpdateDateTime { get; set; }
     public DateTime? DeletedDateTime { get; set; }

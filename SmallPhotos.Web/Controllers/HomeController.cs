@@ -1,12 +1,9 @@
-using System;
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using SmallPhotos.Web.Handlers.Models;
 using SmallPhotos.Web.Model;
 using SmallPhotos.Web.Model.Home;
@@ -24,7 +21,7 @@ public class HomeController(ILogger<HomeController> logger, IMediator mediator)
         if (!response.IsUserValid)
             return Redirect("~/signin");
 
-        return View(new IndexViewModel(HttpContext, response.ThumbnailSize, response.Photos, response.Pagination, SelectedView.All));
+        return View(new IndexViewModel(HttpContext, response.ThumbnailSize, response.Photos, response.Pagination, response.ShowDetails, SelectedView.All));
     }
 
     public IActionResult Error() => View(new ErrorViewModel(HttpContext));

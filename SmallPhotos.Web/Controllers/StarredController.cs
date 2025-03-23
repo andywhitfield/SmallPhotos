@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +18,6 @@ public class StarredController(IMediator mediator)
         if (!response.IsUserValid)
             return Redirect("~/signin");
 
-        return View(new IndexViewModel(HttpContext, response.ThumbnailSize, response.Photos, response.Pagination, SelectedView.Starred));
+        return View(new IndexViewModel(HttpContext, response.ThumbnailSize, response.Photos, response.Pagination, response.ShowDetails, SelectedView.Starred));
     }
 }

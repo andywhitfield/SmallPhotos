@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +21,6 @@ public class TaggedController(IMediator mediator) : Controller
         if (!response.IsUserValid)
             return Redirect("~/signin");
 
-        return View(new SmallPhotos.Web.Model.Home.IndexViewModel(HttpContext, response.ThumbnailSize, response.Photos, response.Pagination, SelectedView.Tagged, withTag: tag));
+        return View(new Model.Home.IndexViewModel(HttpContext, response.ThumbnailSize, response.Photos, response.Pagination, response.ShowDetails, SelectedView.Tagged, withTag: tag));
     }
 }

@@ -1,11 +1,8 @@
-using System;
-using System.IO;
 using System.Net;
-using System.Threading.Tasks;
 using FluentAssertions;
 using ImageMagick;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SmallPhotos.Data;
 
 namespace SmallPhotos.Web.Tests;
@@ -33,7 +30,7 @@ public class GalleryPageTest
         using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 15, 10);
         await img.WriteAsync(Path.Combine(_albumSourceFolder ?? "", "photo1.jpg"), MagickFormat.Jpeg);
 
-        var photo = context.Photos!.Add(new() { AlbumSource = album.Entity, CreatedDateTime = DateTime.UtcNow, FileCreationDateTime = DateTime.UtcNow, Filename = "photo1.jpg", Height = 10, Width = 15 });
+        var photo = context.Photos!.Add(new() { AlbumSource = album.Entity, DateTaken = new(2025, 3, 23, 16, 41, 0, DateTimeKind.Utc), CreatedDateTime = DateTime.UtcNow, FileCreationDateTime = DateTime.UtcNow, Filename = "photo1.jpg", Height = 10, Width = 15 });
         context.PhotoTags!.AddRange(
             new() { UserAccount = userAccount.Entity, Photo = photo.Entity, Tag = "first-tag" },
             new() { UserAccount = userAccount.Entity, Photo = photo.Entity, Tag = "second-tag" }
@@ -51,6 +48,36 @@ public class GalleryPageTest
         responseContent.Should().Contain("Logout");
         responseContent.Should().NotContain("You have no photos");
         responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/1/photo1.jpg" """, Exactly.Once());
+    }
+
+    [TestMethod]
+    public async Task Should_not_show_image_details_by_default()
+    {
+        using var client = _factory.CreateAuthenticatedClient();
+        using var response = await client.GetAsync("/");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().NotContain("""<div class="thumbnail-details" title="Taken: 16:41 on 23 March 2025">23 Mar 2025 @ 16:41</div>""");
+    }
+
+    [TestMethod]
+    public async Task Should_show_image_details()
+    {
+        await ConfigureAccountToShowDetailsAsync();
+        using var client = _factory.CreateAuthenticatedClient();
+        using var response = await client.GetAsync("/");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().Contain("""<div class="thumbnail-details" title="Taken: 16:41 on 23 March 2025">23 Mar 2025 @ 16:41</div>""", Exactly.Once());
+
+        async Task ConfigureAccountToShowDetailsAsync()
+        {
+            await using var scope = _factory.Services.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<SqliteDataContext>();
+            var user = await context.UserAccounts!.SingleAsync();
+            user.GalleryShowDetails = true;
+            await context.SaveChangesAsync();
+        }
     }
 
     [TestMethod]

@@ -1,18 +1,17 @@
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
 using SmallPhotos.Model;
 
 namespace SmallPhotos.Web.Model.Home;
 
 public class IndexViewModel : BaseViewModel
 {
-    public IndexViewModel(HttpContext context, ThumbnailSize thumbnailSize, IEnumerable<PhotoModel> photos, Pagination pagination, SelectedView selectedView, string? withTag = null)
+    public IndexViewModel(HttpContext context, ThumbnailSize thumbnailSize, IEnumerable<PhotoModel> photos, Pagination pagination,
+        bool showDetails, SelectedView selectedView, string? withTag = null)
         : base(context, selectedView)
     {
         ThumbnailSize = thumbnailSize;
         Photos = photos;
         Pagination = pagination;
+        ShowDetails = showDetails;
         WithTag = withTag;
 
         if (Photos.Any())
@@ -33,6 +32,7 @@ public class IndexViewModel : BaseViewModel
     }
 
     public ThumbnailSize ThumbnailSize { get; }
+    public bool ShowDetails { get; }
     public IEnumerable<PhotoModel> Photos { get; }
     public Pagination Pagination { get; }
     public string ImageDateRange { get; }
