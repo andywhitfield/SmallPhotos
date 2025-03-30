@@ -55,6 +55,16 @@
         });
         $('#load-from-dropbox').click(loadFromDropbox);
         $('#fullimg').dblclick(loadFromDropbox);
+
+        if (simpleStorage.get('show-image-details')) {
+            console.log('setting details to open');
+            $('details').attr('open', 'open');
+        }
+        $('details').on('click', function(event) {
+            var wasOpen = $(this).attr('open') === 'open';
+            console.log('details open / closed: '+wasOpen);
+            simpleStorage.set('show-image-details', !wasOpen);
+        });
     });
 
     function addTag() {
