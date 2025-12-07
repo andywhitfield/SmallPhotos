@@ -1,15 +1,6 @@
-﻿using System;
-using System.IO;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using SmallPhotos.Data;
 using SmallPhotos.Dropbox;
 
@@ -91,7 +82,7 @@ public class Startup
             {
                 options.ServerName = "Small:Photos";
                 options.ServerDomain = Configuration.GetValue<string>("FidoDomain");
-                options.Origins = [Configuration.GetValue<string>("FidoOrigins")];
+                options.Origins = new HashSet<string> { Configuration.GetValue("FidoOrigins", "") };
             });
     }
 

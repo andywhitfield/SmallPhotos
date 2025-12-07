@@ -1,17 +1,17 @@
-﻿using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
+﻿using SmallPhotos.Web;
 
-namespace SmallPhotos.Web;
-
-public class Program
-{
-    public static void Main(string[] args)
+var host = new HostBuilder()
+    .ConfigureWebHost(webHostBuilder =>
     {
-        var host = WebHost.CreateDefaultBuilder(args)
-            .UseIISIntegration()
-            .UseStartup<Startup>()
-            .Build();
+        webHostBuilder
+#if DEBUG
+            .UseKestrel()
+#else
+            .UseIIS()
+#endif
+            .UseContentRoot(Directory.GetCurrentDirectory())
+            .UseStartup<Startup>();
+    })
+    .Build();
 
-        host.Run();
-    }
-}
+host.Run();
