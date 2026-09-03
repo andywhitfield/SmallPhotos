@@ -4,7 +4,8 @@ using MediatR;
 namespace SmallPhotos.Web.Handlers.Models;
 
 public class HomePageRequest(ClaimsPrincipal user, int pageNumber, int? photoId,
-    bool onlyStarred = false, string? withTag = null)
+    bool onlyStarred = false, string? withTag = null, string? fromDate = null,
+    string? toDate = null)
     : IRequest<HomePageResponse>
 {
     public ClaimsPrincipal User { get; } = user;
@@ -12,4 +13,6 @@ public class HomePageRequest(ClaimsPrincipal user, int pageNumber, int? photoId,
     public int? PhotoId { get; } = photoId;
     public bool OnlyStarred { get; } = onlyStarred;
     public string? WithTag { get; } = withTag;
+    public string? FromDate { get; } = fromDate;
+    public string? ToDate { get; } = toDate;
 }

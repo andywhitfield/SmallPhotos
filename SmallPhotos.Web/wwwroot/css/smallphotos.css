@@ -232,6 +232,34 @@ img.photo {
     text-align: center;
 }
 
+a#filter-date-button {
+    cursor: pointer;
+}
+
+span.filter-date-controls {
+    display: none;
+    white-space: nowrap;
+}
+
+input.filter-date {
+    width: 100px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.datepicker-main {
+    background-color: transparent;
+}
+
+.datepicker-cell.selected {
+    background-color: #6be1ff !important;
+}
+
+.datepicker-cell:not(.disabled):hover {
+    background-color: #f86bff !important;
+}
+
+
 @media (max-width: 600px) {
     header {
         -webkit-flex-direction: column;
@@ -275,5 +303,13 @@ img.photo {
 
     img.photo {
         border-width: 0px;
+    }
+
+    .datepicker-main {
+        background-color: black;
+    }
+
+    .datepicker-cell.disabled {
+        color: #5E5E5E !important;
     }
 }

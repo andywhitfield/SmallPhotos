@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SmallPhotos.Model;
@@ -35,7 +30,7 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, SqliteDataContext 
                 p.AlbumSource.DeletedDateTime == null &&
                 p.DeletedDateTime == null);
 
-    public Task<List<Photo>> GetAllAsync(UserAccount user) =>
+    public IQueryable<Photo> GetAll(UserAccount user) =>
         context
             .Photos!
             .Include(p => p.AlbumSource)
@@ -43,8 +38,7 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, SqliteDataContext 
                 p.AlbumSource!.UserAccountId == user.UserAccountId &&
                 p.AlbumSource.DeletedDateTime == null &&
                 p.DeletedDateTime == null)
-            .OrderByDescending(p => p.DateTaken ?? p.FileCreationDateTime)
-            .ToListAsync();
+            .OrderByDescending(p => p.DateTaken ?? p.FileCreationDateTime);
 
     public Task<List<Photo>> GetAllAsync(AlbumSource album) =>
         context
@@ -112,7 +106,7 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, SqliteDataContext 
         return context.SaveChangesAsync();
     }
 
-    public Task<List<Photo>> GetAllStarredAsync(UserAccount user) =>
+    public IQueryable<Photo> GetAllStarred(UserAccount user) =>
         context.StarredPhotos!
             .Include(s => s.Photo).ThenInclude(p => p!.AlbumSource)
             .Where(s =>
@@ -120,8 +114,7 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, SqliteDataContext 
                 s.Photo!.DeletedDateTime == null &&
                 s.Photo.AlbumSource!.DeletedDateTime == null)
             .Select(s => s.Photo!)
-            .OrderByDescending(p => p.DateTaken ?? p.FileCreationDateTime)
-            .ToListAsync();
+            .OrderByDescending(p => p.DateTaken ?? p.FileCreationDateTime);
 
     public Task<List<Photo>> GetStarredAsync(UserAccount user, ISet<long> photoIds) =>
         context.StarredPhotos!
@@ -158,12 +151,12 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, SqliteDataContext 
             .Where(t => t.UserAccountId == user.UserAccountId)
             .GroupBy(t => t.Tag)
             .Select(t => new { Tag = t.Key, PhotoCount = t.Count() })
-            .OrderByDescending (t => t.PhotoCount)
+            .OrderByDescending(t => t.PhotoCount)
             .ThenBy(t => t.Tag.ToLower())
             .ToListAsync()
         ).Select(t => (t.Tag, t.PhotoCount));
 
-    public Task<List<Photo>> GetAllWithTagAsync(UserAccount user, string tag) =>
+    public IQueryable<Photo> GetAllWithTag(UserAccount user, string tag) =>
         context.PhotoTags!
             .Include(t => t.Photo).ThenInclude(p => p!.AlbumSource)
             .Where(t =>
@@ -172,8 +165,7 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, SqliteDataContext 
                 t.Photo!.DeletedDateTime == null &&
                 t.Photo.AlbumSource!.DeletedDateTime == null)
             .Select(t => t.Photo!)
-            .OrderByDescending(p => p.DateTaken ?? p.FileCreationDateTime)
-            .ToListAsync();
+            .OrderByDescending(p => p.DateTaken ?? p.FileCreationDateTime);
 
     public Task AddTagAsync(UserAccount user, Photo photo, string tag)
     {

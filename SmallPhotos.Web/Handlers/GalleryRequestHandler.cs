@@ -1,10 +1,6 @@
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using MediatR;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using SmallPhotos.Data;
 using SmallPhotos.Model;
 using SmallPhotos.Web.Handlers.Models;
@@ -28,9 +24,9 @@ public class GalleryRequestHandler(ILogger<GalleryRequestHandler> logger, IUserA
 
         // TODO: loading all photos just to get previous & next is bad
         var allPhotos = await (request.OnlyStarred
-            ? photoRepository.GetAllStarredAsync(user)
-            : !string.IsNullOrWhiteSpace(request.WithTag) ? photoRepository.GetAllWithTagAsync(user, request.WithTag)
-            : photoRepository.GetAllAsync(user));
+            ? photoRepository.GetAllStarred(user)
+            : !string.IsNullOrWhiteSpace(request.WithTag) ? photoRepository.GetAllWithTag(user, request.WithTag)
+            : photoRepository.GetAll(user)).ToListAsync();
         var photoIndex = allPhotos.FindIndex(p => p.PhotoId == photo.PhotoId);
         var previous = photoIndex > 0 ? allPhotos[photoIndex - 1] : null;
         var next = photoIndex + 1 < allPhotos.Count ? allPhotos[photoIndex + 1] : null;

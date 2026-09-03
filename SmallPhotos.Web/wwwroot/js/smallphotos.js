@@ -71,6 +71,33 @@ function smpInitialise() {
             }
         }
     });
+
+    $('#filter-date-button').click(function() { $('span.filter-date-controls').toggle(); });
+    const filterButton = $('#filter-date-apply');
+    const fromDateSelector = new Datepicker((document.querySelector('input[name="fromdate"]')), {
+        autohide: true,
+        format: 'dd M yyyy',
+        minDate: new Date(filterButton.attr('data-mindate')),
+        maxDate: new Date(filterButton.attr('data-maxdate'))
+    });
+    const toDateSelector = new Datepicker((document.querySelector('input[name="todate"]')), {
+        autohide: true,
+        format: 'dd M yyyy',
+        minDate: new Date(filterButton.attr('data-mindate')),
+        maxDate: new Date(filterButton.attr('data-maxdate'))
+    });
+    filterButton.click(function() {
+        if (fromDateSelector.getDate().getTime() > toDateSelector.getDate().getTime()) {
+            alert('The "from date" cannot be after the "to date". Please select a valid date range.');
+            return;
+        }
+        var newUrl = new URL(window.location.href);
+        newUrl.searchParams.set('fromDate', fromDateSelector.getDate('yyyy-mm-dd'));
+        newUrl.searchParams.set('toDate', toDateSelector.getDate('yyyy-mm-dd'));
+        window.location.href = newUrl.toString();
+    });
+    if (filterButton.attr('data-filter-applied') === 'true')
+        $('span.filter-date-controls').show();
 }
 
 function fullSizeImage() {

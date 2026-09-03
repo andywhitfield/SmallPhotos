@@ -5,7 +5,8 @@ namespace SmallPhotos.Web.Model.Home;
 public class IndexViewModel : BaseViewModel
 {
     public IndexViewModel(HttpContext context, ThumbnailSize thumbnailSize, IEnumerable<PhotoModel> photos, Pagination pagination,
-        bool showDetails, SelectedView selectedView, string? withTag = null)
+        bool showDetails, SelectedView selectedView, DateTime? minFilterDate, DateTime? maxFilterDate, string? withTag = null,
+        DateTime? filterFromDate = null, DateTime? filterToDate = null)
         : base(context, selectedView)
     {
         ThumbnailSize = thumbnailSize;
@@ -24,10 +25,21 @@ public class IndexViewModel : BaseViewModel
                 ImageDateRange = $"{lastPhotoByDate.DateTaken} - {firstPhotoByDate.DateTaken}";
             else
                 ImageDateRange = $"{lastPhotoByDate.DateTimeTaken:dd MMM yyyy} - {firstPhotoByDate.DateTimeTaken:dd MMM yyyy}";
+
+            FilterDateUrlPart = filterFromDate != null && filterToDate != null ? $"&fromDate={filterFromDate:yyyy-MM-dd}&toDate={filterToDate:yyyy-MM-dd}" : "";
+            FilterDateFrom = (filterFromDate ?? minFilterDate ?? firstPhotoByDate.DateTimeTaken).ToString("dd MMM yyyy");
+            FilterDateTo = (filterToDate ?? maxFilterDate ?? lastPhotoByDate.DateTimeTaken).ToString("dd MMM yyyy");
+            FilterDateMin = (minFilterDate ?? firstPhotoByDate.DateTimeTaken).ToString("yyyy-MM-dd");
+            FilterDateMax = (maxFilterDate ?? lastPhotoByDate.DateTimeTaken).ToString("yyyy-MM-dd");
         }
         else
         {
             ImageDateRange = "";
+            FilterDateUrlPart = "";
+            FilterDateFrom = "";
+            FilterDateTo = "";
+            FilterDateMin = "";
+            FilterDateMax = "";
         }
     }
 
@@ -37,4 +49,9 @@ public class IndexViewModel : BaseViewModel
     public Pagination Pagination { get; }
     public string ImageDateRange { get; }
     public string? WithTag { get; }
+    public string FilterDateUrlPart { get; }
+    public string FilterDateFrom { get; }
+    public string FilterDateTo { get; }
+    public string FilterDateMin { get; }
+    public string FilterDateMax { get; }
 }

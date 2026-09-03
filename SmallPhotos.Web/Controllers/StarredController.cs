@@ -12,12 +12,16 @@ public class StarredController(IMediator mediator)
     : Controller
 {
     [HttpGet("~/starred")]
-    public async Task<IActionResult> Index([FromQuery] int? photoId = null, [FromQuery] int? pageNumber = null)
+    public async Task<IActionResult> Index([FromQuery] int? photoId = null, [FromQuery] int? pageNumber = null,
+        [FromQuery] string? fromDate = null, [FromQuery] string? toDate = null)
     {
-        var response = await mediator.Send(new HomePageRequest(User, pageNumber ?? 1, photoId, true));
+        var response = await mediator.Send(new HomePageRequest(User, pageNumber ?? 1, photoId, true,
+            fromDate: fromDate, toDate: toDate));
         if (!response.IsUserValid)
             return Redirect("~/signin");
 
-        return View(new IndexViewModel(HttpContext, response.ThumbnailSize, response.Photos, response.Pagination, response.ShowDetails, SelectedView.Starred));
+        return View(new IndexViewModel(HttpContext, response.ThumbnailSize, response.Photos, response.Pagination,
+            response.ShowDetails, SelectedView.Starred, response.MinFilterDate, response.MaxFilterDate,
+            filterFromDate: response.FilterFromDate, filterToDate: response.FilterToDate));
     }
 }

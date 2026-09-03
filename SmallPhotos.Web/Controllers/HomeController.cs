@@ -15,13 +15,17 @@ public class HomeController(ILogger<HomeController> logger, IMediator mediator)
 {
     [Authorize]
     [HttpGet("~/")]
-    public async Task<IActionResult> Index([FromQuery]int? photoId = null, [FromQuery]int? pageNumber = null)
-    {           
-        var response = await mediator.Send(new HomePageRequest(User, pageNumber ?? 1, photoId));
+    public async Task<IActionResult> Index([FromQuery] int? photoId = null, [FromQuery] int? pageNumber = null,
+        [FromQuery] string? fromDate = null, [FromQuery] string? toDate = null)
+    {
+        var response = await mediator.Send(new HomePageRequest(User, pageNumber ?? 1, photoId,
+            fromDate: fromDate, toDate: toDate));
         if (!response.IsUserValid)
             return Redirect("~/signin");
 
-        return View(new IndexViewModel(HttpContext, response.ThumbnailSize, response.Photos, response.Pagination, response.ShowDetails, SelectedView.All));
+        return View(new IndexViewModel(HttpContext, response.ThumbnailSize, response.Photos, response.Pagination,
+            response.ShowDetails, SelectedView.All, response.MinFilterDate, response.MaxFilterDate,
+            filterFromDate: response.FilterFromDate, filterToDate: response.FilterToDate));
     }
 
     public IActionResult Error() => View(new ErrorViewModel(HttpContext));
@@ -61,7 +65,7 @@ public class HomeController(ILogger<HomeController> logger, IMediator mediator)
 
             return Redirect(redirectUri);
         }
-        
+
         logger.LogWarning("Signin failed, redirecting to initial signin page");
         return Redirect("~/signin");
     }
