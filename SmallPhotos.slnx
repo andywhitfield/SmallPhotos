@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="SmallPhotos.Service.Tests/SmallPhotos.Service.Tests.csproj" />
+  <Project Path="SmallPhotos.Service/SmallPhotos.Service.csproj" />
+  <Project Path="SmallPhotos.Web.Tests/SmallPhotos.Web.Tests.csproj" />
+  <Project Path="SmallPhotos.Web/SmallPhotos.Web.csproj" />
+  <Project Path="SmallPhotos/SmallPhotos.csproj" />
+</Solution>
