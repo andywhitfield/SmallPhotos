@@ -26,6 +26,7 @@ public class IndexViewModel : BaseViewModel
             else
                 ImageDateRange = $"{lastPhotoByDate.DateTimeTaken:dd MMM yyyy} - {firstPhotoByDate.DateTimeTaken:dd MMM yyyy}";
 
+            FilterDateEnabled = (minFilterDate ?? firstPhotoByDate.DateTimeTaken).Date != (maxFilterDate ?? lastPhotoByDate.DateTimeTaken).Date;
             FilterDateUrlPart = filterFromDate != null && filterToDate != null ? $"&fromDate={filterFromDate:yyyy-MM-dd}&toDate={filterToDate:yyyy-MM-dd}" : "";
             FilterDateFrom = (filterFromDate ?? minFilterDate ?? firstPhotoByDate.DateTimeTaken).ToString("dd MMM yyyy");
             FilterDateTo = (filterToDate ?? maxFilterDate ?? lastPhotoByDate.DateTimeTaken).ToString("dd MMM yyyy");
@@ -35,6 +36,7 @@ public class IndexViewModel : BaseViewModel
         else
         {
             ImageDateRange = "";
+            FilterDateEnabled = false;
             FilterDateUrlPart = "";
             FilterDateFrom = "";
             FilterDateTo = "";
@@ -49,6 +51,7 @@ public class IndexViewModel : BaseViewModel
     public Pagination Pagination { get; }
     public string ImageDateRange { get; }
     public string? WithTag { get; }
+    public bool FilterDateEnabled { get; }
     public string FilterDateUrlPart { get; }
     public string FilterDateFrom { get; }
     public string FilterDateTo { get; }

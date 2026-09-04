@@ -4,7 +4,11 @@
 
 <article>
     @if (Model.Photos.Any()) {
-        <div><span>@Model.ImageDateRange</span> <a id="filter-date-button" title="Filter by date">&#128197;</a> <span class="filter-date-controls"><input type="text" name="fromdate" readonly value="@Model.FilterDateFrom" class="filter-date" /> - <input type="text" name="todate" readonly value="@Model.FilterDateTo" class="filter-date" /> <button id="filter-date-apply" data-mindate="@Model.FilterDateMin" data-maxdate="@Model.FilterDateMax" data-filter-applied="@(string.IsNullOrEmpty(Model.FilterDateUrlPart) ? "" : "true")">Apply</button></span></div>
+        <div><span>@Model.ImageDateRange</span>
+        @if (Model.FilterDateEnabled) {
+            <a id="filter-date-button" title="Filter by date">&#128197;</a> <span class="filter-date-controls"><input type="text" name="fromdate" readonly value="@Model.FilterDateFrom" class="filter-date" /> - <input type="text" name="todate" readonly value="@Model.FilterDateTo" class="filter-date" /> <button id="filter-date-apply" data-mindate="@Model.FilterDateMin" data-maxdate="@Model.FilterDateMax" data-filter-applied="@(string.IsNullOrEmpty(Model.FilterDateUrlPart) ? "" : "true")">Apply</button></span>
+        }
+        </div>
 
         @if (Model.Pagination.PageCount > 1) {
             <div class="pagination">
