@@ -114,6 +114,104 @@ public class DateFilterTest
         responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/4/photo4.jpg""", Exactly.Once());
     }
 
+    [TestMethod]
+    public async Task Should_only_show_photos_with_tag1_page1()
+    {
+        using var client = _factory.CreateAuthenticatedClient();
+        using var response = await client.GetAsync("/tagged/tag1");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().Contain("""<a id="filter-date-button" title="Filter by date">""");
+        responseContent.Should().Contain("data-mindate=\"2026-09-02\"", Exactly.Once());
+        responseContent.Should().Contain("data-maxdate=\"2026-09-03\"", Exactly.Once());
+        responseContent.Should().Contain("data-filter-applied=\"\"", Exactly.Once());
+        responseContent.Should().Contain("""<input type="text" name="fromdate" readonly value="02 Sep 2026" class="filter-date" />""", Exactly.Once());
+        responseContent.Should().Contain("""<input type="text" name="todate" readonly value="03 Sep 2026" class="filter-date" />""", Exactly.Once());
+        // there should be 3 photos in total, 2 per page, so 2 pages in total
+        responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/2/photo2.jpg""", Exactly.Once());
+        responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/3/photo3.jpg""", Exactly.Once());
+        responseContent.Should().Contain("""<a class="active">1</a>""", Exactly.Times(2));
+        responseContent.Should().Contain("""<a title="Go to photo page 2" href="/tagged/tag1?pageNumber=2">2</a>""", Exactly.Times(2));
+        responseContent.Should().NotContain("Go to photo page 3");
+    }
+
+    [TestMethod]
+    public async Task Should_only_show_photos_with_tag1_page2()
+    {
+        using var client = _factory.CreateAuthenticatedClient();
+        using var response = await client.GetAsync("/tagged/tag1?pageNumber=2");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().Contain("""<a id="filter-date-button" title="Filter by date">""");
+        responseContent.Should().Contain("data-mindate=\"2026-09-02\"", Exactly.Once());
+        responseContent.Should().Contain("data-maxdate=\"2026-09-03\"", Exactly.Once());
+        responseContent.Should().Contain("data-filter-applied=\"\"", Exactly.Once());
+        responseContent.Should().Contain("""<input type="text" name="fromdate" readonly value="02 Sep 2026" class="filter-date" />""", Exactly.Once());
+        responseContent.Should().Contain("""<input type="text" name="todate" readonly value="03 Sep 2026" class="filter-date" />""", Exactly.Once());
+        // there should be 3 photos in total, 2 per page, so 2 pages in total
+        responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/1/photo1.jpg""", Exactly.Once());
+        responseContent.Should().Contain("""<a title="Go to photo page 1" href="/tagged/tag1?pageNumber=1">1</a>""", Exactly.Times(2));
+        responseContent.Should().Contain("""<a class="active">2</a>""", Exactly.Times(2));
+        responseContent.Should().NotContain("Go to photo page 3");
+    }
+
+    [TestMethod]
+    public async Task Should_only_show_photos_with_tag1_within_specified_date_filter_range()
+    {
+        using var client = _factory.CreateAuthenticatedClient();
+        using var response = await client.GetAsync("/tagged/tag1?fromDate=2026-09-03&toDate=2026-09-03");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().Contain("""<a id="filter-date-button" title="Filter by date">""");
+        responseContent.Should().Contain("data-mindate=\"2026-09-02\"", Exactly.Once());
+        responseContent.Should().Contain("data-maxdate=\"2026-09-03\"", Exactly.Once());
+        responseContent.Should().Contain("data-filter-applied=\"true\"", Exactly.Once());
+        responseContent.Should().Contain("""<input type="text" name="fromdate" readonly value="03 Sep 2026" class="filter-date" />""", Exactly.Once());
+        responseContent.Should().Contain("""<input type="text" name="todate" readonly value="03 Sep 2026" class="filter-date" />""", Exactly.Once());
+        // there should be 2 photos in total
+        responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/2/photo2.jpg""", Exactly.Once());
+        responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/3/photo3.jpg""", Exactly.Once());
+    }
+
+    [TestMethod]
+    public async Task Should_only_show_photos_with_tag1_within_specified_date_filter_range_page_1()
+    {
+        using var client = _factory.CreateAuthenticatedClient();
+        using var response = await client.GetAsync("/tagged/tag1?fromDate=2026-09-02&toDate=2026-09-03");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().Contain("""<a id="filter-date-button" title="Filter by date">""");
+        responseContent.Should().Contain("data-mindate=\"2026-09-02\"", Exactly.Once());
+        responseContent.Should().Contain("data-maxdate=\"2026-09-03\"", Exactly.Once());
+        responseContent.Should().Contain("data-filter-applied=\"true\"", Exactly.Once());
+        responseContent.Should().Contain("""<input type="text" name="fromdate" readonly value="02 Sep 2026" class="filter-date" />""", Exactly.Once());
+        responseContent.Should().Contain("""<input type="text" name="todate" readonly value="03 Sep 2026" class="filter-date" />""", Exactly.Once());
+        // there should be 3 photos in total, 2 pages
+        responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/2/photo2.jpg""", Exactly.Once());
+        responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/3/photo3.jpg""", Exactly.Once());
+        responseContent.Should().Contain("""<a class="active">1</a>""", Exactly.Times(2));
+        responseContent.Should().Contain("""<a title="Go to photo page 2" href="/tagged/tag1?pageNumber=2&fromDate=2026-09-02&toDate=2026-09-03">2</a>""", Exactly.Times(2));
+    }
+
+    [TestMethod]
+    public async Task Should_only_show_photos_with_tag1_within_specified_date_filter_range_page_2()
+    {
+        using var client = _factory.CreateAuthenticatedClient();
+        using var response = await client.GetAsync("/tagged/tag1?pageNumber=2&fromDate=2026-09-02&toDate=2026-09-03");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().Contain("""<a id="filter-date-button" title="Filter by date">""");
+        responseContent.Should().Contain("data-mindate=\"2026-09-02\"", Exactly.Once());
+        responseContent.Should().Contain("data-maxdate=\"2026-09-03\"", Exactly.Once());
+        responseContent.Should().Contain("data-filter-applied=\"true\"", Exactly.Once());
+        responseContent.Should().Contain("""<input type="text" name="fromdate" readonly value="02 Sep 2026" class="filter-date" />""", Exactly.Once());
+        responseContent.Should().Contain("""<input type="text" name="todate" readonly value="03 Sep 2026" class="filter-date" />""", Exactly.Once());
+        // there should be 3 photos in total, 2 pages
+        responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/1/photo1.jpg""", Exactly.Once());
+        responseContent.Should().Contain("""<a title="Go to photo page 1" href="/tagged/tag1?pageNumber=1&fromDate=2026-09-02&toDate=2026-09-03">1</a>""", Exactly.Times(2));
+        responseContent.Should().Contain("""<a class="active">2</a>""", Exactly.Times(2));
+    }
+
     private async Task CreatePhotoAsync(SqliteDataContext context, AlbumSource album, string filename, DateTime dateTaken, string? tags = null, bool? isStarred = false)
     {
         using MagickImage img = new(new MagickColor(ushort.MaxValue, 0, 0), 1, 1);
