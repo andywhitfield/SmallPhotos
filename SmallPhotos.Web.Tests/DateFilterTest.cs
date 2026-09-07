@@ -30,7 +30,7 @@ public class DateFilterTest
 
         await CreatePhotoAsync(context, album.Entity, "photo1.jpg", new(2026, 9, 2, 9, 30, 0, DateTimeKind.Utc), tags: "tag1 tag2");
         await CreatePhotoAsync(context, album.Entity, "photo2.jpg", new(2026, 9, 3, 9, 30, 0, DateTimeKind.Utc), tags: "tag1");
-        await CreatePhotoAsync(context, album.Entity, "photo3.jpg", new(2026, 9, 3, 9, 45, 0, DateTimeKind.Utc));
+        await CreatePhotoAsync(context, album.Entity, "photo3.jpg", new(2026, 9, 3, 9, 45, 0, DateTimeKind.Utc), tags: "tag1");
         await CreatePhotoAsync(context, album.Entity, "photo4.jpg", new(2026, 9, 4, 9, 30, 0, DateTimeKind.Utc), isStarred: true);
         await CreatePhotoAsync(context, album.Entity, "photo5.jpg", new(2026, 9, 5, 9, 30, 0, DateTimeKind.Utc));
         await CreatePhotoAsync(context, album.Entity, "photo6.jpg", new(2026, 9, 5, 13, 30, 0, DateTimeKind.Utc), tags: "tag2 tag3");
@@ -45,6 +45,7 @@ public class DateFilterTest
         using var response = await client.GetAsync("/");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().Contain("""<a id="filter-date-button" title="Filter by date">""");
         responseContent.Should().Contain("data-mindate=\"2026-09-02\"", Exactly.Once());
         responseContent.Should().Contain("data-maxdate=\"2026-09-05\"", Exactly.Once());
         responseContent.Should().Contain("data-filter-applied=\"\"", Exactly.Once());
@@ -65,6 +66,7 @@ public class DateFilterTest
         using var response = await client.GetAsync("/?fromDate=2026-09-02&toDate=2026-09-04");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().Contain("""<a id="filter-date-button" title="Filter by date">""");
         responseContent.Should().Contain("data-mindate=\"2026-09-02\"", Exactly.Once());
         responseContent.Should().Contain("data-maxdate=\"2026-09-05\"", Exactly.Once());
         responseContent.Should().Contain("data-filter-applied=\"true\"", Exactly.Once());
@@ -85,6 +87,7 @@ public class DateFilterTest
         using var response = await client.GetAsync("/?pageNumber=2&fromDate=2026-09-02&toDate=2026-09-04");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().Contain("""<a id="filter-date-button" title="Filter by date">""");
         responseContent.Should().Contain("data-mindate=\"2026-09-02\"", Exactly.Once());
         responseContent.Should().Contain("data-maxdate=\"2026-09-05\"", Exactly.Once());
         responseContent.Should().Contain("data-filter-applied=\"true\"", Exactly.Once());
@@ -96,6 +99,19 @@ public class DateFilterTest
         responseContent.Should().Contain("""<a title="Go to photo page 1" href="/?pageNumber=1&fromDate=2026-09-02&toDate=2026-09-04">1</a>""", Exactly.Times(2));
         responseContent.Should().Contain("""<a class="active">2</a>""", Exactly.Times(2));
         responseContent.Should().NotContain("Go to photo page 3");
+    }
+
+    [TestMethod]
+    public async Task Should_show_photo_that_is_starred_without_any_date_filtering()
+    {
+        using var client = _factory.CreateAuthenticatedClient();
+        using var response = await client.GetAsync("/starred");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().NotContain("""<a id="filter-date-button" title="Filter by date">""");
+        // there should be 1 photo
+        responseContent.Should().Contain("""<img src="/photo/thumbnail""", Exactly.Once());
+        responseContent.Should().Contain("""<img src="/photo/thumbnail/Small/4/photo4.jpg""", Exactly.Once());
     }
 
     private async Task CreatePhotoAsync(SqliteDataContext context, AlbumSource album, string filename, DateTime dateTaken, string? tags = null, bool? isStarred = false)
