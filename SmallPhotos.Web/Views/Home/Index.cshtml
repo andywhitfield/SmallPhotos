@@ -13,20 +13,20 @@
         @if (Model.Pagination.PageCount > 1) {
             <div class="pagination">
                 @if (Model.Pagination.PageNumber > 1) {
-                <a title="Go to previous page of photos" href="/?pageNumber=@(Model.Pagination.PageNumber - 1)@(Model.FilterDateUrlPart)">&laquo;</a>
+                <a title="Go to previous page of photos" href="/?pageNumber=@(Model.Pagination.PageNumber - 1)@Html.Raw(Model.FilterDateUrlPart)">&laquo;</a>
                 }
                 @foreach (var pg in Model.Pagination.Pages) {
                 @if (pg.IsSelected) {
                 <a class="active">@pg.PageNumber</a>
                 } else {
-                <a title="Go to photo page @pg.PageNumber" href="/?pageNumber=@(pg.PageNumber)@(Model.FilterDateUrlPart)">@pg.PageNumber</a>
+                <a title="Go to photo page @pg.PageNumber" href="/?pageNumber=@(pg.PageNumber)@Html.Raw(Model.FilterDateUrlPart)">@pg.PageNumber</a>
                 }
                 @if (pg.IsNextPageSkipped) {
                 <a class="skip">&bull;&bull;</a>
                 }
                 }
                 @if (Model.Pagination.PageNumber < Model.Pagination.PageCount) {
-                <a title="Go to the next page of photos" href="/?pageNumber=@(Model.Pagination.PageNumber + 1)@(Model.FilterDateUrlPart)">&raquo;</a>
+                <a title="Go to the next page of photos" href="/?pageNumber=@(Model.Pagination.PageNumber + 1)@Html.Raw(Model.FilterDateUrlPart)">&raquo;</a>
                 }
             </div>
         }
@@ -60,20 +60,20 @@
         @if (Model.Pagination.PageCount > 1) {
             <div class="pagination">
                 @if (Model.Pagination.PageNumber > 1) {
-                <a title="Go to previous page of photos" href="/?pageNumber=@(Model.Pagination.PageNumber - 1)@(Model.FilterDateUrlPart)">&laquo;</a>
+                <a title="Go to previous page of photos" href="/?pageNumber=@(Model.Pagination.PageNumber - 1)@Html.Raw(Model.FilterDateUrlPart)">&laquo;</a>
                 }
                 @foreach (var pg in Model.Pagination.Pages) {
                 @if (pg.IsSelected) {
                 <a class="active">@pg.PageNumber</a>
                 } else {
-                <a title="Go to photo page @pg.PageNumber" href="/?pageNumber=@pg.PageNumber@(Model.FilterDateUrlPart)">@pg.PageNumber</a>
+                <a title="Go to photo page @pg.PageNumber" href="/?pageNumber=@pg.PageNumber@Html.Raw(Model.FilterDateUrlPart)">@pg.PageNumber</a>
                 }
                 @if (pg.IsNextPageSkipped) {
                 <a class="skip">&bull;&bull;</a>
                 }
                 }
                 @if (Model.Pagination.PageNumber < Model.Pagination.PageCount) {
-                <a title="Go to the next page of photos" href="/?pageNumber=@(Model.Pagination.PageNumber + 1)@(Model.FilterDateUrlPart)">&raquo;</a>
+                <a title="Go to the next page of photos" href="/?pageNumber=@(Model.Pagination.PageNumber + 1)@Html.Raw(Model.FilterDateUrlPart)">&raquo;</a>
                 }
             </div>
         }
