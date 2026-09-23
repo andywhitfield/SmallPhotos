@@ -193,6 +193,7 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, SqliteDataContext 
                 p.AlbumSource!.UserAccountId == user.UserAccountId &&
                 p.AlbumSource.DeletedDateTime == null &&
                 p.DeletedDateTime == null &&
+                forDate.Ticks - (p.DateTaken ?? p.FileCreationDateTime).Ticks > ((TimeSpan.TicksPerDay * 365) - dayRange) &&
                 (
                     Math.Abs((forDate.Ticks - (p.DateTaken ?? p.FileCreationDateTime).Ticks) / TimeSpan.TicksPerDay % 365) <= dayRange ||
                     Math.Abs((forDate.Ticks - (p.DateTaken ?? p.FileCreationDateTime).Ticks) / TimeSpan.TicksPerDay % 365) >= 365 - dayRange

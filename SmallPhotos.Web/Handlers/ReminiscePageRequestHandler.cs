@@ -28,12 +28,19 @@ public class ReminiscePageRequestHandler(
 
         var now = timeProvider.GetUtcNow();
         var photos = await photoRepository.GetPreviousYearPhotosAsync(user, now, _dayRange).ToListAsync(cancellationToken: cancellationToken);
+        logger.LogDebug("Got {PhotoCount} photo(s) from previous years", photos.Count);
 
         if (photos.Count != 0)
         {
-            var dayDiffs = photos.Select(p => (Photo: p, DayDiff: Math.Abs((now.Ticks - (p.DateTaken ?? p.FileCreationDateTime).Ticks) / TimeSpan.TicksPerDay % 365))).ToList();
-            var upperBound = dayDiffs.Sum(d => d.DayDiff > _dayRange ? 365 - d.DayDiff : d.DayDiff);
-            photos = [.. dayDiffs.OrderBy(d =>
+            logger.LogTrace("Photo dates: [{PhotoDates}]", string.Join(',', photos.Select(p => p.DateTaken?.ToString("yyyy-MM-dd"))));
+            var dayDiffs = photos
+                .Select(p => (Photo: p, DayDiff: Math.Abs((now.Ticks - (p.DateTaken ?? p.FileCreationDateTime).Ticks) / TimeSpan.TicksPerDay % 365)))
+                .Select(d => (d.Photo, DayDiff: d.DayDiff > _dayRange ? 365 - d.DayDiff : d.DayDiff))
+                .ToList();
+
+            logger.LogTrace("Day diffs: [{DayDiffs}]", string.Join(',', dayDiffs.Select(dd => dd.DayDiff)));
+            var upperBound = dayDiffs.Sum(d => d.DayDiff);
+            photos = [.. dayDiffs.Shuffle().OrderBy(d =>
             {
                 var r = _random.NextInt64(upperBound);
                 if (r > d.DayDiff)
@@ -41,7 +48,8 @@ public class ReminiscePageRequestHandler(
                 return r;
             })
             .Select(d => d.Photo)
-            .Take(_reminisceCount)];
+            .Take(_reminisceCount)
+            .OrderByDescending(p => p.DateTaken ?? p.FileCreationDateTime)];
         }
 
         return new(
