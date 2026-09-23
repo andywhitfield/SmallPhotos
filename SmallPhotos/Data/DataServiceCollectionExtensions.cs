@@ -15,6 +15,9 @@ public static class DataServiceCollectionExtensions
                 var sqliteConnectionString = serviceProvider.GetRequiredService<IConfiguration>().GetConnectionString("SmallPhotos");
                 serviceProvider.GetRequiredService<ILogger<SqliteDataContext>>().LogInformation("Using connection string: {SqliteConnectionString}", sqliteConnectionString);
                 options.UseSqlite(sqliteConnectionString);
+#if DEBUG
+                options.EnableSensitiveDataLogging();
+#endif
             })
             .AddScoped(sp => (ISqliteDataContext)sp.GetRequiredService<SqliteDataContext>())
             .AddScoped<IUserAccountRepository, UserAccountRepository>()

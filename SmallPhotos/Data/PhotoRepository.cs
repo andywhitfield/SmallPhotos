@@ -184,4 +184,19 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, SqliteDataContext 
         context.PhotoTags!.RemoveRange(context.PhotoTags!.Where(t => t.UserAccountId == user.UserAccountId && t.PhotoId == photo.PhotoId));
         return context.SaveChangesAsync();
     }
+
+    public IAsyncEnumerable<Photo> GetPreviousYearPhotosAsync(UserAccount user, DateTimeOffset forDate, int dayRange)
+        => context
+            .Photos!
+            .Include(p => p.AlbumSource)
+            .Where(p =>
+                p.AlbumSource!.UserAccountId == user.UserAccountId &&
+                p.AlbumSource.DeletedDateTime == null &&
+                p.DeletedDateTime == null &&
+                (
+                    Math.Abs((forDate.Ticks - (p.DateTaken ?? p.FileCreationDateTime).Ticks) / TimeSpan.TicksPerDay % 365) <= dayRange ||
+                    Math.Abs((forDate.Ticks - (p.DateTaken ?? p.FileCreationDateTime).Ticks) / TimeSpan.TicksPerDay % 365) >= 365 - dayRange
+                )
+            )
+            .AsAsyncEnumerable();
 }

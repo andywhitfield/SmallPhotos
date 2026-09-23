@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http;
-
 namespace SmallPhotos.Web.Model;
 
 public abstract class BaseViewModel(HttpContext context, SelectedView selectedView)
@@ -8,4 +6,5 @@ public abstract class BaseViewModel(HttpContext context, SelectedView selectedVi
     public bool ViewAll => selectedView == SelectedView.All;
     public bool ViewStarred => selectedView == SelectedView.Starred;
     public bool ViewTagged => selectedView == SelectedView.Tagged;
+    public bool ViewReminisce => selectedView == SelectedView.Reminisce;
 }

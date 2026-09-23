@@ -1,9 +1,8 @@
-using Microsoft.AspNetCore.Http;
-
 namespace SmallPhotos.Web.Model.Gallery;
 
 public class IndexViewModel(HttpContext context, PhotoModel photo, PhotoModel? previousPhoto,
     PhotoModel? nextPhoto, int photoNumber, int photoCount, string? fromPage)
+    // TODO: handle Reminisce?
     : BaseViewModel(context, fromPage == "starred" ? SelectedView.Starred : (fromPage?.StartsWith("tagged_") ?? false) ? SelectedView.Tagged : SelectedView.All)
 {
     public PhotoModel Photo { get; } = photo;
@@ -14,9 +13,10 @@ public class IndexViewModel(HttpContext context, PhotoModel photo, PhotoModel? p
     public int PhotoCount { get; } = photoCount;
     public string? FromPage { get; } = fromPage;
 
-    public string FromPagePath => FromPage switch {
+    public string FromPagePath => FromPage switch
+    {
         "starred" => "/starred",
-        {} when FromPage.StartsWith("tagged_") => $"/tagged/{FromPage.Substring("tagged_".Length)}",
+        { } when FromPage.StartsWith("tagged_") => $"/tagged/{FromPage.Substring("tagged_".Length)}",
         _ => "/"
     };
 

@@ -2,5 +2,5 @@ namespace SmallPhotos.Web.Model;
 
 public enum SelectedView
 {
-    None, All, Starred, Tagged
+    None, All, Starred, Tagged, Reminisce
 }

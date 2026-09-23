@@ -25,6 +25,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddSingleton(Configuration);
+        services.AddSingleton(TimeProvider.System);
 
         services
             .AddAuthentication(o => o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme)
@@ -69,11 +70,7 @@ public class Startup
         services.AddDataServices();
         services.AddMediatR(typeof(Startup));
         services.AddMvc().AddSessionStateTempDataProvider();
-        var builder = services.AddRazorPages();
-#if DEBUG
-        if (Environment.IsDevelopment())
-            builder.AddRazorRuntimeCompilation();
-#endif
+        services.AddRazorPages();
         services.AddCors();
         services.AddDistributedMemoryCache();
         services

@@ -23,4 +23,5 @@ public interface IPhotoRepository
     IQueryable<Photo> GetAllWithTag(UserAccount user, string tag);
     Task AddTagAsync(UserAccount user, Photo photo, string tag);
     Task DeleteTagsAsync(UserAccount user, Photo photo);
+    IAsyncEnumerable<Photo> GetPreviousYearPhotosAsync(UserAccount user, DateTimeOffset forDate, int dayRange);
 }
