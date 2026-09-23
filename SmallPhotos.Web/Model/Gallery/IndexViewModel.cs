@@ -2,7 +2,6 @@ namespace SmallPhotos.Web.Model.Gallery;
 
 public class IndexViewModel(HttpContext context, PhotoModel photo, PhotoModel? previousPhoto,
     PhotoModel? nextPhoto, int photoNumber, int photoCount, string? fromPage)
-    // TODO: handle Reminisce?
     : BaseViewModel(context, fromPage == "starred" ? SelectedView.Starred : (fromPage?.StartsWith("tagged_") ?? false) ? SelectedView.Tagged : SelectedView.All)
 {
     public PhotoModel Photo { get; } = photo;
