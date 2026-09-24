@@ -7,7 +7,7 @@ using SmallPhotos.Web.Model;
 namespace SmallPhotos.Web.Handlers;
 
 public class ReminiscePageRequestHandler(
-    ILogger<HomePageRequestHandler> logger,
+    ILogger<ReminiscePageRequestHandler> logger,
     TimeProvider timeProvider,
     IUserAccountRepository userAccountRepository,
     IPhotoRepository photoRepository)

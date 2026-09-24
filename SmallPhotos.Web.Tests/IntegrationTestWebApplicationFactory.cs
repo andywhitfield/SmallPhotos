@@ -1,4 +1,3 @@
-using System.Net.Http;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -17,6 +16,8 @@ public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Startu
     private readonly SqliteConnection _connection;
     private readonly DbContextOptions<SqliteDataContext> _options;
 
+    public TimeProvider TestTimeProvider { get; set; } = TimeProvider.System;
+
     public IntegrationTestWebApplicationFactory()
     {
         _connection = new("DataSource=:memory:");
@@ -29,6 +30,7 @@ public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Startu
         .ConfigureWebHostDefaults(x => x.UseStartup<Startup>().UseTestServer().ConfigureTestServices(services =>
         {
             services.Replace(ServiceDescriptor.Scoped(_ => new SqliteDataContext(_options)));
+            services.Replace(ServiceDescriptor.Singleton(_ => TestTimeProvider));
             services
                 .AddAuthentication("Test")
                 .AddScheme<AuthenticationSchemeOptions, TestStubAuthHandler>("Test", null);
