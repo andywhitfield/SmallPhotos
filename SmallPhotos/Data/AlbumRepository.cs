@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SmallPhotos.Model;
 
 namespace SmallPhotos.Data;
 
-public class AlbumRepository(SqliteDataContext context)
+public class AlbumRepository(SqliteDataContext context, TimeProvider timeProvider)
     : IAlbumRepository
 {
     public Task<AlbumSource?> GetAsync(UserAccount user, long albumSourceId) =>
@@ -39,13 +35,13 @@ public class AlbumRepository(SqliteDataContext context)
 
     public async Task UpdateAsync(AlbumSource albumSource)
     {
-        albumSource.LastUpdateDateTime = DateTime.UtcNow;
+        albumSource.LastUpdateDateTime = timeProvider.GetUtcNow().DateTime;
         await context.SaveChangesAsync();
     }
 
     public async Task DeleteAlbumSourceAsync(AlbumSource albumSource)
     {
-        albumSource.DeletedDateTime = DateTime.UtcNow;
+        albumSource.DeletedDateTime = timeProvider.GetUtcNow().DateTime;
         await context.SaveChangesAsync();
     }
 }

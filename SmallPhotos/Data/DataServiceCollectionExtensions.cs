@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SmallPhotos.Feed;
 
 namespace SmallPhotos.Data;
 
@@ -23,6 +24,8 @@ public static class DataServiceCollectionExtensions
             .AddScoped<IUserAccountRepository, UserAccountRepository>()
             .AddScoped<IAlbumRepository, AlbumRepository>()
             .AddScoped<IPhotoRepository, PhotoRepository>()
+            .AddScoped<IUserFeedRepository, UserFeedRepository>()
             .AddScoped<IPhotoReader, PhotoReader>()
+            .AddScoped<IFeedGenerator, AtomFeedGenerator>()
             .AddTransient<IContentTypeProvider, FileExtensionContentTypeProvider>();
 }

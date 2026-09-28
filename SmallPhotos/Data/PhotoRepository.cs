@@ -5,7 +5,7 @@ using SmallPhotos.Model;
 
 namespace SmallPhotos.Data;
 
-public class PhotoRepository(ILogger<PhotoRepository> logger, SqliteDataContext context)
+public class PhotoRepository(ILogger<PhotoRepository> logger, TimeProvider timeProvider, SqliteDataContext context)
     : IPhotoRepository
 {
     public Task<Photo?> GetAsync(UserAccount user, long photoId) =>
@@ -78,7 +78,7 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, SqliteDataContext 
         photo.DateTaken = dateTaken;
         photo.Width = imageSize.Width;
         photo.Height = imageSize.Height;
-        photo.LastUpdateDateTime = DateTime.UtcNow;
+        photo.LastUpdateDateTime = timeProvider.GetUtcNow().DateTime;
 
         return context.SaveChangesAsync();
     }
@@ -101,7 +101,7 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, SqliteDataContext 
 
     public Task DeleteAsync(Photo photo)
     {
-        photo.DeletedDateTime = DateTime.UtcNow;
+        photo.DeletedDateTime = timeProvider.GetUtcNow().DateTime;
         context.Thumbnails!.RemoveRange(context.Thumbnails.Where(t => t.PhotoId == photo.PhotoId));
         return context.SaveChangesAsync();
     }
@@ -174,7 +174,7 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, SqliteDataContext 
             UserAccount = user,
             Photo = photo,
             Tag = tag.Trim(),
-            CreatedDateTime = DateTime.UtcNow
+            CreatedDateTime = timeProvider.GetUtcNow().DateTime
         });
         return context.SaveChangesAsync();
     }

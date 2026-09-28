@@ -1,15 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SmallPhotos.Model;
 
 namespace SmallPhotos.Data;
 
-public class UserAccountRepository(ILogger<UserAccountRepository> logger, SqliteDataContext context)
+public class UserAccountRepository(ILogger<UserAccountRepository> logger, TimeProvider timeProvider, SqliteDataContext context)
     : IUserAccountRepository
 {
     public Task<UserAccount?> GetAsync(long userAccountId) =>
@@ -22,8 +18,13 @@ public class UserAccountRepository(ILogger<UserAccountRepository> logger, Sqlite
             throw new InvalidOperationException($"UserAccount already exists with email [{email}]");
 
         var newUserAccount = context.UserAccounts!.Add(new() { Email = email });
-        context.UserAccountCredentials!.Add(new() { UserAccount = newUserAccount.Entity,
-            CredentialId = credentialId, PublicKey = publicKey, UserHandle = userHandle });
+        context.UserAccountCredentials!.Add(new()
+        {
+            UserAccount = newUserAccount.Entity,
+            CredentialId = credentialId,
+            PublicKey = publicKey,
+            UserHandle = userHandle
+        });
         await context.SaveChangesAsync();
 
         return newUserAccount.Entity;
@@ -57,19 +58,19 @@ public class UserAccountRepository(ILogger<UserAccountRepository> logger, Sqlite
 
     public Task UpdateAsync(UserAccount user)
     {
-        user.LastUpdateDateTime = DateTime.UtcNow;
+        user.LastUpdateDateTime = timeProvider.GetUtcNow().DateTime;
         return context.SaveChangesAsync();
     }
 
     public Task UpdateAsync(UserAccountCredential userAccountCredential)
     {
-        userAccountCredential.LastUpdateDateTime = DateTime.UtcNow;
+        userAccountCredential.LastUpdateDateTime = timeProvider.GetUtcNow().DateTime;
         return context.SaveChangesAsync();
     }
 
     public IAsyncEnumerable<UserAccountCredential> GetUserAccountCredentialsAsync(UserAccount user)
         => context.UserAccountCredentials!.Where(uac => uac.DeletedDateTime == null && uac.UserAccountId == user.UserAccountId).AsAsyncEnumerable();
-    
+
     public Task<UserAccountCredential?> GetUserAccountCredentialsByUserHandleAsync(byte[] userHandle)
         => context.UserAccountCredentials!.FirstOrDefaultAsync(uac => uac.DeletedDateTime == null && uac.UserHandle.SequenceEqual(userHandle));
 }
