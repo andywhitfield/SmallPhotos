@@ -32,7 +32,7 @@ public class AtomFeedGenerator(
             var entry = new XElement(ns + "entry");
             var itemUri = $"{baseUri}/api/feed/{userFeed.UserFeedIdentifier}/{today:yyyyMMdd}";
             entry.Add(new XElement(ns + "title", $"Small:Photos {Title(userFeedDetails)}"));
-            entry.Add(new XElement(ns + "link", new XAttribute("href", itemUri)));
+            entry.Add(new XElement(ns + "link", new XAttribute("href", baseUri)));
             entry.Add(new XElement(ns + "updated", (userFeed.LastUpdateDateTime ?? userFeed.CreatedDateTime).ToString("O")));
             entry.Add(new XElement(ns + "id", itemUri));
 
@@ -68,7 +68,7 @@ public class AtomFeedGenerator(
                 }
 
                 itemDescription.Append($"""
-<div><a title="Taken: {photo.DateTaken}" href="{baseUri}/gallery/{photo.PhotoId}/{photo.Filename}" target="_blank"><img src="{baseUri}/photo/thumbnail/{ThumbnailSize.Large}/{photo.PhotoId}/{photo.Filename}" width="{photo.Width}" height="{photo.Height}" /></a>
+<div><a title="Taken: {photo.DateTaken}" href="{baseUri}/gallery/{photo.PhotoId}/{photo.Filename}" target="_blank"><img src="{baseUri}/photo/thumbnail/{ThumbnailSize.Large}/{photo.PhotoId}/{photo.Filename}" width="{ThumbnailSize.Large.ToSize().Width}" height="{ThumbnailSize.Large.ToSize().Height}" /></a>
 <div>{(photo.DateTaken ?? photo.CreatedDateTime).ToString("dd MMM yyyy @ HH:mm")}</div>
 </div>
 """);
