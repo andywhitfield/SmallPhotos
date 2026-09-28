@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace SmallPhotos.Feed;
 
-public record UserFeedDetails(int[] RecentlyAddedPhotoIds, int[] ReminiscePhotoIds);
+public record UserFeedDetails(long[] RecentlyAddedPhotoIds, long[] ReminiscePhotoIds);
 
 public static class UserFeedDetailsExtensions
 {

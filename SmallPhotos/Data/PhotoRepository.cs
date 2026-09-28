@@ -185,9 +185,23 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, TimeProvider timeP
         return context.SaveChangesAsync();
     }
 
+    public IAsyncEnumerable<long> GetIdsByDateRangeAsync(UserAccount user, DateTime from, DateTime to)
+        => context
+            .Photos
+            .Include(p => p.AlbumSource)
+            .Where(p =>
+                p.AlbumSource!.UserAccountId == user.UserAccountId &&
+                p.AlbumSource.DeletedDateTime == null &&
+                p.DeletedDateTime == null &&
+                p.CreatedDateTime >= from &&
+                p.CreatedDateTime <= to
+            )
+            .Select(p => p.PhotoId)
+            .AsAsyncEnumerable();
+
     public IAsyncEnumerable<Photo> GetPreviousYearPhotosAsync(UserAccount user, DateTimeOffset forDate, int dayRange)
         => context
-            .Photos!
+            .Photos
             .Include(p => p.AlbumSource)
             .Where(p =>
                 p.AlbumSource!.UserAccountId == user.UserAccountId &&

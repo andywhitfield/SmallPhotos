@@ -39,50 +39,10 @@ public class AtomFeedGenerator(
             var content = new XElement(ns + "content", new XAttribute("type", "html"));
             StringBuilder itemDescription = new();
 
-            if (userFeedDetails.RecentlyAddedPhotoIds.Length > 0)
-            {
-                itemDescription.Append("<h2>Recently added photos</h2><p>");
-                foreach (var recentlyAddedPhotoId in userFeedDetails.RecentlyAddedPhotoIds)
-                {
-                    var recentlyAddedPhoto = await photoRepository.GetAsync(user, recentlyAddedPhotoId);
-                    if (recentlyAddedPhoto == null)
-                    {
-                        logger.LogWarning("Could not find photo with id {PhotoId} for user {UserId}", recentlyAddedPhotoId, user.UserAccountId);
-                        continue;
-                    }
+            await AppendPhotosAsync(itemDescription, user, baseUri, userFeedDetails.RecentlyAddedPhotoIds, "Recently added photos");
+            await AppendPhotosAsync(itemDescription, user, baseUri, userFeedDetails.ReminiscePhotoIds, "Reminisce photos");
 
-                    itemDescription.Append($"""
-<div><a title="Taken: {recentlyAddedPhoto.DateTaken}" href="{baseUri}/gallery/${recentlyAddedPhoto.PhotoId}/${recentlyAddedPhoto.Filename}"><img src="{baseUri}/photo/thumbnail/${ThumbnailSize.Large}/${recentlyAddedPhoto.PhotoId}/${recentlyAddedPhoto.Filename}" width="${recentlyAddedPhoto.Width}" height="${recentlyAddedPhoto.Height}" /></a>
-    <div>${(recentlyAddedPhoto.DateTaken ?? recentlyAddedPhoto.CreatedDateTime).ToString("dd MMM yyyy @ HH:mm")}</div>
-</div>
-""");
-                }
-                itemDescription.Append("</p>");
-            }
-
-            // TODO: dupe from above
-            if (userFeedDetails.ReminiscePhotoIds.Length > 0)
-            {
-                itemDescription.Append("<h2>Reminisce photos</h2><p>");
-                foreach (var reminiscePhotoId in userFeedDetails.ReminiscePhotoIds)
-                {
-                    var reminiscePhoto = await photoRepository.GetAsync(user, reminiscePhotoId);
-                    if (reminiscePhoto == null)
-                    {
-                        logger.LogWarning("Could not find photo with id {PhotoId} for user {UserId}", reminiscePhotoId, user.UserAccountId);
-                        continue;
-                    }
-
-                    itemDescription.Append($"""
-<div><a title="Taken: {reminiscePhoto.DateTaken}" href="{baseUri}/gallery/${reminiscePhoto.PhotoId}/${reminiscePhoto.Filename}"><img src="{baseUri}/photo/thumbnail/${ThumbnailSize.Large}/${reminiscePhoto.PhotoId}/${reminiscePhoto.Filename}" width="${reminiscePhoto.Width}" height="${reminiscePhoto.Height}" /></a>
-    <div>${(reminiscePhoto.DateTaken ?? reminiscePhoto.CreatedDateTime).ToString("dd MMM yyyy @ HH:mm")}</div>
-</div>
-""");
-                }
-                itemDescription.Append("</p>");
-            }
-
-            content.Add(new XCData($"{itemDescription}<p><a href=\"{baseUri}\">Open Small:Photos</a></p>"));
+            content.Add(new XCData($"{itemDescription}<p><a href=\"{baseUri}\" target=\"_blank\">Open Small:Photos</a></p>"));
             entry.Add(content);
 
             docRoot.Add(entry);
@@ -90,6 +50,31 @@ public class AtomFeedGenerator(
 
         atom.Add(docRoot);
         return (ToXmlString(atom), "application/xml", Encoding.UTF8);
+    }
+
+    private async Task AppendPhotosAsync(StringBuilder itemDescription, UserAccount user, string baseUri, long[] photoIds, string title)
+    {
+        if (photoIds.Length > 0)
+        {
+            itemDescription.Append("<h2>").Append(title).Append("</h2><p>");
+
+            foreach (var photoId in photoIds)
+            {
+                var photo = await photoRepository.GetAsync(user, photoId);
+                if (photo == null)
+                {
+                    logger.LogWarning("Could not find photo with id {PhotoId} for user {UserId}", photoId, user.UserAccountId);
+                    continue;
+                }
+
+                itemDescription.Append($"""
+<div><a title="Taken: {photo.DateTaken}" href="{baseUri}/gallery/{photo.PhotoId}/{photo.Filename}" target="_blank"><img src="{baseUri}/photo/thumbnail/{ThumbnailSize.Large}/{photo.PhotoId}/{photo.Filename}" width="{photo.Width}" height="{photo.Height}" /></a>
+<div>{(photo.DateTaken ?? photo.CreatedDateTime).ToString("dd MMM yyyy @ HH:mm")}</div>
+</div>
+""");
+            }
+            itemDescription.Append("</p>");
+        }
     }
 
     private static string Title(UserFeedDetails userFeedDetails)

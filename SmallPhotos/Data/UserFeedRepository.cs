@@ -9,9 +9,9 @@ public class UserFeedRepository(SqliteDataContext context, TimeProvider timeProv
     public Task<UserFeed?> FindByIdentifierAsync(string feedIdentifier) =>
         context.UserFeeds.SingleOrDefaultAsync(f => f.UserFeedIdentifier == feedIdentifier && f.DeletedDateTime == null);
 
-    public Task SaveAsync(UserFeed userFeed)
+    public Task SaveAsync(UserFeed userFeed, DateTime? lastUpdateDateTime = null)
     {
-        userFeed.LastUpdateDateTime = timeProvider.GetUtcNow().DateTime;
+        userFeed.LastUpdateDateTime = lastUpdateDateTime ?? timeProvider.GetUtcNow().DateTime;
         return context.SaveChangesAsync();
     }
 }
