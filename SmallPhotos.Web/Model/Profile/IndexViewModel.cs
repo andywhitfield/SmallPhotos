@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
 using SmallPhotos.Model;
 
 namespace SmallPhotos.Web.Model.Profile;
@@ -9,7 +7,8 @@ public class IndexViewModel(HttpContext context,
     ThumbnailSize thumbnailSize,
     int galleryImagePageSize,
     string? dropboxAccessToken = null,
-    string? dropboxRefreshToken = null)
+    string? dropboxRefreshToken = null,
+    UserFeed? userFeed = null)
     : BaseViewModel(context, SelectedView.None)
 {
     public IEnumerable<AlbumSourceFolderModel> Folders { get; } = folders;
@@ -17,4 +16,5 @@ public class IndexViewModel(HttpContext context,
     public int GalleryImagePageSize { get; } = galleryImagePageSize;
     public string? DropboxAccessToken { get; } = dropboxAccessToken;
     public string? DropboxRefreshToken { get; } = dropboxRefreshToken;
+    public UserFeed? Feed { get; } = userFeed;
 }

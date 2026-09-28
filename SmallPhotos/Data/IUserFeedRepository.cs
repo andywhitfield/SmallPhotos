@@ -5,5 +5,7 @@ namespace SmallPhotos.Data;
 public interface IUserFeedRepository
 {
     Task<UserFeed?> FindByIdentifierAsync(string feedIdentifier);
-    Task SaveAsync(UserFeed userFeed, DateTime? lastUpdateDateTime = null);
+    Task<UserFeed?> GetAsync(UserAccount user);
+    Task CreateAsync(UserAccount user, string uniqueFeedIdentifier);
+    Task SaveAsync(UserFeed userFeed, DateTime? lastUpdateDateTime);
 }

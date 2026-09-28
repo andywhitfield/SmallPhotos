@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using SmallPhotos.Data;
 using SmallPhotos.Dropbox;
 using SmallPhotos.Model;
 using SmallPhotos.Web.Handlers.Models;
@@ -13,7 +14,12 @@ using SmallPhotos.Web.Model.Profile;
 namespace SmallPhotos.Web.Controllers;
 
 [Authorize]
-public class ProfileController(ILogger<ProfileController> logger, IMediator mediator,
+public class ProfileController(
+    ILogger<ProfileController> logger,
+    IMediator mediator,
+    TimeProvider timeProvider,
+    IUserAccountRepository userAccountRepository,
+    IUserFeedRepository userFeedRepository,
     IOptions<DropboxOptions> dropboxConfig)
     : Controller
 {
@@ -24,7 +30,7 @@ public class ProfileController(ILogger<ProfileController> logger, IMediator medi
     public async Task<IActionResult> Index()
     {
         var response = await mediator.Send(new GetProfileRequest(User));
-        return View(new IndexViewModel(HttpContext, response.Folders, response.ThumbnailSize, response.GalleryImagePageSize));
+        return View(new IndexViewModel(HttpContext, response.Folders, response.ThumbnailSize, response.GalleryImagePageSize, userFeed: response.UserFeed));
     }
 
     [HttpPost("~/profile/folder/add")]
@@ -135,7 +141,32 @@ public class ProfileController(ILogger<ProfileController> logger, IMediator medi
         logger.LogInformation("Got user tokens from Dropbox: {AccessToken} / {RefreshToken}", response.AccessToken, response.RefreshToken);
 
         var profileResponse = await mediator.Send(new GetProfileRequest(User));
-        return View("Index", new IndexViewModel(HttpContext, profileResponse.Folders, profileResponse.ThumbnailSize, profileResponse.GalleryImagePageSize, response.AccessToken, response.RefreshToken));
+        return View("Index", new IndexViewModel(HttpContext, profileResponse.Folders, profileResponse.ThumbnailSize, profileResponse.GalleryImagePageSize, response.AccessToken, response.RefreshToken, profileResponse.UserFeed));
+    }
+
+    [HttpPost("~/profile/feed")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateFeed()
+    {
+        logger.LogInformation("Creating new feed");
+        var user = await userAccountRepository.GetUserAccountAsync(User);
+        await userFeedRepository.CreateAsync(user, NewGuidString());
+        return Redirect("~/profile");
+    }
+
+    [HttpPost("~/profile/feed/delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteFeed()
+    {
+        logger.LogInformation("Deleting feed");
+        var user = await userAccountRepository.GetUserAccountAsync(User);
+        var userFeed = await userFeedRepository.GetAsync(user);
+        if (userFeed != null)
+        {
+            userFeed.DeletedDateTime = timeProvider.GetUtcNow().DateTime;
+            await userFeedRepository.SaveAsync(userFeed, userFeed.DeletedDateTime);
+        }
+        return Redirect("~/profile");
     }
 
     private Uri RedirectUri
@@ -150,5 +181,11 @@ public class ProfileController(ILogger<ProfileController> logger, IMediator medi
             uriBuilder.Path = "dropbox-authentication";
             return uriBuilder.Uri;
         }
+    }
+
+    private static string NewGuidString()
+    {
+        var base64Guid = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Replace('+', '-').Replace('/', '_');
+        return base64Guid[..^2];
     }
 }

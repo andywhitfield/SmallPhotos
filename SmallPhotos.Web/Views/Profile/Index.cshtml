@@ -96,4 +96,27 @@
         </div>
     </form>
     </p>
+
+    <h3>Feeds</h3>
+    @if (Model.Feed == null) {
+    <form method="post" action="/profile/feed">
+    @Html.AntiForgeryToken()
+    <p>
+        <div>There is no current rss feed. The feed will display your recently added and reminisce photos.</div>
+        <div><button type="submit">Create a new feed</button></div>
+    </p>
+    </form>
+    } else {
+    <p>
+    <div>Feed URL: @(Context.Request.Scheme)://@(Context.Request.Host)/api/feed/@Model.Feed.UserFeedIdentifier</div>
+    <div>Created: @Model.Feed.CreatedDateTime.ToString("R")</div>
+    </p>
+
+    <form method="post" action="/profile/feed/delete">
+    @Html.AntiForgeryToken()
+    <div>
+        <button data-confirm="This will stop your recently added and reminisce photos being available on this feed URL - are you sure?">Delete feed</button>
+    </div>
+    </form>
+    }
 </article>
