@@ -55,7 +55,10 @@ public class ReminiscePageRequestHandler(
         return new(
             true,
             ThumbnailSize.Large,
-            photos.Select(p => new PhotoModel(p.PhotoId, p.AlbumSource?.Folder ?? "", p.AlbumSource?.IsDropboxSource ?? false, p.Filename ?? "", p.RelativePath ?? "", ThumbnailSize.Large.ToSize(), p.DateTaken ?? p.FileCreationDateTime, p.FileCreationDateTime, false, [])),
+            photos.Select(p => new PhotoModel(p.PhotoId, p.AlbumSource?.Folder ?? "",
+                p.AlbumSource?.IsDropboxSource ?? false, p.Filename ?? "", p.RelativePath ?? "",
+                ThumbnailSize.Large.ToSize(), p.DateTaken ?? p.FileCreationDateTime, p.FileCreationDateTime,
+                false, [], p.Latitude, p.Longitude)),
             true);
     }
 }

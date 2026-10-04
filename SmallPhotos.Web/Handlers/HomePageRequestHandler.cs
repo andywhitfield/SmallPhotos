@@ -50,7 +50,10 @@ public class HomePageRequestHandler(ILogger<HomePageRequestHandler> logger, IUse
         return new(
             true,
             user.ThumbnailSize,
-            pagedPhotos.Items.Select(p => new PhotoModel(p.PhotoId, p.AlbumSource?.Folder ?? "", p.AlbumSource?.IsDropboxSource ?? false, p.Filename ?? "", p.RelativePath ?? "", user.ThumbnailSize.ToSize(), p.DateTaken ?? p.FileCreationDateTime, p.FileCreationDateTime, starredPhotoIds.Contains(p.PhotoId), [])),
+            pagedPhotos.Items.Select(p => new PhotoModel(p.PhotoId, p.AlbumSource?.Folder ?? "",
+                p.AlbumSource?.IsDropboxSource ?? false, p.Filename ?? "", p.RelativePath ?? "",
+                user.ThumbnailSize.ToSize(), p.DateTaken ?? p.FileCreationDateTime, p.FileCreationDateTime,
+                starredPhotoIds.Contains(p.PhotoId), [], p.Latitude, p.Longitude)),
             new Pagination(pagedPhotos.Page, pagedPhotos.PageCount),
             user.GalleryShowDetails ?? false,
             photoTakenDate.Min,

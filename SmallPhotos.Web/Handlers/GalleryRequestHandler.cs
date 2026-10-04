@@ -36,5 +36,14 @@ public class GalleryRequestHandler(ILogger<GalleryRequestHandler> logger, IUserA
         return new GalleryResponse(await ToModelAsync(user, photo, starredPhotos), await ToModelAsync(null, previous, starredPhotos), await ToModelAsync(null, next, starredPhotos), photoIndex + 1, allPhotos.Count);
     }
 
-    private async Task<PhotoModel?> ToModelAsync(UserAccount? user, Photo? photo, IEnumerable<long> starredPhotos) => photo == null ? null : new PhotoModel(photo.PhotoId, photo.AlbumSource?.Folder ?? "", photo.AlbumSource?.IsDropboxSource ?? false, photo.Filename ?? "", photo.RelativePath ?? "", new Size(photo.Width, photo.Height), photo.DateTaken ?? photo.FileCreationDateTime, photo.FileCreationDateTime, starredPhotos.Contains(photo.PhotoId), user == null ? Enumerable.Empty<string>() : (await photoRepository.GetTagsAsync(user, photo)).Select(t => t.Tag));
+    private async Task<PhotoModel?> ToModelAsync(UserAccount? user, Photo? photo, IEnumerable<long> starredPhotos)
+        => photo == null
+            ? null
+            : new PhotoModel(photo.PhotoId, photo.AlbumSource?.Folder ?? "",
+                photo.AlbumSource?.IsDropboxSource ?? false, photo.Filename ?? "",
+                photo.RelativePath ?? "", new Size(photo.Width, photo.Height),
+                photo.DateTaken ?? photo.FileCreationDateTime, photo.FileCreationDateTime,
+                starredPhotos.Contains(photo.PhotoId),
+                user == null ? [] : (await photoRepository.GetTagsAsync(user, photo)).Select(t => t.Tag),
+                photo.Latitude, photo.Longitude);
 }

@@ -4,7 +4,7 @@ namespace SmallPhotos.Web.Model;
 
 public class PhotoModel(long photoId, string source, bool isDropboxSource, string filename,
     string filepath, Size size, DateTime dateTaken, DateTime fileCreationDate,
-    bool isStarred, IEnumerable<string> tags)
+    bool isStarred, IEnumerable<string> tags, double? latitude, double? longitude)
 {
     private const string _dateFormat = "HH:mm' on 'dd MMMM yyyy";
     private const string _dateFormatShort = "dd MMM yyyy @ HH:mm";
@@ -22,4 +22,8 @@ public class PhotoModel(long photoId, string source, bool isDropboxSource, strin
     public string FileCreationDate { get; } = fileCreationDate.ToString(_dateFormat);
     public bool IsStarred { get; } = isStarred;
     public IEnumerable<string> Tags { get; } = tags;
+    public bool HasGeoCoordinates { get; } = latitude != null && longitude != null;
+    public double? GeoLatitude { get; } = latitude;
+    public double? GeoLongitude { get; } = longitude;
+    public string GeoLocation { get; } = latitude == null || longitude == null ? "" : $"({latitude.Value:N4}, {longitude.Value:N4})";
 }
