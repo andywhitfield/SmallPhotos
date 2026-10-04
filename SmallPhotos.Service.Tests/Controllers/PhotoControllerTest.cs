@@ -1,15 +1,10 @@
-using System;
-using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using FluentAssertions;
 using ImageMagick;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SmallPhotos.Data;
 using SmallPhotos.Model;
 using SmallPhotos.Service.Models;
@@ -63,6 +58,8 @@ public class PhotoControllerTest
         responsePhoto.Width.Should().Be(15);
         responsePhoto.Height.Should().Be(10);
         responsePhoto.DateTaken.Should().BeNull();
+        responsePhoto.Latitude.Should().BeNull();
+        responsePhoto.Longitude.Should().BeNull();
 
         // check saved photo
         using var serviceScope = _factory.Services.CreateScope();
@@ -74,6 +71,8 @@ public class PhotoControllerTest
         newPhoto.Width.Should().Be(15);
         newPhoto.Height.Should().Be(10);
         newPhoto.DateTaken.Should().BeNull();
+        newPhoto.Latitude.Should().BeNull();
+        newPhoto.Longitude.Should().BeNull();
 
         // check thumbnails
         (await context.Thumbnails!.CountAsync()).Should().Be(3);
@@ -122,6 +121,8 @@ public class PhotoControllerTest
             responsePhoto.Width.Should().Be(15);
             responsePhoto.Height.Should().Be(10);
             responsePhoto.DateTaken.Should().Be(new DateTime(2022, 9, 19, 13, 20, 10));
+            responsePhoto.Latitude.Should().BeNull();
+            responsePhoto.Longitude.Should().BeNull();
 
             using var serviceScope = _factory.Services.CreateScope();
             var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
@@ -129,6 +130,8 @@ public class PhotoControllerTest
             newPhoto = await context.Photos!.FirstAsync();
             newPhoto.LastUpdateDateTime.Should().BeNull();
             newPhoto.DateTaken.Should().Be(new DateTime(2022, 9, 19, 13, 20, 10));
+            newPhoto.Latitude.Should().BeNull();
+            newPhoto.Longitude.Should().BeNull();
         }
 
         {
@@ -153,6 +156,8 @@ public class PhotoControllerTest
             responsePhoto.Width.Should().Be(30);
             responsePhoto.Height.Should().Be(10);
             responsePhoto.DateTaken.Should().BeNull();
+            responsePhoto.Latitude.Should().BeNull();
+            responsePhoto.Longitude.Should().BeNull();
         }
 
         Photo updatedPhoto;
@@ -169,6 +174,8 @@ public class PhotoControllerTest
         updatedPhoto.Width.Should().Be(30);
         updatedPhoto.Height.Should().Be(10);
         updatedPhoto.DateTaken.Should().BeNull();
+        updatedPhoto.Latitude.Should().BeNull();
+        updatedPhoto.Longitude.Should().BeNull();
         updatedPhoto.FileCreationDateTime.Should().Be(newPhoto.FileCreationDateTime);
         updatedPhoto.FileModificationDateTime.Should().BeAfter(newPhoto.FileModificationDateTime);
         updatedPhoto.LastUpdateDateTime.Should().NotBeNull();

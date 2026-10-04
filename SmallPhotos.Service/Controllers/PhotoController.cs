@@ -1,8 +1,5 @@
-using System;
 using System.Drawing;
 using System.Globalization;
-using System.IO;
-using System.Threading.Tasks;
 using ImageMagick;
 using Microsoft.AspNetCore.Mvc;
 using SmallPhotos.Data;
@@ -47,12 +44,18 @@ public class PhotoController(
 
         using MagickImage image = new(file.FullName, format);
         Size originalSize = new((int)image.Width, (int)image.Height);
+        var (lat, lon) = ExtractGeoLocation(image);
 
         var photo = await photoRepository.GetAsync(userAccount, albumSource, file.Name, request.FilePath);
         if (photo == null)
-            photo = await photoRepository.AddAsync(albumSource, file, originalSize, ExtractDateTaken(image), albumSource.IsDropboxSource ? request.FilePath : null);
+        {
+            photo = await photoRepository.AddAsync(albumSource, file, originalSize, ExtractDateTaken(image),
+                albumSource.IsDropboxSource ? request.FilePath : null, lat, lon);
+        }
         else
-            await photoRepository.UpdateAsync(photo, file, originalSize, ExtractDateTaken(image));
+        {
+            await photoRepository.UpdateAsync(photo, file, originalSize, ExtractDateTaken(image), lat, lon);
+        }
 
         foreach (var thumbnailSize in Enum.GetValues<ThumbnailSize>())
         {
@@ -73,5 +76,50 @@ public class PhotoController(
 
         DateTime? ExtractDateTaken(ExifTag<string> tag) =>
             DateTime.TryParseExact(exifData?.GetValue<string>(tag)?.Value, "yyyy:MM:dd HH:mm:ss", null, DateTimeStyles.AssumeLocal, out var timeTaken) ? timeTaken : default(DateTime?);
+    }
+
+    private static (double? lat, double? lon) ExtractGeoLocation(MagickImage image)
+    {
+        var exifValues = image.GetExifProfile()?.Values ?? [];
+        var lat = GetGeoCoordinate(exifValues, ExifTag.GPSLatitude, ExifTag.GPSLatitudeRef, "S");
+        var lon = GetGeoCoordinate(exifValues, ExifTag.GPSLongitude, ExifTag.GPSLongitudeRef, "W");
+        return lat == null || lon == null ? (null, null) : (lat, lon);
+    }
+
+    private static double? GetGeoCoordinate(IEnumerable<IExifValue> values, ExifTag coordinateTag, ExifTag referenceTag, string referenceTagNegateValue)
+    {
+        double? decimalDegrees = default;
+        string? referenceTagValue = default;
+
+        foreach (var value in values)
+        {
+            if (value.Tag == coordinateTag)
+            {
+                var coords = value.GetValue() as Rational[];
+                if (coords?.Length != 3)
+                    continue;
+
+                var deg = coords[0].ToDouble();
+                var mins = coords[1].ToDouble();
+                var secs = coords[2].ToDouble();
+                decimalDegrees = deg + (mins / 60d) + (secs / 3600d);
+            }
+            else if (value.Tag == referenceTag)
+            {
+                var refTag = value.GetValue() as string;
+                referenceTagValue = refTag;
+            }
+
+            if (decimalDegrees != null && referenceTagValue != null)
+                break;
+        }
+
+        if (decimalDegrees == null || referenceTagValue == null)
+            return null;
+
+        if (referenceTagValue == referenceTagNegateValue)
+            decimalDegrees = -decimalDegrees;
+        
+        return decimalDegrees;
     }
 }

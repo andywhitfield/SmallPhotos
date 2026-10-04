@@ -54,7 +54,8 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, TimeProvider timeP
             .Thumbnails!
             .FirstOrDefaultAsync(t => t.PhotoId == photo.PhotoId && t.ThumbnailSize == size);
 
-    public async Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize, DateTime? dateTaken, string? relativePath = null)
+    public async Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize, DateTime? dateTaken, string? relativePath,
+        double? latitude, double? longitude)
     {
         var photo = context.Photos!.Add(new()
         {
@@ -65,19 +66,23 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, TimeProvider timeP
             FileModificationDateTime = file.LastWriteTimeUtc,
             DateTaken = dateTaken,
             Width = imageSize.Width,
-            Height = imageSize.Height
+            Height = imageSize.Height,
+            Latitude = latitude,
+            Longitude = longitude
         });
         await context.SaveChangesAsync();
         return photo.Entity;
     }
 
-    public Task UpdateAsync(Photo photo, FileInfo file, Size imageSize, DateTime? dateTaken)
+    public Task UpdateAsync(Photo photo, FileInfo file, Size imageSize, DateTime? dateTaken, double? latitude, double? longitude)
     {
         photo.FileCreationDateTime = file.CreationTimeUtc;
         photo.FileModificationDateTime = file.LastWriteTimeUtc;
         photo.DateTaken = dateTaken;
         photo.Width = imageSize.Width;
         photo.Height = imageSize.Height;
+        photo.Latitude = latitude;
+        photo.Longitude = longitude;
         photo.LastUpdateDateTime = timeProvider.GetUtcNow().DateTime;
 
         return context.SaveChangesAsync();
