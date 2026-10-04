@@ -4,6 +4,7 @@
     <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="BigDataCloud" Version="1.0.*" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.*" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.*" />
   </ItemGroup>

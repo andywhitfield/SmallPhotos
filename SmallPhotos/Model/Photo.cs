@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace SmallPhotos.Model;
@@ -19,4 +18,11 @@ public class Photo
     public DateTime CreatedDateTime { get; set; } = DateTime.UtcNow;
     public DateTime? LastUpdateDateTime { get; set; }
     public DateTime? DeletedDateTime { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public bool? IsGeoLookupCompleted { get; set; }
+    public string? GeoLocality { get; set; }
+    public string? GeoCity { get; set; }
+    public string? GeoPrincipalSubdivision { get; set; }
+    public string? GeoCountryName { get; set; }
 }
