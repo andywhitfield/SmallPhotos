@@ -1,4 +1,5 @@
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using FluentAssertions;
@@ -201,6 +202,69 @@ public class PhotoControllerTest
             thumbnail!.PhotoId.Should().Be(updatedPhoto.PhotoId);
             thumbnail.ThumbnailImage.Should().BeOfSize(ThumbnailSize.Large.ToSize());
         }
+    }
+
+    [TestMethod]
+    public async Task Should_save_image_with_gps_data()
+    {
+        async Task WriteResourceToFileAsync()
+        {
+            await using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("SmallPhotos.Service.Tests.Controllers.2026-09-25 08.24.35.jpg");
+            Assert.IsNotNull(stream);
+            await using var outputFile = File.Create(Path.Combine(_albumSourceFolder ?? "", "test.jpg"));
+            await stream.CopyToAsync(outputFile);
+        }
+        await WriteResourceToFileAsync();
+
+        CreateOrUpdatePhotoRequest request = new()
+        {
+            UserAccountId = _userAccount!.UserAccountId,
+            AlbumSourceId = _albumSource!.AlbumSourceId,
+            Filename = "test.jpg"
+        };
+
+        using var client = _factory.CreateClient();
+        var response = await client.PostAsync("/api/photo", new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
+        var responseContent = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(HttpStatusCode.OK, because: $"request is valid but failed: '{responseContent}'");
+        var responsePhoto = JsonSerializer.Deserialize<Photo>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        responsePhoto.Should().NotBeNull();
+        responsePhoto!.Filename.Should().Be("test.jpg");
+        responsePhoto.Width.Should().Be(4284);
+        responsePhoto.Height.Should().Be(5712);
+        responsePhoto.DateTaken.Should().Be(new(2026, 9, 25, 8, 24, 34));
+        responsePhoto.Latitude.Should().Be(51.80801666666667);
+        responsePhoto.Longitude.Should().Be(-0.19811944444444443);
+
+        // check saved photo
+        using var serviceScope = _factory.Services.CreateScope();
+        var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
+        (await context.Photos!.CountAsync()).Should().Be(1);
+        var newPhoto = await context.Photos!.FirstAsync();
+        newPhoto.AlbumSourceId.Should().Be(_albumSource.AlbumSourceId);
+        newPhoto.Filename.Should().Be("test.jpg");
+        newPhoto.Width.Should().Be(4284);
+        newPhoto.Height.Should().Be(5712);
+        newPhoto.DateTaken.Should().Be(new(2026, 9, 25, 8, 24, 34));
+        newPhoto.Latitude.Should().Be(51.80801666666667);
+        newPhoto.Longitude.Should().Be(-0.19811944444444443);
+
+        // check thumbnails
+        (await context.Thumbnails!.CountAsync()).Should().Be(3);
+        var thumbnail = await context.Thumbnails!.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Small);
+        thumbnail.Should().NotBeNull();
+        thumbnail!.PhotoId.Should().Be(newPhoto.PhotoId);
+        thumbnail.ThumbnailImage.Should().BeOfSize(ThumbnailSize.Small.ToSize());
+
+        thumbnail = await context.Thumbnails!.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Medium);
+        thumbnail.Should().NotBeNull();
+        thumbnail!.PhotoId.Should().Be(newPhoto.PhotoId);
+        thumbnail.ThumbnailImage.Should().BeOfSize(ThumbnailSize.Medium.ToSize());
+
+        thumbnail = await context.Thumbnails!.FirstOrDefaultAsync(t => t.ThumbnailSize == ThumbnailSize.Large);
+        thumbnail.Should().NotBeNull();
+        thumbnail!.PhotoId.Should().Be(newPhoto.PhotoId);
+        thumbnail.ThumbnailImage.Should().BeOfSize(ThumbnailSize.Large.ToSize());
     }
 
     [TestCleanup]

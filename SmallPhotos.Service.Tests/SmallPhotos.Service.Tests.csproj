@@ -11,6 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Controllers\2026-09-25 08.24.35.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SmallPhotos.Service\SmallPhotos.Service.csproj" />
   </ItemGroup>
 </Project>
