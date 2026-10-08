@@ -12,6 +12,7 @@ public interface IPhotoRepository
     Task<Thumbnail?> GetThumbnailAsync(Photo photo, ThumbnailSize size);
     Task<Photo> AddAsync(AlbumSource album, FileInfo file, Size imageSize, DateTime? dateTaken, string? relativePath, double? latitude, double? longitude);
     Task UpdateAsync(Photo photo, FileInfo file, Size imageSize, DateTime? dateTaken, double? latitude, double? longitude);
+    Task SaveAsync(Photo photo);
     Task<Thumbnail> SaveThumbnailAsync(Photo photo, ThumbnailSize size, byte[] image);
     Task DeleteAsync(Photo photo);
     IQueryable<Photo> GetAllStarred(UserAccount user);
@@ -25,4 +26,5 @@ public interface IPhotoRepository
     Task DeleteTagsAsync(UserAccount user, Photo photo);
     IAsyncEnumerable<long> GetIdsByDateRangeAsync(UserAccount user, DateTime from, DateTime to);
     IAsyncEnumerable<Photo> GetPreviousYearPhotosAsync(UserAccount user, DateTimeOffset forDate, int dayRange);
+    IAsyncEnumerable<Photo> GetWithGeoLookupRequiredAsync(int maxResultCount);
 }

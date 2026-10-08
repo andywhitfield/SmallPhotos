@@ -88,6 +88,12 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, TimeProvider timeP
         return context.SaveChangesAsync();
     }
 
+    public Task SaveAsync(Photo photo)
+    {
+        photo.LastUpdateDateTime = timeProvider.GetUtcNow().DateTime;
+        return context.SaveChangesAsync();
+    }
+
     public async Task<Thumbnail> SaveThumbnailAsync(Photo photo, ThumbnailSize size, byte[] image)
     {
         logger.LogDebug("Saving thumbnail of size {Size} for photo {PhotoId}", size, photo.PhotoId);
@@ -218,5 +224,20 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, TimeProvider timeP
                     Math.Abs((forDate.Ticks - (p.DateTaken ?? p.FileCreationDateTime).Ticks) / TimeSpan.TicksPerDay % 365) >= 365 - dayRange
                 )
             )
+            .AsAsyncEnumerable();
+
+    public IAsyncEnumerable<Photo> GetWithGeoLookupRequiredAsync(int maxResultCount)
+        => context
+            .Photos
+            .Include(p => p.AlbumSource)
+            .Where(p =>
+                p.AlbumSource!.DeletedDateTime == null &&
+                p.DeletedDateTime == null &&
+                !(p.IsGeoLookupCompleted ?? false) &&
+                p.Latitude != null &&
+                p.Longitude != null
+            )
+            .OrderByDescending(p => p.PhotoId)
+            .Take(maxResultCount)
             .AsAsyncEnumerable();
 }

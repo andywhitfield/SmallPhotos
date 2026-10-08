@@ -1,9 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SmallPhotos.Service.Services;
 
@@ -39,25 +33,32 @@ public class AlbumChangeService(ILogger<AlbumChangeService> logger, IServiceScop
                 TimeSpan pollPeriod;
                 using (var scope = serviceScopeFactory.CreateScope())
                 {
-                    pollPeriod = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<AlbumChangeServiceOptions>>().Value.PollPeriod;
-
-                    try
+                    var albumChangeServiceOptions = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<AlbumChangeServiceOptions>>().Value;
+                    pollPeriod = albumChangeServiceOptions.PollPeriod;
+                    if (albumChangeServiceOptions.Enabled)
                     {
-                        await scope.ServiceProvider.GetRequiredService<IAlbumSyncService>().SyncAllAsync(stoppingToken);
-                        consecutiveFailures = 0;
+                        try
+                        {
+                            await scope.ServiceProvider.GetRequiredService<IAlbumSyncService>().SyncAllAsync(stoppingToken);
+                            consecutiveFailures = 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            consecutiveFailures++;
+                            if (consecutiveFailures > 4)
+                            {
+                                logger.LogError(ex, "An error occurred syncing photos. There have been {ConsecutiveFailures} consecutive failures - giving up!", consecutiveFailures);
+                                throw;
+                            }
+                            else
+                            {
+                                logger.LogError(ex, "An error occurred syncing photos");
+                            }
+                        }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        consecutiveFailures++;
-                        if (consecutiveFailures > 4)
-                        {
-                            logger.LogError(ex, "An error occurred syncing photos. There have been {ConsecutiveFailures} consecutive failures - giving up!", consecutiveFailures);
-                            throw;
-                        }
-                        else
-                        {
-                            logger.LogError(ex, "An error occurred syncing photos");
-                        }
+                        logger.LogInformation("Album change service disabled, not running.");
                     }
                 }
 

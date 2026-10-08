@@ -1,12 +1,8 @@
-﻿using System.Linq;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
+﻿using System.Threading.RateLimiting;
+using BigDataCloud;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Serilog;
 using SmallPhotos.Data;
 using SmallPhotos.Dropbox;
@@ -17,9 +13,9 @@ namespace SmallPhotos.Service;
 
 public class Startup
 {
-    public const string BackgroundServiceHttpClient = "BackgroundServiceHttpClient";
+    public const string BackgroundServiceHttpClient = nameof(BackgroundServiceHttpClient);
+    public const string BigDataCloudPollyPolicy = nameof(BigDataCloudPollyPolicy);
 
-    private IWebHostEnvironment _hostingEnvironment;
     private IFeatureCollection? _featureCollection;
 
     public Startup(IWebHostEnvironment env)
@@ -30,8 +26,6 @@ public class Startup
             .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
             .AddEnvironmentVariables();
         Configuration = builder.Build();
-
-        _hostingEnvironment = env;
     }
 
     public IConfigurationRoot Configuration { get; }
@@ -67,12 +61,43 @@ public class Startup
         services.AddCors();
 
         services.Configure<AlbumChangeServiceOptions>(Configuration.GetSection("AlbumChangeService"));
+        services.Configure<GeoLocationServiceOptions>(Configuration.GetSection("GeoLocationService"));
         services.Configure<DropboxOptions>(Configuration.GetSection("Dropbox"));
         services.AddScoped<IAlbumSyncService, AlbumSyncService>();
         services.AddScoped<IFilesystemSync, FilesystemSync>();
         services.AddScoped<IDropboxSync, DropboxSync>();
         services.AddScoped<IDropboxClientProxy, DropboxClientProxy>();
+        services.AddScoped<IGeoLocationUpdateService, GeoLocationUpdateService>();
+        services.AddScoped(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<Startup>>();
+            var geoLocationServiceOptions = sp.GetRequiredService<IOptionsSnapshot<GeoLocationServiceOptions>>().Value;
+            if (geoLocationServiceOptions.Enabled && string.IsNullOrEmpty(geoLocationServiceOptions.ApiKey))
+            {
+                logger.LogCritical("Cannot get GeoLocation API Key - background service will not be able to run successfully!");
+                sp.GetService<IHostApplicationLifetime>()?.StopApplication();
+                return default!;
+            }
+
+            logger.LogDebug("Creating BigDataCloud client with api key length {ApiKeyLength}", geoLocationServiceOptions.ApiKey.Length);
+            return new BigDataCloudClient(geoLocationServiceOptions.ApiKey);
+        });
+        services.AddScoped<RateLimiter>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<Startup>>();
+            var geoLocationServiceOptions = sp.GetRequiredService<IOptionsSnapshot<GeoLocationServiceOptions>>().Value;
+            logger.LogDebug("Creating BigDataCloud rate limiter, limit={RateLimit} window={RateLimitWindow}", geoLocationServiceOptions.RateLimit, geoLocationServiceOptions.RateLimitWindow);
+            return new SlidingWindowRateLimiter(new()
+            {
+                PermitLimit = geoLocationServiceOptions.RateLimit,
+                Window = geoLocationServiceOptions.RateLimitWindow,
+                SegmentsPerWindow = 1,
+                QueueLimit = 1,
+                AutoReplenishment = true
+            });
+        });
         services.AddHostedService<AlbumChangeService>();
+        services.AddHostedService<GeoLocationService>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
