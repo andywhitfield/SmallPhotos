@@ -45,5 +45,6 @@ public class GalleryRequestHandler(ILogger<GalleryRequestHandler> logger, IUserA
                 photo.DateTaken ?? photo.FileCreationDateTime, photo.FileCreationDateTime,
                 starredPhotos.Contains(photo.PhotoId),
                 user == null ? [] : (await photoRepository.GetTagsAsync(user, photo)).Select(t => t.Tag),
-                photo.Latitude, photo.Longitude);
+                photo.Latitude, photo.Longitude, photo.GeoLocality, photo.GeoCity,
+                photo.GeoPrincipalSubdivision, photo.GeoCountryName);
 }

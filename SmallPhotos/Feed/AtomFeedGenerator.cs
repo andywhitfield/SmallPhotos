@@ -56,7 +56,7 @@ public class AtomFeedGenerator(
     {
         if (photoIds.Length > 0)
         {
-            itemDescription.Append("<h2>").Append(title).Append("</h2><p>");
+            itemDescription.Append("<p><h2>").Append(title).Append("</h2><p>");
 
             foreach (var photoId in photoIds)
             {
@@ -70,10 +70,16 @@ public class AtomFeedGenerator(
                 itemDescription.Append($"""
 <div><a title="Taken: {photo.DateTaken}" href="{baseUri}/gallery/{photo.PhotoId}/{photo.Filename}" target="_blank"><img src="{baseUri}/photo/thumbnail/{ThumbnailSize.Large}/{photo.PhotoId}/{photo.Filename}" width="{ThumbnailSize.Large.ToSize().Width}" height="{ThumbnailSize.Large.ToSize().Height}" /></a>
 <div>{(photo.DateTaken ?? photo.CreatedDateTime).ToString("dd MMM yyyy @ HH:mm")}</div>
-</div>
 """);
+                if (photo.Latitude != null && photo.Longitude != null)
+                {
+                    itemDescription.Append($"""
+<div>Location: <a href="https://www.openstreetmap.org/?mlat={photo.Latitude}&mlon={photo.Longitude}&zoom=15" target="_blank">{GetGeoLocation(photo)}</a></div>
+""");
+                }
+                itemDescription.Append("</div>");
             }
-            itemDescription.Append("</p>");
+            itemDescription.Append("</p></p>");
         }
     }
 
@@ -86,6 +92,26 @@ public class AtomFeedGenerator(
         if (userFeedDetails.ReminiscePhotoIds.Length > 0)
             return "Reminisce photos";
         return "";
+    }
+
+    private static string GetGeoLocation(Photo photo)
+    {
+        if (photo.Latitude == null || photo.Longitude == null)
+            return "";
+
+        if (string.IsNullOrEmpty(photo.GeoLocality) && string.IsNullOrEmpty(photo.GeoCity) &&
+            string.IsNullOrEmpty(photo.GeoPrincipalSubdivision) && string.IsNullOrEmpty(photo.GeoCountryName))
+        {
+            return $"({photo.Latitude.Value:N4}, {photo.Longitude.Value:N4})";
+        }
+
+        if (!string.IsNullOrEmpty(photo.GeoLocality))
+            return photo.GeoLocality;
+        if (!string.IsNullOrEmpty(photo.GeoCity))
+            return photo.GeoCity;
+        if (!string.IsNullOrEmpty(photo.GeoPrincipalSubdivision))
+            return photo.GeoPrincipalSubdivision;
+        return photo.GeoCountryName ?? "";
     }
 
     private static string ToXmlString(XDocument xml)

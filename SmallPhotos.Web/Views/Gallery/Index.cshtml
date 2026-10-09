@@ -193,7 +193,7 @@
         <div>Size: @Model.Photo.SizeInfo</div>
         <div>Taken: @Model.Photo.DateTaken</div>
         @if (Model.Photo.HasGeoCoordinates) {
-        <div>Location: <a href="https://www.openstreetmap.org/?mlat=@Model.Photo.GeoLatitude&mlon=@Model.Photo.GeoLongitude&zoom=15" target="_blank">@Model.Photo.GeoLocation</a></div>
+        <div>Location: <a href="https://www.openstreetmap.org/?mlat=@Model.Photo.GeoLatitude&mlon=@Model.Photo.GeoLongitude&zoom=15" title="View on OpenStreetMap: @Model.Photo.GeoLocationFull" target="_blank">@Model.Photo.GeoLocation</a></div>
         }
         <div>File time: @Model.Photo.FileCreationDate</div>
         <div>Starred: @(Model.Photo.IsStarred ? "yes" : "no")</div>
