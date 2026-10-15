@@ -57,7 +57,7 @@ public class GalleryPageTest
         using var response = await client.GetAsync("/");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var responseContent = await response.Content.ReadAsStringAsync();
-        responseContent.Should().NotContain("""<div class="thumbnail-details" title="Taken: 16:41 on 23 March 2025">23 Mar 2025 @ 16:41</div>""");
+        responseContent.Should().NotContain("""<div class="thumbnail-details" title="Taken: 16:41 on Sunday 23 March 2025">Sun 23 Mar 2025 @ 16:41</div>""");
     }
 
     [TestMethod]
@@ -68,7 +68,7 @@ public class GalleryPageTest
         using var response = await client.GetAsync("/");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var responseContent = await response.Content.ReadAsStringAsync();
-        responseContent.Should().Contain("""<div class="thumbnail-details" title="Taken: 16:41 on 23 March 2025">23 Mar 2025 @ 16:41</div>""", Exactly.Once());
+        responseContent.Should().Contain("""<div class="thumbnail-details" title="Taken: 16:41 on Sunday 23 March 2025">Sun 23 Mar 2025 @ 16:41</div>""", Exactly.Once());
 
         async Task ConfigureAccountToShowDetailsAsync()
         {

@@ -68,8 +68,8 @@ public class AtomFeedGenerator(
                 }
 
                 itemDescription.Append($"""
-<div style="margin-bottom: 15px;"><a title="Taken: {photo.DateTaken}" href="{baseUri}/gallery/{photo.PhotoId}/{photo.Filename}" target="_blank"><img src="{baseUri}/photo/thumbnail/{ThumbnailSize.Large}/{photo.PhotoId}/{photo.Filename}" width="{ThumbnailSize.Large.ToSize().Width}" height="{ThumbnailSize.Large.ToSize().Height}" /></a>
-<div>{(photo.DateTaken ?? photo.CreatedDateTime).ToString("dd MMM yyyy @ HH:mm")}</div>
+<div style="margin-bottom: 15px;"><a title="Taken: {(photo.DateTaken ?? photo.CreatedDateTime).ToString("HH:mm' on 'dddd dd MMMM yyyy")}" href="{baseUri}/gallery/{photo.PhotoId}/{photo.Filename}" target="_blank"><img src="{baseUri}/photo/thumbnail/{ThumbnailSize.Large}/{photo.PhotoId}/{photo.Filename}" width="{ThumbnailSize.Large.ToSize().Width}" height="{ThumbnailSize.Large.ToSize().Height}" /></a>
+<div>{(photo.DateTaken ?? photo.CreatedDateTime).ToString("ddd dd MMM yyyy @ HH:mm")}</div>
 """);
                 if (photo.Latitude != null && photo.Longitude != null)
                 {

@@ -7,8 +7,8 @@ public class PhotoModel(long photoId, string source, bool isDropboxSource, strin
     bool isStarred, IEnumerable<string> tags, double? latitude, double? longitude,
     string? geoLocality, string? geoCity, string? geoPrincipal, string? geoCountry)
 {
-    private const string _dateFormat = "HH:mm' on 'dd MMMM yyyy";
-    private const string _dateFormatShort = "dd MMM yyyy @ HH:mm";
+    private const string _dateFormat = "HH:mm' on 'dddd dd MMMM yyyy";
+    private const string _dateFormatShort = "ddd dd MMM yyyy @ HH:mm";
 
     public long PhotoId { get; } = photoId;
     public string Source { get; } = source;
