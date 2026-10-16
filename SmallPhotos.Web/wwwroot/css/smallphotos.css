@@ -259,6 +259,31 @@ input.filter-date {
     background-color: #f86bff !important;
 }
 
+.photo-detail-map {
+    height: 400px;
+    width: 100%;
+}
+
+.leaflet-container span,
+.leaflet-container a,
+.leaflet-container a:link,
+.leaflet-container a:visited {
+    color: black;
+}
+
+.leaflet-popup-close-button {
+    display: none;
+}
+
+.leaflet-label-overlay {
+    line-height: 0px;
+    margin-top: 9px;
+    position: absolute;
+}
+
+.leaflet-container.crosshair-cursor-enabled {
+    cursor: pointer;
+}
 
 @media (max-width: 600px) {
     header {

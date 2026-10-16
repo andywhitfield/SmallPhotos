@@ -1,6 +1,11 @@
 ﻿@model SmallPhotos.Web.Model.Gallery.IndexViewModel
 
+@section HeaderScripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css">
+}
+
 @section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
 <script type="text/javascript">
     $(function() {
         $(window).on('resize', fullSizeImage);
@@ -65,6 +70,33 @@
             console.log('details open / closed: '+wasOpen);
             simpleStorage.set('show-image-details', !wasOpen);
         });
+
+        @if (Model.Photo.HasGeoCoordinates) {
+        <text>
+        const mapContainer = $('#map');
+        const map = L.map('map');
+        L.DomUtil.addClass(map._container,'crosshair-cursor-enabled');
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+        map.setView([@(Model.Photo.GeoLatitude), @(Model.Photo.GeoLongitude)], 15);
+        L.marker([@(Model.Photo.GeoLatitude), @(Model.Photo.GeoLongitude)], {
+            alt: 'Photo location',
+            title: 'Photo location',
+            icon: L.icon({ iconUrl: '/photo/thumbnail/small/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)', iconSize: [50, 50] })
+        }).addTo(map);
+
+        mapContainer.hide();
+        const hideShowMapButton = $('#photo-detail-map-hide-show');
+        hideShowMapButton.click(function() {
+            mapContainer.toggle();
+            let mapIsVisible = mapContainer.is(':visible');
+            hideShowMapButton.contents().replaceWith(mapIsVisible ? '-' : '+');
+            hideShowMapButton.attr('title', mapIsVisible ? 'Hide map' : 'Show photo location on a map');
+        });
+        </text>
+        }
     });
 
     function addTag() {
@@ -193,7 +225,8 @@
         <div>Size: @Model.Photo.SizeInfo</div>
         <div>Taken: @Model.Photo.DateTaken</div>
         @if (Model.Photo.HasGeoCoordinates) {
-        <div>Location: <a href="https://www.openstreetmap.org/?mlat=@Model.Photo.GeoLatitude&mlon=@Model.Photo.GeoLongitude&zoom=15" title="View on OpenStreetMap: @Model.Photo.GeoLocationFull" target="_blank">@Model.Photo.GeoLocation</a></div>
+        <div>Location: <a href="https://www.openstreetmap.org/?mlat=@Model.Photo.GeoLatitude&mlon=@Model.Photo.GeoLongitude&zoom=15" title="Show photo location on OpenStreetMap: @Model.Photo.GeoLocationFull" target="_blank">@Model.Photo.GeoLocation</a> <button id="photo-detail-map-hide-show" title="Show photo location on a map">+</button></div>
+        <div id="map" class="photo-detail-map"></div>
         }
         <div>File time: @Model.Photo.FileCreationDate</div>
         <div>Starred: @(Model.Photo.IsStarred ? "yes" : "no")</div>
