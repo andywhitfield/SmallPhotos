@@ -140,6 +140,20 @@ footer {
     font-size: 10pt;
 }
 
+form[name='photos-on-map'] {
+    display: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+form[name='photos-on-map'] button {
+    margin: 0px;
+    padding: 0px;
+    background-color: transparent;
+    border: 0;
+    cursor: pointer;
+}
+
 .thumbnails {
     display: flex;
     flex-wrap: wrap;
