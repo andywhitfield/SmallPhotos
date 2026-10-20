@@ -5,7 +5,7 @@
 <article>
     @if (Model.Photos.Any()) {
         <div><span>Reminisce: Photos from years gone by</span>
-        <partial name="~/Views/Shared/_PhotosOnMapForm.cshtml" />
+        <partial name="~/Views/Shared/_PhotosOnMapForm.cshtml" model="@Model.CurrentView" />
         </div>
 
         <div class="thumbnails">

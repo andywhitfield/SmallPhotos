@@ -17,6 +17,7 @@ public class PhotoController(
     : ControllerBase
 {
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<ActionResult<Photo>> Post(CreateOrUpdatePhotoRequest request)
     {
         var userAccount = await userAccountRepository.GetAsync(request.UserAccountId);
@@ -119,7 +120,7 @@ public class PhotoController(
 
         if (referenceTagValue == referenceTagNegateValue)
             decimalDegrees = -decimalDegrees;
-        
+
         return decimalDegrees;
     }
 }
