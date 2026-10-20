@@ -24,9 +24,6 @@ public class MapController(IMediator mediator)
         if (!response.IsUserValid)
             return Redirect("~/signin");
 
-        if (!response.Photos.Any())
-            return BadRequest();
-
         return View(new IndexViewModel(HttpContext, response.Photos, selectedView.Value));
     }
 }

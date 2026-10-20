@@ -18,6 +18,16 @@ public class PhotoRepository(ILogger<PhotoRepository> logger, TimeProvider timeP
                 p.AlbumSource.DeletedDateTime == null &&
                 p.DeletedDateTime == null);
 
+    public IQueryable<Photo> GetAsync(UserAccount user, IEnumerable<long> photoIds)
+        => context
+            .Photos
+            .Include(p => p.AlbumSource)
+            .Where(p =>
+                photoIds.Contains(p.PhotoId) &&
+                p.AlbumSource!.UserAccountId == user.UserAccountId &&
+                p.AlbumSource.DeletedDateTime == null &&
+                p.DeletedDateTime == null);
+
     public Task<Photo?> GetAsync(UserAccount user, AlbumSource album, string? filename, string? filepath) =>
         context
             .Photos!

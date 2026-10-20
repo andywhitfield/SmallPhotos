@@ -1,9 +1,38 @@
 ﻿@model SmallPhotos.Web.Model.Map.IndexViewModel
 
+@section HeaderScripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css">
+}
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+<script type="text/javascript">
+    $(function() {
+        const map = L.map('map');
+        L.DomUtil.addClass(map._container, 'crosshair-cursor-enabled');
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+        map.setView([0,0], 15);
+        @*
+        map.setView([lat, lon], 15);
+        L.marker([@(Model.Photo.GeoLatitude), @(Model.Photo.GeoLongitude)], {
+            alt: 'Photo location',
+            title: 'Photo location',
+            icon: L.icon({ iconUrl: '/photo/thumbnail/small/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)', iconSize: [50, 50] })
+        }).addTo(map);
+        *@
+    });
+</script>
+}
+
 @await Component.InvokeAsync("Navigation")
 
 <article>
-    <p>
-        TODO - show the photos on a map
-    </p>
+    @if (Model.Photos.Any()) {
+    <div id="map" class="photos-map"></div>
+    } else {
+    <div>None of the selected photos have location details.</div>
+    }
 </article>

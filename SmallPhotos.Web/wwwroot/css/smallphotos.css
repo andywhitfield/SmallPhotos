@@ -278,6 +278,12 @@ input.filter-date {
     width: 100%;
 }
 
+.photos-map {
+    width: 100%;
+    min-height: 300px;
+    height: calc(100vh - 160px);
+}
+
 .leaflet-container span,
 .leaflet-container a,
 .leaflet-container a:link,

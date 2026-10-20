@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using SmallPhotos.Data;
 using SmallPhotos.Web.Handlers.Models;
 using SmallPhotos.Web.Model;
@@ -20,6 +21,15 @@ public class MapPageRequestHandler(
             return new(false, []);
         }
 
-        return new(true, [default(PhotoModel)]);
+        var photos = await photoRepository.GetAsync(user,
+            request.PhotoIds
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(id => long.TryParse(id, out var l) ? l : default(long?))
+                .Where(id => id != null)
+                .Select(id => id!.Value)).ToListAsync();
+        return new(true, photos.Select(p => new PhotoModel(p.PhotoId, "", default, p.Filename ?? "",
+            p.RelativePath ?? "", default, p.DateTaken ?? p.FileCreationDateTime, p.FileCreationDateTime,
+            false, Array.Empty<string>(), p.Latitude, p.Longitude, p.GeoLocality, p.GeoCity,
+            p.GeoPrincipalSubdivision, p.GeoCountryName)));
     }
 }
