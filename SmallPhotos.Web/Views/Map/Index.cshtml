@@ -14,15 +14,25 @@
             maxZoom: 19,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
-        map.setView([0,0], 15);
-        @*
-        map.setView([lat, lon], 15);
-        L.marker([@(Model.Photo.GeoLatitude), @(Model.Photo.GeoLongitude)], {
-            alt: 'Photo location',
-            title: 'Photo location',
-            icon: L.icon({ iconUrl: '/photo/thumbnail/small/@(Model.Photo.PhotoId)/@(Model.Photo.Filename)', iconSize: [50, 50] })
-        }).addTo(map);
-        *@
+        
+        const mapPoints = [];
+        @foreach (var photo in Model.Photos) {
+        <text>
+        mapPoints.push([@(photo.GeoLatitude), @(photo.GeoLongitude)]);
+        L.marker([@(photo.GeoLatitude), @(photo.GeoLongitude)], {
+            alt: 'Taken: @photo.DateTaken',
+            title: 'Taken: @photo.DateTaken',
+            icon: L.icon({ iconUrl: '/photo/thumbnail/small/@(photo.PhotoId)/@(photo.Filename)', iconSize: [50, 50] })
+        })
+        .addTo(map)
+        .bindPopup(
+            'File: <a href="/gallery/@(photo.PhotoId)/@(photo.Filename)" title="View photo" target="_blank">@photo.Filename</a><br/>'+
+            'Taken: @photo.DateTaken<br/>'+
+            'Location: <a href="https://www.openstreetmap.org/?mlat=@photo.GeoLatitude&mlon=@photo.GeoLongitude&zoom=15" title="Show photo location on OpenStreetMap: @photo.GeoLocationFull" target="_blank">@photo.GeoLocation</a>'
+        );
+        </text>
+        }
+        map.fitBounds(L.latLngBounds(mapPoints));
     });
 </script>
 }
