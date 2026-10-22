@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,8 +12,11 @@ public class GalleryController(IMediator mediator)
     : Controller
 {
     [HttpGet("~/gallery/{photoId}/{photoFilename}")]
-    public async Task<IActionResult> Index(string photoId, string photoFilename, [FromQuery] string? from)
+    public async Task<IActionResult> Index([Required] string photoId, [Required] string photoFilename, [FromQuery] string? from)
     {
+        if (!ModelState.IsValid)
+            return BadRequest();
+
         if (!long.TryParse(photoId, out var photoIdValue))
             return NotFound();
 

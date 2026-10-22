@@ -1,11 +1,8 @@
-using System;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using SmallPhotos.Web.Handlers.Models;
 
 namespace SmallPhotos.Web.Controllers;
@@ -15,8 +12,11 @@ public class PhotoController(ILogger<PhotoController> logger, IMediator mediator
     : Controller
 {
     [HttpGet("~/photo/thumbnail/{size}/{photoId}/{filename}"), HttpHead("~/photo/thumbnail/{size}/{photoId}/{filename}")]
-    public async Task<IActionResult> Thumbnail(string size, string photoId, string filename)
+    public async Task<IActionResult> Thumbnail([Required] string size, [Required] string photoId, [Required] string filename)
     {
+        if (!ModelState.IsValid)
+            return BadRequest();
+
         if (!long.TryParse(photoId, out var photoIdValue))
             return NotFound();
 
@@ -25,13 +25,16 @@ public class PhotoController(ILogger<PhotoController> logger, IMediator mediator
     }
 
     [HttpGet("~/photo/{photoId}/{filename}"), HttpHead("~/photo/{photoId}/{filename}")]
-    public Task<IActionResult> Photo(string photoId, string filename) => Photo(photoId, filename, false);
+    public Task<IActionResult> Photo([Required] string photoId, [Required] string filename) => Photo(photoId, filename, false);
 
     [HttpGet("~/photo/original/{photoId}/{filename}"), HttpHead("~/photo/original/{photoId}/{filename}")]
-    public Task<IActionResult> Original(string photoId, string filename) => Photo(photoId, filename, true);
+    public Task<IActionResult> Original([Required] string photoId, [Required] string filename) => Photo(photoId, filename, true);
 
     private async Task<IActionResult> Photo(string photoId, string filename, bool original)
     {
+        if (!ModelState.IsValid)
+            return BadRequest();
+
         if (!long.TryParse(photoId, out var photoIdValue))
             return NotFound();
 
@@ -46,7 +49,7 @@ public class PhotoController(ILogger<PhotoController> logger, IMediator mediator
 
         if (Request.Headers.IfNoneMatch.ToString() == response.ImageETag)
             return StatusCode(StatusCodes.Status304NotModified);
-        
+
         if (DateTime.TryParseExact(Request.Headers.IfModifiedSince.ToString(), "r", null, DateTimeStyles.RoundtripKind, out var ifModifiedSince) &&
             response.ImageLastModified <= ifModifiedSince)
             return StatusCode(StatusCodes.Status304NotModified);

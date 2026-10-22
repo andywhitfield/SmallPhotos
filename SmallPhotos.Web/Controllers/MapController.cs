@@ -16,6 +16,9 @@ public class MapController(IMediator mediator)
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Index([FromForm, Required] string view, [FromForm, Required] string photoIds)
     {
+        if (!ModelState.IsValid)
+            return BadRequest();
+
         var selectedView = Enum.TryParse<SelectedView>(view, out var v) ? v : default(SelectedView?);
         if (selectedView == null)
             return BadRequest();

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +16,12 @@ public class TaggedController(IMediator mediator) : Controller
         View(new IndexViewModel(HttpContext, await mediator.Send(new TaggedPhotoHomeRequest(User))));
 
     [HttpGet("~/tagged/{tag}")]
-    public async Task<IActionResult> PhotosWithTag(string tag, [FromQuery] int? photoId = null,
+    public async Task<IActionResult> PhotosWithTag([Required] string tag, [FromQuery] int? photoId = null,
         [FromQuery] int? pageNumber = null, [FromQuery] string? fromDate = null, [FromQuery] string? toDate = null)
     {
+        if (!ModelState.IsValid)
+            return BadRequest();
+
         var response = await mediator.Send(new HomePageRequest(User, pageNumber ?? 1, photoId, withTag: tag,
             fromDate: fromDate, toDate: toDate));
         if (!response.IsUserValid)

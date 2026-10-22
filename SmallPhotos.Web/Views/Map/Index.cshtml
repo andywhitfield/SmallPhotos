@@ -6,6 +6,7 @@
 
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+@if (Model.Photos.Any()) {
 <script type="text/javascript">
     $(function() {
         const map = L.map('map');
@@ -35,6 +36,7 @@
         map.fitBounds(L.latLngBounds(mapPoints));
     });
 </script>
+}
 }
 
 @await Component.InvokeAsync("Navigation")

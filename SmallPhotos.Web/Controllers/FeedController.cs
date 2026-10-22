@@ -28,6 +28,9 @@ public class FeedController(
     [HttpGet("{feedIdentifier}")]
     public async Task<IActionResult> Index([FromRoute, Required] string feedIdentifier)
     {
+        if (!ModelState.IsValid)
+            return BadRequest();
+
         var userFeed = await userFeedRepository.FindByIdentifierAsync(feedIdentifier);
         if (userFeed == null)
         {

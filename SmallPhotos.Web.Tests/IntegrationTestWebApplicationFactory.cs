@@ -43,6 +43,15 @@ public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Startu
         return client;
     }
 
+    public static string GetFormValidationToken(string responseContent, string formAction)
+    {
+        var validationToken = responseContent[responseContent.IndexOf($"action=\"{formAction}\"")..];
+        validationToken = validationToken[validationToken.IndexOf("__RequestVerificationToken")..];
+        validationToken = validationToken[(validationToken.IndexOf("value=\"") + 7)..];
+        validationToken = validationToken[..validationToken.IndexOf('"')];
+        return validationToken;
+    }
+
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
