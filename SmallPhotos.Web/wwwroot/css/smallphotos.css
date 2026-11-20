@@ -180,6 +180,7 @@ form[name='photos-on-map'] button {
 }
 
 .thumbnails>div:hover .star,
+.thumbnails>div:hover .photo-select,
 .starred {
     display: inline;
 }
@@ -190,6 +191,16 @@ form[name='photos-on-map'] button {
     filter: brightness(1);
     -webkit-filter: brightness(1);
     opacity: 1;
+}
+
+.photo-select {
+    float: right;
+    position: absolute;
+    display: none;
+}
+
+.photo-select-checkbox {
+    transform: scale(1.4, 1.4);
 }
 
 .pagination {
@@ -282,6 +293,43 @@ input.filter-date {
     width: 100%;
     min-height: 300px;
     height: calc(100vh - 160px);
+}
+
+.photo-select-menu {
+    float: right;
+}
+
+.photo-select-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.photo-select-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    width: 100px;
+    overflow: auto;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.photo-select-dropdown-content a,
+.photo-select-dropdown-content a:link,
+.photo-select-dropdown-content a:visited {
+    color: black;
+    padding: 5px;
+    text-decoration: none;
+    display: block;
+}
+
+.photo-select-dropdown a:hover {
+    background-color: #6be1ff;
+    color: white;
+}
+
+.photo-select-visible {
+    display: inline;
 }
 
 .leaflet-container span,

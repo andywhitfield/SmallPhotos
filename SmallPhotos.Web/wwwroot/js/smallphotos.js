@@ -110,6 +110,13 @@ function smpInitialise() {
         if (filterButton.attr('data-filter-applied') === 'true')
             $('span.filter-date-controls').show();
     }
+
+    $('.photo-select-dropdown-btn').on('click', onPhotoSelectMenuOpen);
+    $('input.photo-select-checkbox[type="checkbox"]').on('click', onPhotoSelected);
+    $('.photo-select-dropdown-content-select-all').on('click', photoSelectAll);
+    $('.photo-select-dropdown-content-select-none').on('click', photoSelectNone);
+    $('.photo-select-dropdown-content-star').on('click', photoSelectStar);
+    $('.photo-select-dropdown-content-unstar').on('click', photoSelectUnstar);
 }
 
 function fullSizeImage() {
@@ -129,6 +136,56 @@ function fullSizeImage() {
         fullImg.css('max-height', '');
         fullImg.css('max-width', '');
     }
+}
+
+function onPhotoSelectMenuOpen() {
+    let selectCount = $('input.photo-select-checkbox[type="checkbox"]:checked').length;
+    if (selectCount > 0) {
+        console.debug('showing menu for selected photos');
+        $('.photo-select-dropdown-content').show();
+        return;
+    }
+
+    let photoSelector = $('.photo-select');
+    if (photoSelector.hasClass('photo-select-visible'))
+        photoSelector.removeClass('photo-select-visible');
+    else
+        photoSelector.addClass('photo-select-visible');
+}
+
+function onPhotoSelected() {
+    let selectCount = $('input.photo-select-checkbox[type="checkbox"]:checked').length;
+    let photoSelector = $('.photo-select');
+    if (!photoSelector.hasClass('photo-select-visible'))
+        photoSelector.addClass('photo-select-visible');
+    
+    $('button.photo-select-dropdown-btn').html('&#10003;' + (selectCount == 0 ? '' : (' ' + selectCount + ' selected')));
+}
+
+function photoSelectAll() {
+    $('input.photo-select-checkbox[type="checkbox"]').prop('checked', true);
+    onPhotoSelected();
+}
+
+function photoSelectNone() {
+    $('input.photo-select-checkbox[type="checkbox"]').prop('checked', false);
+    onPhotoSelected();
+}
+
+function photoSelectStar() {
+    $('input.photo-select-checkbox[type="checkbox"]:checked').each(function() {
+        let selectedPhotoId = $(this).attr('data-photoid');
+        console.debug('setting photo ' + selectedPhotoId + ' as starred');
+        $('[data-starred][data-photoid="'+selectedPhotoId+'"][data-starred="false" i]').trigger('click');
+    });
+}
+
+function photoSelectUnstar() {
+    $('input.photo-select-checkbox[type="checkbox"]:checked').each(function() {
+        let selectedPhotoId = $(this).attr('data-photoid');
+        console.debug('setting photo ' + selectedPhotoId + ' as unstarred');
+        $('[data-starred][data-photoid="'+selectedPhotoId+'"][data-starred="true" i]').trigger('click');
+    });
 }
 
 coerceToArrayBuffer = function (thing, name) {

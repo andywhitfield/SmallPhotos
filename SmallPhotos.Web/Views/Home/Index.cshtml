@@ -4,6 +4,22 @@
 
 <article>
     @if (Model.Photos.Any()) {
+        <div class="photo-select-menu">
+            <div class="photo-select-dropdown">
+                <button class="photo-select-dropdown-btn" title="Select photos">&#10003;</button>
+                <div class="photo-select-dropdown-content">
+                    <a href="#" class="photo-select-dropdown-content-select-all">Select all</a>
+                    <a href="#" class="photo-select-dropdown-content-select-none">Select none</a>
+                    <hr />
+                    <a href="#" class="photo-select-dropdown-content-star" title="Star the selected photos">Star</a>
+                    <a href="#" class="photo-select-dropdown-content-unstar" title="Unstar the selected photos">Unstar</a>
+                    <!--
+                    TODO:
+                    <a href="#" class="photo-select-dropdown-content-tag">Tag</a>
+                    -->
+                </div>
+            </div>
+        </div>
         <div><span>@Model.ImageDateRange</span>
         @if (Model.FilterDateEnabled) {
             <a id="filter-date-button" title="Filter by date">&#128197;</a> <span class="filter-date-controls"><input type="text" name="fromdate" readonly value="@Model.FilterDateFrom" class="filter-date" /> - <input type="text" name="todate" readonly value="@Model.FilterDateTo" class="filter-date" /> <button id="filter-date-apply" data-mindate="@Model.FilterDateMin" data-maxdate="@Model.FilterDateMax" data-filter-applied="@(string.IsNullOrEmpty(Model.FilterDateUrlPart) ? "" : "true")">Apply</button></span>
@@ -36,6 +52,7 @@
         @foreach(var photo in Model.Photos) {
             <div>
                 <a title="Taken: @photo.DateTaken" href="/gallery/@(photo.PhotoId)/@(photo.Filename)" name="@(photo.PhotoId).@(photo.Filename)"><img src="/photo/thumbnail/@(Model.ThumbnailSize)/@(photo.PhotoId)/@(photo.Filename)" width="@(photo.Size.Width)" height="@(photo.Size.Height)" loading="lazy" class="photo" /></a>
+                <div class="photo-select" data-photoid="@photo.PhotoId" title="Click to select this photo"><input type="checkbox" class="photo-select-checkbox" data-photoid="@photo.PhotoId" /></div>
                 <div class="star-off star" data-photoid="@photo.PhotoId" data-starred="@photo.IsStarred" title="Click to star this photo"><img src="/images/star.png" width="24" height="24" alt="star" loading="lazy" /></div>
                 @if (Model.ShowDetails) {
                 <div class="thumbnail-details" title="Taken: @photo.DateTaken">@photo.DateTakenShort</div>
@@ -84,3 +101,12 @@
         </p>
     }
 </article>
+
+@section Scripts {
+<script type="text/javascript">
+    window.onclick = function(event) {
+        if (event.target.className !== 'photo-select-dropdown-btn')
+            $('.photo-select-dropdown-content').hide();
+    }
+</script>
+}
