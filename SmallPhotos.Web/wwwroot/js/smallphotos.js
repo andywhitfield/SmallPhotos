@@ -117,6 +117,7 @@ function smpInitialise() {
     $('.photo-select-dropdown-content-select-none').on('click', photoSelectNone);
     $('.photo-select-dropdown-content-star').on('click', photoSelectStar);
     $('.photo-select-dropdown-content-unstar').on('click', photoSelectUnstar);
+    $('.photo-select-dropdown-content-tag').on('click', photoSelectTag);
 }
 
 function fullSizeImage() {
@@ -186,6 +187,20 @@ function photoSelectUnstar() {
         console.debug('setting photo ' + selectedPhotoId + ' as unstarred');
         $('[data-starred][data-photoid="'+selectedPhotoId+'"][data-starred="true" i]').trigger('click');
     });
+}
+
+function photoSelectTag() {
+    let tag = window.prompt('Enter the tag to add to the selected photos:');
+    if (!tag)
+        return;
+
+    $('input.photo-select-checkbox[type="checkbox"]:checked').each(function() {
+        let selectedPhotoId = $(this).attr('data-photoid');
+        let uri = '/api/photoapi/tag/' + selectedPhotoId;
+        console.debug('adding tag to photo ' + selectedPhotoId + ': ' + tag);
+        $.ajax({url:uri, type:'POST', data: JSON.stringify({tag:tag}), contentType:'application/json; charset=utf-8', dataType:'json'});
+    });
+    window.alert('Tag added successfully');
 }
 
 coerceToArrayBuffer = function (thing, name) {
